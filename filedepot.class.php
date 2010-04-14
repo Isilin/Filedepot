@@ -417,7 +417,10 @@ class filedepot {
 
     db_query("INSERT INTO {filedepot_categories} (pid,name,description,folderorder,nid,vid) VALUES (%d,'%s','%s',%d,%d,%d)",
     $node->parentfolder, $node->title, $node->folderdesc, $maxorder, $node->nid, $node->vid);
-
+    
+    // Need to clear the cached user folder permissions
+    db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+    
     // Retrieve the folder id (category id) for the new folder
     $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
     if ($cid > 0 AND $this->createStorageFolder($cid)) {

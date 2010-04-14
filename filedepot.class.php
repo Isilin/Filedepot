@@ -510,6 +510,7 @@ class filedepot {
         $catdir = $this->root_storage_path . $cid;
         if (file_exists($catdir)) {
           @unlink($this->root_storage_path . "$cid/.htaccess");
+          @rmdir("{$catdir}/submissions");
           @rmdir($catdir);
         }            
       }

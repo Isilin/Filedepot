@@ -37,7 +37,7 @@ function filedepotAjaxServer_getfilelisting() {
       if ($pid > 0) {
         $count1 = db_result(db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=%d", $user->uid));
         if ($count1 > 4) {
-          db_query_range("DELETE FROM {filedepot_recentfolders} WHERE uid=%d ORDER BY id ASC ", array($user->uid), 0, 1);
+          db_query("DELETE FROM {filedepot_recentfolders} WHERE uid=%d ORDER BY id ASC LIMIT %d", $user->uid, $count1 - 4);
         }
         $count2 = db_result(db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=%d AND cid=%d", $user->uid, $filedepot->cid));
         if ($count2 == 0) {

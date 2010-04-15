@@ -514,8 +514,8 @@ function filedepot_delTree($dir) {
       delTree( $file );
     } 
     else {
-      unlink( $file );
+      @unlink( $file );
     }
   }
-  if (is_dir($dir)) rmdir( $dir );
+  if (is_dir($dir)) @rmdir( $dir );
 }

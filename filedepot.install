@@ -22,10 +22,11 @@ function filedepot_install() {
  */
 function filedepot_uninstall() {
   global $filedepot, $base_path;
-
+  
+  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';    
   $query = db_query("SELECT nid FROM {filedepot_categories} WHERE pid=0");
   while ($A = db_fetch_array($query)) {
-    node_delete($A['nid']);
+    $filedepot->deleteFolder($A['nid']);
   }
 
   $sitepath = dirname(realpath($_SERVER['SCRIPT_FILENAME']));
@@ -36,6 +37,10 @@ function filedepot_uninstall() {
   if (@is_dir($filedepot->tmp_storage_path) === TRUE) {
     filedepot_delTree($filedepot->tmp_storage_path);
   }
+  
+  if (@is_dir($filedepot->root_storage_path) === TRUE) {
+    filedepot_delTree($filedepot->root_storage_path);
+  }  
 
   drupal_uninstall_schema('filedepot');
 

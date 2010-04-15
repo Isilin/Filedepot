@@ -460,8 +460,7 @@ class filedepot {
             }
           }
         }
-      }
-      drupal_set_message(t('New Folder !foldername created',array('!foldername' => filter_xss($node->title))), 'warning');      
+      }  
       return TRUE;  
     } 
     else {

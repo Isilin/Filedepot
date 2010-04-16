@@ -1788,9 +1788,9 @@ function onUploadResponse(o) {
     }
   } else {
     try {
-      if (oResults.message != '') {
+      if (oResults.message !== undefined) {
         showAlert(oResults.message);
-      } else if (oResults.error != '') {
+      } else if (oResults.error !== undefined) {
         showAlert(oResults.error);
       }
     } catch (e) {}

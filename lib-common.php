@@ -47,7 +47,7 @@ function filedepot_recursiveAccessArray($perms, $id=0, $level=1) {
           $options_tree[$cid] = $indent . $name;
           $options_tree += filedepot_recursiveAccessArray($perms, $cid, $level+1);
         } 
-        elseif ($perms == 'admin') {
+        else {
           // Need to check for any folders with admin even subfolders of parents that user does not have access
           $options_tree += filedepot_recursiveAccessArray($perms, $cid, $level+1);
         }
@@ -116,7 +116,7 @@ function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level=
           }
           $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1);
         } 
-        elseif ($perms == 'admin') {
+        else {
           // Need to check for any folders with admin even subfolders of parents that user does not have access
           $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1);
         }

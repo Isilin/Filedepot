@@ -395,6 +395,14 @@ class filedepot {
 
   public function createFolder($node) {
     global $user;
+    
+    if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
+      return FALSE;
+    }
+    
+    if ($node->parentfolder > 0 AND $this->checkPermission($node->parentfolder,'admin') === FALSE) {
+      return FALSE;
+    }
 
     if (variable_get('filedepot_content_type_initialized', FALSE) === FALSE) {
       require_once './' . drupal_get_path('module', 'filedepot') .  '/ccknodedef.inc';

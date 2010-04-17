@@ -85,6 +85,7 @@ function filedepot_recursiveAccessArray($perms, $id=0, $level=1) {
 function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level='1') {
   global $filedepot;
 
+  $selectlist = '';
   if ($level == 1 AND user_access('administer filedepot')) {
     $selectlist = '<option value="0">' . t('Top Level Folder') . '</option>' . LB;
   }

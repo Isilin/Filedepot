@@ -907,6 +907,7 @@ function filedepot_client_upload() {
 
 function template_preprocess_filedepot_main_page(&$variables) {
   global $base_url, $user;
+  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';  
   
   $variables['yui_base_url'] = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $variables['title']                 = '';
@@ -935,9 +936,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['LANG_required'] = t('Required');  
   $variables['LANG_broadcast'] = t('Send out a Broadcast Notification');  
   $variables['LANG_broadcastmsg'] = t('Broadcast email will be sent to all site members that have view access to this folder alerting them. A link to this file will be included');
-  $variables['LANG_message'] = t('Message');    
-  $variables['LANG_newfolder'] = t('New Folder');    
-  $variables['LANG_upload'] = t('Upload');    
+  $variables['LANG_message'] = t('Message');
   $variables['LANG_searchtags'] = t('Search Tags');    
   $variables['LANG_filedetails'] = t('File Details');    
   $variables['LANG_download_menuitem'] = t('Download');    
@@ -964,7 +963,10 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['LANG_size'] = t('Size'); 
   $variables['LANG_folderpermsmsg'] = t('Folder Perms not set');    
   $variables['LANG_cancel'] = t('Cancel');    
-
+  
+  $variables['LANG_newfolder'] = t('New Folder');    
+  $variables['LANG_upload'] = t('Upload');  
+  
   if (!user_is_logged_in()) {
     $variables['alert_message']       = 'You are not Logged in';
     $variables['show_alert']          = '';
@@ -979,6 +981,19 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['session_id'] = db_result(db_query("SELECT sid FROM {sessions} WHERE uid = %d", $user->uid));
 
   $variables['tagcloud'] = theme('filedepot_tagcloud');
+  
+  $adminFolders = filedepot_recursiveAccessOptions('admin');   
+  $uploadFolders = filedepot_recursiveAccessOptions(array('upload','upload_dir'));   
+  if (empty($adminFolders)) {
+    $variables['show_newfolder'] = 'false';
+  } else {
+    $variables['show_newfolder'] = 'true';
+  }
+  if (empty($uploadFolders)) {  
+    $variables['show_upload'] = 'false';
+  } else {
+    $variables['show_upload'] = 'true';
+  }
 
 }
 

@@ -1214,7 +1214,7 @@ function makeAJAXGetFolderListing(cid) {
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
         Dom.get('activefolder_container').innerHTML = oResults.activefolder;
-        if (!Event.getListeners('newfilelink') && Dom.get('newfilelink')) {
+        if (show_upload && !Event.getListeners('newfilelink') && Dom.get('newfilelink')) {
           var oLinkNewFileButton = new YAHOO.widget.Button("newfilelink");
           Event.addListener("newfilelink", "click", showAddFilePanel);
         }

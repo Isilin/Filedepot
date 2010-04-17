@@ -53,12 +53,14 @@ var init_filedepot = function() {
   } catch(e) {}
 
   var oSearchButton = new YAHOO.widget.Button("searchbutton");
-
+  
   try {
-    Dom.setStyle('newfolderlink','display','');
-    var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
-    Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
-  } catch(e) {}
+    if (show_newfolder) {
+      Dom.setStyle('newfolderlink','display','');
+      var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
+      Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
+    }
+  } catch(e) {}  
 
   // User may not have upload rights
   try {
@@ -70,7 +72,7 @@ var init_filedepot = function() {
     uploader.addListener('uploadComplete',onUploadComplete);
     uploader.addListener('uploadCompleteData',onUploadResponse);
     document.getElementById('btnNewFileSubmit').disabled=true;
-    Dom.setStyle('newfilelink','display','');
+    if (show_upload) Dom.setStyle('newfilelink','display','');
   } catch(e) { 
     //alert(e.message);
     alert('failed to load uploader'); 
@@ -115,7 +117,7 @@ var init_filedepot = function() {
 
 
   // Setup the New Folder Dialog
-  Dom.setStyle('newfolderdialog', 'display', 'block');
+  if (show_newfolder) Dom.setStyle('newfolderdialog', 'display', 'block');
   YAHOO.container.newfolderdialog = new YAHOO.widget.Panel("newfolderdialog",
   { width : "450px",
     visible : false,
@@ -127,7 +129,7 @@ var init_filedepot = function() {
   YAHOO.container.newfolderdialog.render();
 
   // Setup the New File Dialog
-  Dom.setStyle('newfiledialog', 'display', 'block');
+  if (show_upload) Dom.setStyle('newfiledialog', 'display', 'block');
   YAHOO.container.newfiledialog = new YAHOO.widget.Panel("newfiledialog",
   { width : "520px",
     visible : false,
@@ -189,26 +191,14 @@ var init_filedepot = function() {
     }
   } catch(e) {}
 
+  
   try {
-    Dom.setStyle('newfolderlink','display','');
-    var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
-    Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
+    if (show_newfolder) {
+      Dom.setStyle('newfolderlink','display','');
+      var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
+      Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
+    }
   } catch(e) {}
-
-  try {
-    Dom.setStyle('contactslink','display','');
-    var oLinkButton2 = new YAHOO.widget.Button("contactslink");
-    //oLinkButton2.set('disabled',false);
-    Event.addListener("contactslink", "click", function(e) { YAHOO.filedepot.showReport('contacts');} );
-  } catch(e) {}
-
-  try {
-    Dom.setStyle('folderadmin','display','');
-    var oLinkButton3 = new YAHOO.widget.Button("folderadmin");
-    Event.addListener("folderadmin", "click", function(e) { document.location = actionurl_dir + '/admin.php?op=folderadmin&wkspace=' + workspace } );
-    Event.addListener("btnNewFolderCancel", "click", YAHOO.container.newfolderdialog.hide, YAHOO.container.newfolderdialog, true);
-  } catch(e) {}
-
 
   Event.addListener("filedetails_cancel", "click", hideFileDetailsPanel);
   Event.addListener("showsearchtags", "click", function(e) 

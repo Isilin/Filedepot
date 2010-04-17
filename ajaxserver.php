@@ -112,15 +112,20 @@ function filedepot_dispatcher($action) {
       'folderdesc'  => $_POST['catdesc'],
       'inherit'     => intval($_POST['catinherit'])
       );
-
-      node_save($node);
-      if ($node->nid) {
-        $data['displaycid'] = $filedepot->cid;
-        $data['retcode'] = 200;
-      } 
-      else {
-        $data['errmsg'] = 'Error creating Folder';
+      
+      if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
+        $data['errmsg'] = t('Error creating Folder - invalid parent folder');
         $data['retcode'] =  500;
+      } else {
+        node_save($node);
+        if ($node->nid) {
+          $data['displaycid'] = $filedepot->cid;
+          $data['retcode'] = 200;
+        } 
+        else {
+          $data['errmsg'] = t('Error creating Folder');
+          $data['retcode'] =  500;
+        }
       }
       break;
 

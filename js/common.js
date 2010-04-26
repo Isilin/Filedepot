@@ -1482,7 +1482,10 @@ function makeAJAXBroadcastNotification () {
         timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
       } else if (oResults.retcode == 204) {
         showAlert(NEXLANG_errormsg8);
-        YAHOO.container.broadcastDialog.hide();          
+        YAHOO.container.broadcastDialog.hide();
+      } else if (oResults.retcode == 205) {
+        showAlert(NEXLANG_errormsg9);
+        YAHOO.container.broadcastDialog.hide();                     
       } else {
         alert(NEXLANG_errormsg1);
         updateAjaxStatus();

@@ -88,8 +88,7 @@ function filedepot_dispatcher($action) {
       $retval .= '<displayhtml>' . htmlspecialchars(nexdocsrv_generateFileListing($cid, $level, $foldernumber), ENT_QUOTES, 'utf-8') . '</displayhtml>';
       $retval .= '</result>';
       firelogmsg("Completed generating AJAX return data - cid: {$cid}");
-      break;        
-
+      break;
 
     case 'rendernewfilefolderoptions':
       $cid = intval($_POST['cid']);
@@ -102,7 +101,6 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'createfolder':
-
       $node = (object) array(
       'uid' => $user->uid,
       'name' => $user->name,
@@ -928,7 +926,7 @@ function filedepot_dispatcher($action) {
     
     case 'broadcastalert':
       $data = array();
-      if (variable_get('filedepot_notifications_enabled', 1) == 0) { 
+      if (variable_get('filedepot_default_allow_broadcasts', 1) == 0) { 
         $data['retcode'] = 204;
       } 
       else {

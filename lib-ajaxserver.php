@@ -1105,14 +1105,14 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
     $uquery = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
     while ( $A = db_fetch_object($uquery)) {
       if ($A->uid != $user->uid) {
-        if (db_result(db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=%d", $A->uid) == 0))  {
+        if (db_result(db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=%d", $A->uid)) == 0)  {
           $personal_setting = FALSE;   // Found user setting to not be notified
         } 
         else {
           $personal_setting = TRUE;
         }
         // Only want to notify users that don't have setting disabled or exception record
-        if ($personal_setting == FALSE) {
+        if ($personal_setting == TRUE) {
           $target_users[] = $A->uid;
         }
       }
@@ -1120,7 +1120,7 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
 
   } 
   else {
-    $sql = "SELECT a.uid FROM {filedepot_usersettings} a, "
+    $sql = "SELECT a.uid FROM {filedepot_usersettings} a "
     . "LEFT JOIN {users} b on b.uid=a.uid "
     . "WHERE a.allow_broadcasts=1 and b.status=1";
     $uquery = db_query($sql);
@@ -1131,7 +1131,7 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
     }
   }
 
-  if (count($target_users > 0)) {
+  if (count($target_users) > 0) {
 
     /* Send out Notifications to all users on distribution
     * Use the Bcc feature of COM_mail (added June/2009)
@@ -1170,12 +1170,12 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
       $retval['count'] = count($distribution);
     } 
     else {
-      $retval['retcode'] = 500;     
+      $retval['retcode'] = 205;     
     }
 
   } 
   else {
-    $retval['retcode'] = 500;
+    $retval['retcode'] = 205;
   }
   return $retval;
 }

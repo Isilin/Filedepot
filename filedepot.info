@@ -1,8 +1,10 @@
 ; $Id$
 name = Filedepot
-version = 6.x-1.0-rc1
+version = 6.x-1.0-rc2
 description = Filedepot File Management System
 core = 6.x
 php = 5.x;
 dependencies[] = filefield
 package = File management
+
+

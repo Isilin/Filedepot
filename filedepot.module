@@ -357,10 +357,7 @@ function filedepot_user_access($perm) {
     else {
       watchdog('filedepot', 'filedepot_user_access  - desktop client login fail');
       return FALSE;
-    }  
-  } else {
-
-    
+    }   
   }
 
   return user_access($perm);
@@ -371,9 +368,8 @@ function filedepot_user_access($perm) {
 function filedepot_access($op, $node) {
   global $filedepot;
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php'; 
-    
-  $ret = false;
-  $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d",$node->nid));
+  $ret = FALSE;
+  $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
   if ($cid > 0 ) {
     switch ($op) {
       case 'view':
@@ -389,7 +385,8 @@ function filedepot_access($op, $node) {
         $parent = filedepot_getTopLevelParent($cid);
         if ($parent == 0) {
           $ret = user_access('administer filedepot');
-        } else {
+        } 
+        else {
           $ret = $filedepot->checkPermission($parent, 'admin');          
         }       
     }
@@ -457,7 +454,8 @@ function filedepot_form(&$node, $form_state) {
 
     if (user_access('administer filedepot', $user)) {
       $parentFolders = array(0 => 'Top Level Folder');
-    } else {
+    } 
+    else {
       $parentFolders = array();
     }
     $parentFolders += filedepot_recursiveAccessArray(array('admin'));
@@ -561,7 +559,6 @@ function filedepot_view($node, $teaser=FALSE, $page=FALSE) {
  */
 function filedepot_insert($node) {
   global $filedepot;
-
   if ($filedepot->createFolder($node)) {
     return TRUE;
   }
@@ -982,16 +979,18 @@ function template_preprocess_filedepot_main_page(&$variables) {
 
   $variables['tagcloud'] = theme('filedepot_tagcloud');
   
-  $adminFolders = filedepot_recursiveAccessOptions('admin');   
-  $uploadFolders = filedepot_recursiveAccessOptions(array('upload','upload_dir'));   
+  $adminFolders = filedepot_recursiveAccessOptions('admin');
+  $uploadFolders = filedepot_recursiveAccessOptions(array('upload', 'upload_dir'));   
   if (empty($adminFolders)) {
     $variables['show_newfolder'] = 'false';
-  } else {
+  } 
+  else {
     $variables['show_newfolder'] = 'true';
   }
   if (empty($uploadFolders)) {  
     $variables['show_upload'] = 'false';
-  } else {
+  } 
+  else {
     $variables['show_upload'] = 'true';
   }
 

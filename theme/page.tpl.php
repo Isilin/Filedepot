@@ -18,8 +18,9 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript" src="<?php print $yui_base_url ?>yuiloader/yuiloader.js"></script>
 <script type="text/javascript">
   var useYuiLoader = true;
-  var pagewidth = 0;             // Integer value: Use 0 for 100% width with auto-resizing of layout, or a fixed width in pixels
+  var pagewidth = 0;               // Integer value: Use 0 for 100% width with auto-resizing of layout, or a fixed width in pixels
   var leftcolwidth = 250;          // Integer value: initial width in pixels for the left column
+  var rightmargin_allowance = 50; // How many pixels to allow for right margin of main display - adjustable for themes
   var numGetFileThreads = 5;       // Max number of concurrent AJAX threads to spawn in the background to retrieve & render record details for subfolders
 
   // Do not modify any variables below
@@ -43,7 +44,9 @@ All the needed style sheets should be loaded automatically by the loader.
   var timerArray = new Array();
   var lastfiledata = new Array();
   var expandedfolders = new Array();
-  var searchprompt = '<?php print $LANG_searchprompt ?>'
+  var searchprompt = '<?php print $LANG_searchprompt ?>';
+  var show_upload = <?php print $show_upload ?>;
+  var show_newfolder = <?php print $show_newfolder ?>;
 </script>
 
 <script type="text/javascript">
@@ -247,7 +250,7 @@ margin-right:15px;
       </div>
     </div>
 
-    <div class="filedepottoolbar" style="margin-top:5px;margin-right:4px;padding:5px;">
+    <div id="filedepottoolbar" class="filedepottoolbar" style="margin-top:5px;margin-right:4px;padding:5px;display:none;">
       <div style="float:left;width:250px;height:20px;">
         <span id="newfolderlink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">

@@ -7,7 +7,6 @@
 
 var init_filedepot = function() {
 
-
   YAHOO.widget.Logger.enableBrowserConsole()
   // Since we are using AJAX to update display, the cookie is not updated as the page is not refreshing.
   // We can use this variable anyways for the session since it will not be reset until a page refresh
@@ -34,9 +33,10 @@ var init_filedepot = function() {
   if (pagewidth == 0)
     layout.on('beforeResize', function() {
     Dom.setStyle('filedepot', 'height', Dom.getClientHeight() + 'px');
-    Dom.setStyle('filedepot', 'width', Dom.getClientWidth()-50 + 'px');
+    Dom.setStyle('filedepot', 'width', Dom.getClientWidth() - rightmargin_allowance + 'px');
   });
   layout.render();
+  Dom.setStyle('filedepottoolbar','display','block');  
   updateAjaxStatus('Loading Workspace ...')
 
   if (pagewidth == 0)

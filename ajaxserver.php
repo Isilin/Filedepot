@@ -338,7 +338,7 @@ function filedepot_dispatcher($action) {
       $file = new stdClass();
       // Need to create an array format expected by the Drupal files.inc file_save_upload function
       // Designed to handle multiple file uploads - needs to be a multi-demensional array keyed on the tmp_name
-      if ($cid > 0 AND is_array($_FILES['Filedata']) AND count($_FILES['Filedata']) > 0 AND isset($_FILES['Filedata']['tmp_name'])) {
+      if ($cid > 0 AND is_array($_FILES['Filedata']) AND count($_FILES['Filedata']) > 0 AND !empty($_FILES['Filedata']['tmp_name'])) {
         $file_exists = db_result(db_query("SELECT count(*) FROM {filedepot_files} WHERE cid=%d and fname='%s'", $cid, $_FILES['Filedata']['name']));
         if (variable_get('filedepot_allow_folder_duplicates', 1) == 0 AND $file_exists == 1) {
           $data['message'] = t('Duplicate File in this folder');
@@ -415,7 +415,7 @@ function filedepot_dispatcher($action) {
             else {
               $errors = drupal_get_messages('error');
               if (!empty($errors['error'][0])) {
-                $data['message'] = $errors['error'][0];
+                $data['message'] = str_replace('\\','/',$errors['error'][0]);
               } 
               else {
                 $data['error'] = t('Error uploading File');
@@ -431,7 +431,11 @@ function filedepot_dispatcher($action) {
         }
       } 
       else {
-        $data['error'] = t('Error uploading File');
+        if (isset($_FILES['Filedata']['tmp_name']) AND empty($_FILES['Filedata']['tmp_name'])) {
+          $data['error'] = t('Error uploading File, it may be larger then your PHP setup permits.');    
+        } else {
+          $data['error'] = t('Error uploading File');
+        }
         $data['retcode'] = 500;
       }
       break;

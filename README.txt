@@ -24,7 +24,11 @@ The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine
 Dependencies
 ------------
  * Content, FileField
-
+ 
+Requirements
+------------ 
+ PHP 5.2+ and PHP JSON library enabled.
+ Flash 10.x Addon installed in the browser.
 
 Install
 -------

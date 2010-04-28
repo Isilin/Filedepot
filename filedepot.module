@@ -31,6 +31,10 @@ define ('FILEDEPOT_BROADCAST_MESSAGE', 5);
 define ('FILEDEPOT_FILTER_EXCLUDEMODE', 0);
 define ('FILEDEPOT_FILTER_INCLUDEMODE', 1); 
 
+if (!defined('LB')) {
+  define('LB',"\n");
+}
+
 include_once './' . drupal_get_path('module', 'filedepot') . '/ajaxserver.php';
 include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
 $filedepot = filedepot::getInstance();
@@ -904,7 +908,10 @@ function filedepot_client_upload() {
 
 function template_preprocess_filedepot_main_page(&$variables) {
   global $base_url, $user;
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';  
+  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  
+  if (!isset($_GET['fid'])) $_GET['fid'] = 0;  
+  if (!isset($_GET['cid'])) $_GET['cid'] = 0;  
   
   $variables['yui_base_url'] = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $variables['title']                 = '';

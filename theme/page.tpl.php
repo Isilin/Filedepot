@@ -6,6 +6,11 @@
   */
 ?>  
 
+<?php
+  // Initialize variable id unknown to solve any PHP Notice level error messages 
+  if (!isset($search_query)) $search_query = 0;
+?>
+
 <!-- Need to load these style sheets as the file details YUI panel was not being styled
 Not sure why this panel is the only one that was not being styled correctly but loading these 2 style sheets fixes the issue
 All the needed style sheets should be loaded automatically by the loader.

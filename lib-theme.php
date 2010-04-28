@@ -12,6 +12,7 @@ function template_preprocess_filedepot_toolbar_form(&$variables) {
   global $base_url;
   $variables['report_option'] = 'latestfiles';
   $variables['base_url']       = $base_url;
+  if (!isset($_GET['cid'])) $_GET['cid'] = 0;  
   if (intval($_GET['cid']) > 0) {
     $variables['current_category'] = intval($_GET['cid']);
   }

@@ -40,9 +40,9 @@ function filedepot_admin_settings() {
   $form['performance'] = array(
   '#type' => 'fieldset',
   '#title' => t('Performance Settings'),
-  '#description' => t('With very large document repositories, the file listing logic can be optimized by tuning these options for the 3 pass logic. ')
-  . t('On initial pass, display a smaller number of files like 2 while all the folders are being generated. ')
-  . t('Once the initial folder listing is generated, the 2nd pass will execute in the background and populate all folders with more files up the the number set for the pass 2 setting. ')
+  '#description' => t('With very large document repositories, the file listing logic can be optimized by tuning these options for the 3 pass logic.')
+  . t('On initial pass, display a smaller number of files like 2 while all the folders are being generated.')
+  . t('Once the initial folder listing is generated, the 2nd pass will execute in the background and populate all folders with more files up the the number set for the pass 2 setting.')
   . t('If there are more files in a folder then the pass 2 setting, the user will have a link to return rest (pass 3). This is so a folder with 1000 files does not hang up the application initial view if this folder is not even expanded.')
   . '<br />' . t('For smaller repositories, you can set Pass 1 to 50 and Pass 2 to 100 for example.'),
   '#collapsible' => TRUE,
@@ -146,7 +146,7 @@ function filedepot_admin_settings() {
   '#type' => 'fieldset',
   '#title' => t('Default Permissions'),
   '#description' => t('Folders may have sub-folders which have more restrictive or different permissions. Permissions can be assigned by user and/or by role.')
-  . '<br />' . t('Available Permissions are: ')
+  . '<br />' . t('Available Permissions are:')
   . '<ul>'
   . '<li><strong>' . t('view') . '</strong>: ' 
   . t('Able to view the folder and files within. If you can view the files, you can download them.')

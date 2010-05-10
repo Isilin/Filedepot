@@ -22,9 +22,9 @@
   <tr><td colspan="10"><img src="" height="5"></td></tr>
   <tr>
     <td>&nbsp;</td>
-    <td rowspan="3"><select name="selusers[]" multiple size=10 style="width:150px;"><?php print $user_options ?></select></td>
+    <td rowspan="3"><select name="selusers[]" multiple size=10 class="form-select" style="width:150px;"><?php print $user_options ?></select></td>
     <td rowspan="3">&nbsp;</td>
-    <td rowspan="3"><select name="selroles[]" multiple size=10 style="width:150px;"><?php print $role_options ?></select></td>
+    <td rowspan="3"><select name="selroles[]" multiple size=10 class="form-select" style="width:150px;"><?php print $role_options ?></select></td>
     <td>&nbsp;</td>
     <td>
       <input type="checkbox" name="cb_access[]" value="view" id="feature1"></td>
@@ -50,8 +50,8 @@
   </tr>
   <tr>
     <td colspan="9" style="padding-left:450px;padding-top:10px;">
-      <input type="button" name="submit" value="<?php print t('Submit'); ?>" onclick="makeAJAXUpdateFolderPerms(this.form);">
-      <span style="padding-left:10px;"><input id="folderperms_cancel" type="button" value="<?php print t('Close'); ?> "></span>
+      <input type="button" name="submit" class="form-submit" value="<?php print t('Submit'); ?>" onclick="makeAJAXUpdateFolderPerms(this.form);">
+      <span style="padding-left:10px;"><input id="folderperms_cancel" type="button" class="form-submit" value="<?php print t('Close'); ?> "></span>
       <input type="hidden" name="catid" value="<?php print $catid ?>"></td>
   </tr>
 </table>

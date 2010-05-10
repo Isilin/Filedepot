@@ -15,8 +15,7 @@
 Not sure why this panel is the only one that was not being styled correctly but loading these 2 style sheets fixes the issue
 All the needed style sheets should be loaded automatically by the loader.
 -->
-<link type="text/css" rel="stylesheet" href="<?php print $yui_base_url ?>menu/assets/menu.css">
-<link rel="stylesheet" type="text/css" href="<?php print $yui_base_url ?>container/assets/container.css">  
+   
 
 <!-- On-Demand loading the Module Javascript using YUI Loader -->
 
@@ -57,7 +56,7 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript">
   var YUIBaseURL  = "<?php print $yui_base_url ?>";
 </script>
-
+  
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>nexpro.js"></script>
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>plugins.js"></script>
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>initapplication.js"></script>
@@ -65,8 +64,8 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>encoder.js"></script>
 
 <script type="text/javascript">
-
-  if (useYuiLoader == true) {
+   jQuery.blockUI(); 
+   if (useYuiLoader == true) {
     // Instantiate and configure Loader:
     var loader = new YAHOO.util.YUILoader({
 
@@ -80,9 +79,9 @@ All the needed style sheets should be loaded automatically by the loader.
       loadOptional: true,
 
       // The function to call when all script/css resources have been loaded
-      onSuccess: function() {
+      onSuccess: function() { 
         blockui=true;
-        //$.blockUI();
+        //jQuery.blockUI();
         timeDiff.setStartTime();
         Dom = YAHOO.util.Dom;
         Event = YAHOO.util.Event;
@@ -108,9 +107,9 @@ All the needed style sheets should be loaded automatically by the loader.
     // the constructor, so we don't need to pass anything to insert().
     loader.insert();
 
-  } else {
+  } else {    
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
     timeDiff.setStartTime();
     Dom = YAHOO.util.Dom;
     Event = YAHOO.util.Event;
@@ -121,13 +120,7 @@ All the needed style sheets should be loaded automatically by the loader.
 
 </script>
 
-<!--[if IE]>
-<style>
-#filedepot_centercol {
-margin-right:15px;
-}
-</style>
-<![endif]-->
+
 
 <!-- filedepot module wrapper div -->
 <div id="filedepotmodule">
@@ -185,7 +178,7 @@ margin-right:15px;
             </tr>
             <tr id="newfiledialog_filename">
               <td width="30%"><label for="filename"><?php print $LANG_displayname ?>:</label></td>
-              <td width="70%"><input type="text" id="newfile_displayname" style="width:290px" /></td>
+              <td width="70%"><input type="text" id="newfile_displayname" class="form-text" style="width:290px" /></td>
             </tr>
             <tr id="newfiledialog_folderrow">
               <td><label for="category"><?php print $LANG_parentfolder ?>:</label><span class="required">*</span></td>
@@ -196,19 +189,19 @@ margin-right:15px;
             </tr>
             <tr>
               <td><label for="tags"><?php print $LANG_tags ?>:</label></td>
-              <td><div style="padding-bottom:15px;">
-                  <input id="newfile_tags" type="text" size="40" style="width:290px" />
+              <td style="padding-top:0px;margin-top:0px;margin-bottom:10px;"><div style="padding-top:0px;margin-top:0px;padding-bottom:10px;">
+                  <input id="newfile_tags" class="form-text" type="text" size="40" style="width:290px" />
                   <div id="newfile_autocomplete"></div>
                 </div>
               </td>
             </tr>
             <tr id="newfiledialog_filedesc">
               <td style="padding-top:10px;"><label for="filedesc"><?php print $LANG_description ?>:</label></td>
-              <td style="padding-top:10px;"><textarea id="newfile_desc" name="filedesc" rows="3" style="font-size:10pt;width:290px"></textarea></td>
+              <td style="padding-top:10px;"><textarea id="newfile_desc" class="form-textarea" name="filedesc" rows="3" style="font-size:10pt;width:290px"></textarea></td>
             </tr>
             <tr>
               <td><label for="versionnote"><?php print $LANG_versionnote ?>:</label></td>
-              <td><textarea id="newfile_notes" name="versionnote" rows="2" style="font-size:10pt;width:290px"></textarea></td>
+              <td><textarea id="newfile_notes" class="form-textarea" name="versionnote" rows="2" style="font-size:10pt;width:290px"></textarea></td>
             </tr>
             <tr>
               <td><label for="filedepot_notify"><?php print $LANG_emailnotify ?>:</label></td>
@@ -218,9 +211,9 @@ margin-right:15px;
               <td colspan="2" style="padding:15px 0px;">
                 <div class="floatleft required">*&nbsp;<?php print $LANG_required ?></div>
                 <div class="floatleft" style="width:80%;text-align:center;">
-                  <input id="btnNewFileSubmit" type="button" value="Submit" onClick="upload(); return false;">
+                  <input id="btnNewFileSubmit" class="form-submit" type="button" value="Submit" onClick="upload(); return false;">
                   <span style="padding-left:10px;">
-                    <input id="btnNewFileCancel" type="button" value="Cancel">
+                    <input id="btnNewFileCancel" class="form-submit" type="button" value="Cancel">
                   </span>
                 </div>
               </td>
@@ -240,13 +233,13 @@ margin-right:15px;
           <table class="formtable">
             <tr>
               <td><label for="parent"><?php print $LANG_message ?>:</label>&nbsp;</td>
-              <td><textarea name="message" rows="4" style="width:300px;font-size:10pt;"></textarea></td>
+              <td><textarea name="message" rows="4" class="form-textarea" style="width:300px;font-size:10pt;"></textarea></td>
             </tr>
             <tr>
               <td colspan="2" style="text-align:center;padding:15px;">
-                <input id="btnBroadcastSubmit" type="button" value="Send">
+                <input id="btnBroadcastSubmit" type="button" class="form-submit" value="Send">
                 <span style="padding-left:10px;">
-                  <input id="btnBroadcastCancel" type="button" value="cancel">
+                  <input id="btnBroadcastCancel" type="button" class="form-submit" value="cancel">
                 </span>
               </td>
             </tr>
@@ -255,7 +248,9 @@ margin-right:15px;
       </div>
     </div>
 
-    <div id="filedepottoolbar" class="filedepottoolbar" style="margin-top:5px;margin-right:4px;padding:5px;display:none;">
+  <div id="filedepot" style="border:1px solid #DADADA;margin:0px;padding:0px;visibility:hidden;height:600px;">
+  
+      <div id="filedepottoolbar" class="filedepottoolbar" style="margin-right:0px;padding:5px;display:none;margin-bottom:1px;">
       <div style="float:left;width:250px;height:20px;">
         <span id="newfolderlink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">
@@ -269,21 +264,21 @@ margin-right:15px;
         </span>
       </div>
       <?php print $toolbarform ?>
-      <div style="position:relative;bottom:1px;">
-        <div>
-          <form name="fsearch" style="float:right;margin:0px 0px 0px 10px;" onSubmit="makeAJAXSearch();return false;">
+      <div class="filedepottoolbar_searchbox">
+        <div class="filedepottoolbar_searchform">
+          <form name="fsearch" onSubmit="makeAJAXSearch();return false;">
             <input type="hidden" name="tags" value="{current_searchtags}">
             <table>
               <tr>
-                <td><input type="text" size="20" name="query" id="searchquery" style="height:16px;padding-top:5px;" value="<?php print $search_query ?>" onClick="this.value='';"></td>
-                <td><input type="button" id="searchbutton" value="Search"></td>
+                <td width="50%"><input type="text" size="20" name="query" id="searchquery" class="form-text" style="height:12px;padding:3px 3px 5px 3px;" value="<?php print $search_query ?>" onClick="this.value='';"></td>
+                <td width="50%" style="text-align:right;"><input type="button" id="searchbutton" value="Search"></td>
               </tr>
             </table>
           </form>
         </div>
-        <div class="tagsearchboxcontainer" style="display:{hideheader};">
+        <div class="tagsearchboxcontainer" style="display:x{hideheader};width:10%">
           <div><a id="showsearchtags" href="#">Tags</a></div>
-        </div>
+        </div>      
       </div>
     </div>
 
@@ -296,9 +291,6 @@ margin-right:15px;
       </div>
     </div>
   </div>
-
-
-  <div id="filedepot" style="border:1px solid #DADADA;margin:0px;padding:0px;visibility:hidden;height:600px;">
 
 
     <div id="filedetails">
@@ -349,13 +341,13 @@ margin-right:15px;
           <table width="100%" style="margin:10px;">
             <tr>
               <td width="100"><label><?php print $LANG_filename ?></label></td>
-              <td width="225"><input type="text" name="filetitle" size="29" value="" style="width:195px;" /></td>
+              <td width="225"><input type="text" class="form-text" name="filetitle" size="29" value="" style="width:195px;" /></td>
               <td width="80"><label><?php print $LANG_folder ?></label></td>
               <td width="255" id="folderoptions"></td>
             </tr>
             <tr style="vertical-align:top;">
               <td rowspan="3"><label><?php print $LANG_description ?></label></td>
-              <td rowspan="3"><textarea rows="6" cols="30" name="description" style="width:195px;"></textarea></td>
+              <td rowspan="3"><textarea rows="6" cols="30" name="description" class="form-textarea" style="width:195px;"></textarea></td>
               <td><label><?php print $LANG_owner ?></label></td>
               <td><span id="disp_owner"></span></td>
             </tr>
@@ -369,10 +361,10 @@ margin-right:15px;
             </tr>
             <tr style="vertical-align:top;">
               <td><label><?php print $LANG_versionnote ?></label></td>
-              <td><textarea rows="3" cols="30" name="version_note" style="width:195px;"></textarea></td>
+              <td><textarea rows="3" cols="30" name="version_note" class="form-textareas" style="width:195px;"></textarea></td>
               <td><label><?php print $LANG_tags ?></label></td>
               <td><div id="tagsfield" style="padding-bottom:15px;">
-                  <input id="editfile_tags" name="tags" type="text" size="30" style="width:210px" />
+                  <input id="editfile_tags" class="form-text" name="tags" type="text" size="30" style="width:210px" />
                   <div id="editfile_autocomplete" style="width:210px;"></div>
                 </div>
                 <div id="tagswarning" class="pluginAlert" style="width:180px;display:none;"><?php print $LANG_folderpermsmsg ?></div>
@@ -380,8 +372,8 @@ margin-right:15px;
             </tr>
             <tr>
               <td colspan="4" style="padding-top:10px;text-align:center;">
-                <input type="button" value="Submit"  onClick="makeAJAXUpdateFileDetails(this.form)"/>
-                <span style="padding-left:10px;"><input id="filedetails_cancel" type="button" value="<?php print $LANG_cancel ?>"></span>
+                <input type="button" class="form-submit" value="Submit"  onClick="makeAJAXUpdateFileDetails(this.form)"/>
+                <span style="padding-left:10px;"><input id="filedetails_cancel" class="form-submit" type="button" value="<?php print $LANG_cancel ?>"></span>
               </td>
             </tr>
           </table>
@@ -398,7 +390,7 @@ margin-right:15px;
       <!-- Leftside Folder Navigation generated onload by page javascript -->
       <div id="filedepotNavTreeDiv"></div>
     </div>
-    <div id="filedepot_centercol" style="margin-top:-6px;margin-right:5px;overflow:hidden;">
+    <div id="filedepot_centercol" style="margin-top:-6px;margin-right:1px;overflow:hidden;">
       <div id="filedepot_alert" class="filedepot_alert" style="display: <?php print $show_alert ?>;overflow:hidden;">
         <div id="filedepot_alert_content" class="floatleft"><?php print $alert_message ?></div>
         <div id="cancelalert" class="floatright" style="position:relative;top:4px;padding-right:10px;">
@@ -406,22 +398,15 @@ margin-right:15px;
         </div>
         <div class="clearboth"></div>
       </div>
-
-      <div id="activefolder_container">
-        <!-- Content replaced via AJAX -->
-
-      </div>
+      <div id="activefolder_container"></div>
       <div class="clearboth" id="showactivetags" style="position:relative;top:-30px;display:none;">
         <div id="tagsearchbox" style="padding-bottom:5px;">Search Tags:&nbsp;<span id="activesearchtags"></span></div>
       </div>
-      <div style="margin-right:0px;position:relative;top:-30px;">
-        <div id="filelistingheader" style="margin-bottom:10px;">
-
-        </div>
+      <div class="clearboth"></div>      
+      <div style="margin-right:0px;">
+        <div id="filelistingheader" style="margin-bottom:10px;"></div>
         <form name="frmfilelisting" action="{action_url}" method="post" style="margin:0px;">
-          <div id="filelisting_container">
-
-          </div>
+          <div id="filelisting_container"></div>
         </form>
       </div>
 

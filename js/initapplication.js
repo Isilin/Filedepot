@@ -6,7 +6,7 @@
  */
 
 var init_filedepot = function() {
-
+  
   YAHOO.widget.Logger.enableBrowserConsole()
   // Since we are using AJAX to update display, the cookie is not updated as the page is not refreshing.
   // We can use this variable anyways for the session since it will not be reset until a page refresh
@@ -322,7 +322,7 @@ var init_filedepot = function() {
   Dom.setStyle('filedepot', 'visibility', 'visible');
   Dom.setStyle('tagspanel', 'display', 'block');
   document.frmtoolbar.reportmode.value = 'latestfiles';
-  YAHOO.filedepot.showfiles();
+  YAHOO.filedepot.showfiles(initialcid);
 
   // Browser may have cached selected items and checked checkbox'es but verify and reset if need
   enable_multiaction(document.frmtoolbar.checkeditems.value);

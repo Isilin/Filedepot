@@ -969,7 +969,7 @@ function makeAJAXUpdateFolderPerms(formObject) {
 function makeAJAXUpdateFolderDetails(formObject) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   var surl = ajax_post_handler_url + '/updatefolder';       
   var callback = {
@@ -1201,7 +1201,7 @@ function makeAJAXToggleFavorite(id) {
 function makeAJAXGetFolderListing(cid) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   document.frmtoolbar.newcid.value = cid;
@@ -1230,7 +1230,7 @@ function makeAJAXGetFolderListing(cid) {
         updateAjaxStatus(NEXLANG_refreshmsg + timeDiff.getDiff() + 'ms');
         timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
         if (blockui)  {
-          setTimeout('$.unblockUI()',200);
+          setTimeout('jQuery.unblockUI()',200);
           blockui = false;
         }
         try {
@@ -1430,7 +1430,7 @@ function makeAJAXSearch(form) {
   clearAjaxActivity();
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime();    // Reset Timer
   Dom.setStyle('showactivetags','display','none');
@@ -1442,7 +1442,7 @@ function makeAJAXSearch(form) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
       var oResults = eval('(' + json + ')');
       if (blockui)  {
-        setTimeout('$.unblockUI()',200);
+        setTimeout('jQuery.unblockUI()',200);
         blockui = false;
       }
       if (oResults.retcode == 200) {
@@ -2345,7 +2345,7 @@ YAHOO.filedepot.getmorefiledataRequest = function(cid,fid,foldernumber,level) {
 YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,pass2) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   //YAHOO.log('getmorefolderdata: start AJAX call:' + timeDiff.getDiff() + 'ms');
@@ -2372,7 +2372,7 @@ YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,p
       Dom.setStyle('filedepot_ajaxActivity','visibility','hidden');
       timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
       if (blockui)  {
-        setTimeout('$.unblockUI()',200);
+        setTimeout('jQuery.unblockUI()',200);
         blockui = false;
       }
       YAHOO.filedepot.alternateRows.init('listing_record');
@@ -2414,7 +2414,7 @@ YAHOO.filedepot.showfiles = function(cid) {
   clearAjaxActivity();
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   if (cid == undefined && document.frmtoolbar.cid.value > 0) {
@@ -2496,7 +2496,7 @@ YAHOO.filedepot.showfiles = function(cid) {
       Dom.setStyle('filedepot_ajaxActivity','visibility','hidden');
       timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 5000);
       if (blockui)  {
-        $.unblockUI();
+        jQuery.unblockUI();
         blockui = false;
         if (initialfid > 0) {
           setTimeout('makeAJAXLoadFileDetails(' + initialfid + ')',500);
@@ -2655,7 +2655,7 @@ YAHOO.filedepot.decorateFileListing = function() {
   timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 5000);
 
   if (blockui)  {
-    setTimeout('$.unblockUI()',200);
+    setTimeout('jQuery.unblockUI()',200);
     blockui = false;
   }
 

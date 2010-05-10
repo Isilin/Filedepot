@@ -94,7 +94,7 @@
           </tr>
           <tr>
             <td colspan="2" class="aligncenter" style="padding:5px;font-size:12pt;">
-              <input type="submit" value="<?php print $LANG_savesettings ?>" onClick="doAJAXUpdateNotificationSettings(this.form);return false;">
+              <input type="submit" class="form-submit" value="<?php print $LANG_savesettings ?>" onClick="doAJAXUpdateNotificationSettings(this.form);return false;">
             </td>
           </tr>
         </table>

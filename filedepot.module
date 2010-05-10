@@ -32,7 +32,7 @@ define ('FILEDEPOT_FILTER_EXCLUDEMODE', 0);
 define ('FILEDEPOT_FILTER_INCLUDEMODE', 1); 
 
 if (!defined('LB')) {
-  define('LB',"\n");
+  define('LB', "\n");
 }
 
 include_once './' . drupal_get_path('module', 'filedepot') . '/ajaxserver.php';

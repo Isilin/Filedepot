@@ -4,6 +4,7 @@
  * Language defines extracted out and included using the drupal_add_js API for localization support
  */ 
 
+var NEXLANG_pleasewait = Drupal.t('Please wait ...');   // Used by the jQuery Block UI plugin 
 var NEXLANG_deletefolderconfirm = Drupal.t('Are you sure you want to delete this folder and all it\'s files');
 var NEXLANG_deletefileconfirm = Drupal.t('Delete this file and associated versions?');
 var NEXLANG_deletemultiplefiles = Drupal.t('Are you sure you want to delete these selected files?');
@@ -49,4 +50,5 @@ var NEXLANG_errormsg5 = Drupal.t('Error processing search');
 var NEXLANG_errormsg6 = Drupal.t('Unexpected result '); 
 var NEXLANG_errormsg7 = Drupal.t('Error retrieving permissions'); 
 var NEXLANG_errormsg8 = Drupal.t('Notifications Disabled'); 
+var NEXLANG_errormsg9 = Drupal.t('No users with Notifications Enabled'); 
     

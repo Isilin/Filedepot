@@ -11,10 +11,9 @@
 class filedepot {
 
   protected static $_instance;
-
   public $root_storage_path = '';
-  public $tmp_storage_path  = 'sites/default/files/filedepot/';
-  public $tmp_incoming_path  = 'sites/default/files/filedepot/incoming/';
+  public $tmp_storage_path = '';
+  public $tmp_incoming_path = '';
 
   public $validReportingModes = array(
   'latestfiles',
@@ -72,6 +71,9 @@ class filedepot {
 
   protected function __construct() {  # Singleton Pattern: we don't permit an explicit call of the constructor! 
     global $user;
+    
+    $this->tmp_storage_path  =  file_directory_path() . '/filedepot/';
+    $this->tmp_incoming_path  = file_directory_path() . '/filedepot/incoming/';  
     $this->root_storage_path = variable_get('filedepot_storage_path', str_replace('\\', '/', getcwd()) . '/filedepot_private/');
     $this->recordCountPass1 = variable_get('filedepot_pass1_recordcount', 2);
     $this->recordCountPass2 = variable_get('filedepot_pass2_recordcount', 10);

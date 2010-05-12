@@ -748,9 +748,9 @@ function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       $newfiles = array();
       $updatefiles = array();
       $depotfiles = array();
-      /* Determine how many files Filedepot has record for this folder
-      * Build an array so that we can determine if anyone removes a file via the Drupal UI or external to filedepot
-      */
+      /* Determine how many files Filedepot has record for in this folder
+       * Build an array so that we can determine if anyone removes a file via the Drupal UI or external to filedepot
+       */
       $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
       if ($cid > 0) {
         $nexquery = db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d", $cid);
@@ -1049,21 +1049,23 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   $sql .= "ORDER BY metric DESC limit 1";
   $qmaxm = db_query($sql, $nexcloud->_type);
   $rec = db_fetch_array($qmaxm);
+  $tags = 0;
   if ($rec) {
     list ($maxm) = array_values($rec);
     $sql = "SELECT a.tagid,b.tagword,a.metric from {nextag_metrics} a ";
     $sql .= "LEFT JOIN {nextag_words} b ON a.tagid=b.id ";
-    $sql .= "WHERE type='{$nexcloud->_type}' AND roleid IN ($roleids) ";
+    $sql .= "WHERE b.tagword is not NULL AND type='{$nexcloud->_type}' AND roleid IN ($roleids) ";
     if (!empty($nexcloud->_activetags)) {
       $sql .= "AND a.tagid NOT in ({$nexcloud->_activetags}) ";
     }
     $sql .= "GROUP BY tagid ORDER BY a.tagid ASC, metric DESC";
     $query = db_query($sql);
-
     while ($A = db_fetch_array($query)) {
       $variables['tagwords'] .= theme('filedepot_tagcloud_record', $A, $maxm);
+      $tags++;
     }
   }
+  if ($tags == 0) $variables['tagwords'] = t('No tagwords defined');
 }
 
 function template_preprocess_filedepot_tagcloud_record(&$variables) {

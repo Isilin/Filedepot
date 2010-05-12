@@ -489,8 +489,10 @@ function filedepot_dispatcher($action) {
             $data['tags'] = filedepot_formatfiletags($tags);
           }
           db_query("UPDATE {filedepot_fileversions} SET notes='%s' WHERE fid=%d and version=%d", $vernote, $fid, $version);
+          // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
           if ($filedepot->checkPermission($folder, 'view', 0, FALSE) AND !$nexcloud->update_tags($fid, $tags)) {
             $data['tagerror'] = t('Tags not added - Group view perms required');
+            $data['tags'] = '';
           }          
         }
         $data['retcode'] = 200;

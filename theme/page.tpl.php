@@ -276,7 +276,7 @@ All the needed style sheets should be loaded automatically by the loader.
             </table>
           </form>
         </div>
-        <div class="tagsearchboxcontainer" style="display:x{hideheader};width:10%">
+        <div class="tagsearchboxcontainer" style="display:{hideheader};width:10%">
           <div><a id="showsearchtags" href="#">Tags</a></div>
         </div>      
       </div>
@@ -399,7 +399,7 @@ All the needed style sheets should be loaded automatically by the loader.
         <div class="clearboth"></div>
       </div>
       <div id="activefolder_container"></div>
-      <div class="clearboth" id="showactivetags" style="position:relative;top:-30px;display:none;">
+      <div class="clearboth" id="showactivetags" style="display:none;">
         <div id="tagsearchbox" style="padding-bottom:5px;">Search Tags:&nbsp;<span id="activesearchtags"></span></div>
       </div>
       <div class="clearboth"></div>      

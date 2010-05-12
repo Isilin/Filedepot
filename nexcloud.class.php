@@ -247,7 +247,7 @@
           $tagwords = explode(',', $this->_newtags);
           $tags = array();
           foreach ($tagwords as $word) {
-            $word = strip_tags($word);
+            $word = trim(strip_tags($word));
             $id = db_result(db_query("SELECT id FROM {nextag_words} WHERE tagword='%s'", $word));
             if (empty($id)) {
               db_query("INSERT INTO {nextag_words} (tagword,metric,last_updated) VALUES ('%s',0,%d)", $word, time());

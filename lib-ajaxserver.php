@@ -134,15 +134,15 @@ function filedepotAjaxServer_generateLeftSideNavigation($data='') {
 
   if (user_is_logged_in()) {
     if (user_access('administer filedepot', $user)) {
-      $res = db_query("SELECT COUNT(id) FROM {filedepot_import_queue}"); ;
+      $res = db_query("SELECT COUNT(id) as incoming FROM {filedepot_import_queue}"); ;
     } 
     else {
-      $res = db_query("SELECT COUNT(id) FROM {filedepot_import_queue} WHERE uid=%d", $user->uid);
+      $res = db_query("SELECT COUNT(id) as incoming FROM {filedepot_import_queue} WHERE uid=%d", $user->uid);
     }
-    list($incoming) = db_result($res);
+    $A = db_fetch_array($res);
 
-    if ($incoming > 0) {
-      $incoming_msg = "&nbsp;($incoming)";
+    if ($A['incoming'] > 0) {
+      $incoming_msg = "&nbsp;({$A['incoming']})";
       $data['reports'][] = array(
       'name' => t('Incoming Files') . "$incoming_msg",
       'link' => "reportmode=incoming",

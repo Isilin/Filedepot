@@ -1016,3 +1016,15 @@ $schema['nextag_metrics'] = array(
 return $schema;
 
 }
+
+
+/**
+ * Implementation of hook_update_N().
+ */
+function filedepot_update_6001() {
+  db_query(" ALTER TABLE {filedepot_files} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query(" ALTER TABLE {filedepot_fileversions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query(" ALTER TABLE {filedepot_filesubmissions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query(" ALTER TABLE {filedepot_import_queue} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+
+}

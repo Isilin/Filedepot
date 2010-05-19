@@ -674,11 +674,11 @@ class filedepot {
           /* Need to move the file */
           $query2 = db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=%d", $fid);
           while ($A = db_fetch_array($query2)) {
-            $vname = stripslashes($A['vname']);
-            $sourcefile = $this->root_storage_path . "{$orginalCid}/{$vname}";
-            if ( file_exists($sourcefile) )  {
+            $fname = stripslashes($A['fname']);
+            $sourcefile = $this->root_storage_path . "{$orginalCid}/{$fname}";
+            if (!is_dir($sourcefile) AND file_exists($sourcefile) )  {
               watchdog('filedepot', 'Checking if file @file exists - TRUE', array('@file' => $sourcefile));
-              $targetfile = $this->root_storage_path . "{$newcid}/{$vname}";
+              $targetfile = $this->root_storage_path . "{$newcid}/{$fname}";
               // If there is more then 1 reference to this file in this category
               if ($dupfile_inuse) {
                 @copy($sourcefile, $targetfile);
@@ -691,10 +691,14 @@ class filedepot {
                   @rename($sourcefile, $targetfile);
                 }
               }
-              $filemoved = TRUE;
+              // Test that file has actually been moved now
+              if (!is_dir($targetfile) AND file_exists($targetfile) )  {
+                $filemoved = TRUE;
+                db_query("UPDATE {files} SET filepath='%s' WHERE fid=%d", $targetfile, $cckfid);
+              }
             } 
             else {
-              watchdog('filedepot', 'Checking if file @file exists - FALSE', array('@file' => $sourcefile));
+              watchdog('filedepot', 'Checking if file @file exists - FALSE', array('@file' => $sourcefile), WATCHDOG_ERROR);
             }
           }
           if ($filemoved) {    // At least one file moved - so now update record

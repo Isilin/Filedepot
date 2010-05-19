@@ -853,7 +853,12 @@ function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         }
 
         foreach ($updatefiles as $id => $file) {
-          db_query("UPDATE {filedepot_files} SET description = '%s' WHERE fid=%d", $file['data']['description'], $id);
+          /*
+           * May 11/2010 (Blaine): Commented this update out as there are reports of files having descriptions cleared.
+           * Not sure right now what condition this update was required for as it appears to work just fine without it.
+           */
+          
+          //db_query("UPDATE {filedepot_files} SET description = '%s' WHERE fid=%d", $file['data']['description'], $id);
           unset($depotfiles[$id]);
         }
 

@@ -451,6 +451,7 @@ function filedepot_dispatcher($action) {
       $tags  = $_POST['tags'];
       $data = array();
       $data['tagerror'] = '';        
+      $data['errmsg'] = '';        
 
       if ($_POST['cid'] == 'incoming' AND $fid > 0) {
           $filemoved = FALSE;
@@ -484,6 +485,9 @@ function filedepot_dispatcher($action) {
             db_query("UPDATE {filedepot_files} SET title='%s',description='%s',date=%d WHERE fid=%d", $filetitle, $description, time(), $fid);
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
             $filemoved = $filedepot->moveFile($fid, $newcid);
+            if ($filemoved == FALSE) {
+              $data['errmsg'] = t('Error moving file');
+            }
             $data['cid'] = $newcid;
             unset($_POST['tags']);  // Format tags will check this to format tags in case we are doing a search which we are not in this case.
             $data['tags'] = filedepot_formatfiletags($tags);

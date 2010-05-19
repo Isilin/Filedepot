@@ -873,6 +873,8 @@ function makeAJAXUpdateFileDetails(formObject,fid) {
             hideFileDetailsPanel();             
           } else if (oResults.filemoved && oResults.cid > 0) {
             document.location = siteurl + '?q=filedepot&cid=' + oResults.cid;
+          } else if (oResults.errmsg.length > 0) {
+                showAlert(oResults.errmsg);
           } else {
             Dom.get('tagcloud_words').innerHTML = oResults.tagcloud;
           }

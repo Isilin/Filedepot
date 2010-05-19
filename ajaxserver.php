@@ -116,6 +116,9 @@ function filedepot_dispatcher($action) {
         $data['retcode'] =  500;
       } else {
         node_save($node);
+        // Cleaning up a NULL record that is created from the node_save -- should not be an issue except I need to manually 
+        // edit the CCK content records for the file move -- moving attachments between nodes. Was not able to find a better way.
+        db_query("DELETE FROM content_field_filedepot_file WHERE vid = %d AND field_filedepot_file_fid is NULL", $node->nid); 
         if ($node->nid) {
           $data['displaycid'] = $filedepot->cid;
           $data['retcode'] = 200;

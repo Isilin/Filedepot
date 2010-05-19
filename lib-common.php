@@ -325,15 +325,16 @@ function filedepot_sendNotification($id, $type=1) {
       . "WHERE file.cid=category.cid and file.fid=%d";
       $query = DB_query($sql, $id);
       list($fid, $fname, $cid, $submitter, $catname) = array_values(db_fetch_array($query));
-      $link =  l( 'here', "filedepot&cid={$cid}",
-        array('attributes' => array('title' => t('Link to File'))));        
+      $link = "{$base_url}/index.php?q=filedepot&cid={$cid}&fid={$fid}";        
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New Document Management Update');
-      $messagetext = t('Site member @@name has submitted a new file (!file) in folder: !folder', 
-      array('!file' => $fname, '!folder' => $catname)) . "\n";
+      $messagetext = t('Site member @@name has submitted a new file (!file) ', 
+      array('!file' => $fname)) . '<p>';
+      $messagetext .= t('Folder: !folder', 
+      array('!folder' => $catname)) . '</p><p>';
       $messagetext .= t('The file can be accessed at !link',
-      array('!link' => $link)) . "\n\n";
-      $messagetext .= t('You are receiving this because you requested to be notified of updates.') . "\n";
-      $messagetext .= t('Thank You') . "\n";
+      array('!link' => url($link, array('absolute' => TRUE)))) . '</p><p>';
+      $messagetext .= t('You are receiving this because you requested to be notified of updates.') . '</p><p>';
+      $messagetext .= t('Thank You') . '</p>';
       break;
 
     case FILEDEPOT_NOTIFY_APPROVED:    // File submission being approved by admin where $id = file id. Send only to user
@@ -343,15 +344,14 @@ function filedepot_sendNotification($id, $type=1) {
       list($fid, $fname, $cid, $submitter, $catname) = array_values(db_fetch_array($query));
       // Just need to create this SQL record for this user - to fake out logic below
       $target_users[] = $submitter;
-      $link =  l( 'here', "filedepot&cid={$cid}",
-        array('attributes' => array('title' => t('Link to File'))));      
+      $link = "{$base_url}/index.php?q=filedepot&cid={$cid}&fid={$fid}";     
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');       
       $messagetext = t('Site member %@name: your file in folder: !folder', 
-      array('!folder' => !catname)) . "\n";
+      array('!folder' => !catname)) . '<p>';
       $messagetext .= t('The file: !filename has been approved and can be accessed !link',
-      array('!filename' => $fname, '!link' => $link)) . "\n\n";
-      $messagetext .= t('You are receiving this because you requested to be notified.') . "\n";
-      $messagetext .= t('Thank You') . "\n";
+      array('!filename' => $fname, '!link' => $link)) . '</p><p>';
+      $messagetext .= t('You are receiving this because you requested to be notified.') . '</p><p>';
+      $messagetext .= t('Thank You') . '</p>';
       break;
 
     case FILEDEPOT_NOTIFY_REJECT:    // File submission being declined by admin where $id = new submission record id. Send only to user
@@ -361,8 +361,8 @@ function filedepot_sendNotification($id, $type=1) {
       $target_users[] = $submitter;
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Cancelled');
       $messagetext = t('Your recent file submission: !filename, was not accepted',
-      array('!filename' => $fname)) . "\n\n";
-      $messagetext .= t('Thank You') . "\n";
+      array('!filename' => $fname)) . '<p>';
+      $messagetext .= t('Thank You') . '</p>';
       break;
 
     case FILEDEPOT_NOTIFY_ADMIN:    // New File Submission in queue awaiting approval
@@ -373,8 +373,8 @@ function filedepot_sendNotification($id, $type=1) {
       $submitter_name = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $submitter));        
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission requires Approval');
       $messagetext = t('Site member @@name has submitted a new file !filename for folder !folder that requires approval',
-      array('!filename' => $fname, '!folder' => $catname)) . "\n\n";
-      $messagetext .= t('Thank You') . "\n";  
+      array('!filename' => $fname, '!folder' => $catname)) . '<p>';
+      $messagetext .= t('Thank You') . '</p>';  
       break;
   }
 
@@ -442,6 +442,8 @@ function filedepot_sendNotification($id, $type=1) {
     }  
   }  
 
+  $messagetext = drupal_html_to_text($messagetext);
+  
   if (is_array($target_users) AND count($target_users) > 0) {
 
     if ($type == FILEDEPOT_NOTIFY_APPROVED OR $type == FILEDEPOT_NOTIFY_REJECT ) {    // Only send this type of notification to user that submitted the file
@@ -449,7 +451,8 @@ function filedepot_sendNotification($id, $type=1) {
       $rec = db_fetch_object($query);
       if ($type == FILEDEPOT_NOTIFY_APPROVED) {
         $messagetext = sprintf($messagetext, $rec->name);
-      }            
+      }
+          
       $message['body'] = t('Hello @username', array('@username' => $rec->name)) . ",\n\n";
       $message['body'] .= $messagetext;
       $message['body'] .= variable_get('site_name', '') . "\n";
@@ -507,6 +510,8 @@ function filedepot_sendNotification($id, $type=1) {
     return FALSE;
   }
 }
+
+
 
 function filedepot_delTree($dir) {
   $files = glob( $dir . '*', GLOB_MARK );

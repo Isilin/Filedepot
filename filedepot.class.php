@@ -511,14 +511,15 @@ class filedepot {
       array_push($list, $deleteFolderId);
       $list = filedepot_getRecursiveCatIDs ($list, $deleteFolderId, 'admin');
       foreach ($list as $cid) {
+        $query = db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d", $cid);
+        while ($A = db_fetch_array($query))  {
+          $this->deleteFile($A['fid']);
+        }        
         db_query("DELETE FROM {filedepot_categories} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_access} WHERE catid=%d", $cid);
         db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_notifications} WHERE cid=%d", $cid);
-        $query = db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d", $cid);
-        while ($A = db_fetch_array($query))  {
-          $this->deleteFile($A['fid']);
-        }
+
         $catdir = $this->root_storage_path . $cid;
         if (file_exists($catdir)) {
           @unlink($this->root_storage_path . "$cid/.htaccess");
@@ -655,8 +656,8 @@ class filedepot {
 
     $filemoved = FALSE;
     if ($newcid > 0) {
-      $query = db_query("SELECT fname,cid,version,submitter FROM {filedepot_files} WHERE fid=%d", $fid);
-      list ($fname, $orginalCid, $curVersion, $submitter) = array_values(db_fetch_array($query));
+      $query = db_query("SELECT fname,cid,cckfid,version,submitter FROM {filedepot_files} WHERE fid=%d", $fid);
+      list ($fname, $orginalCid, $cckfid, $curVersion, $submitter) = array_values(db_fetch_array($query));
       if ($submitter == $user->uid OR $this->checkPermission($newcid, 'admin')) {
         if ($newcid !== intval($orginalCid)) {
           // Check if there is more then 1 reference to this file in this category
@@ -703,6 +704,33 @@ class filedepot {
           }
           if ($filemoved) {    // At least one file moved - so now update record
             db_query("UPDATE {filedepot_files} SET cid=%d WHERE fid=%d", $newcid, $fid);
+            
+            /* We are moving attachments between nodes and although we have updated the filedepot records,
+               the native drupal cck module table still has the file linked to the original node (folder)
+               Trying to manually rebuild the node and do a node_save did not work
+               Have had to resort to manually updating the cck table
+               */ 
+            
+            $q1 = db_query("SELECT nid,vid FROM {filedepot_categories} WHERE cid=%d", $newcid);
+            $newrec = db_fetch_array($q1);
+            // Get the current file (attachment) offset for the target folder node
+            $q2 = db_query("SELECT delta FROM content_field_filedepot_file WHERE nid=%d AND vid=%d ORDER BY delta DESC LIMIT 1", $newrec['nid'], $newrec['vid']);
+            $delta = db_result($q2);
+            if ($delta !== FALSE) {
+              $delta++;
+            }
+            else {
+              $delta = 0;
+            }
+            // Retrieve the current record data -- we will need to change the nid and update the delta (offset) so it will be correct for the new folder
+            $q3 = db_query("SELECT * FROM content_field_filedepot_file WHERE field_filedepot_file_fid=%d", $cckfid);
+            $sfile = db_fetch_object($q3);
+            db_query("DELETE FROM content_field_filedepot_file WHERE field_filedepot_file_fid=%d", $cckfid);
+            // Insert new record for the moved file - for the target node
+            $sql = "INSERT INTO content_field_filedepot_file "
+                 . "(vid, nid, delta, field_filedepot_file_fid, field_filedepot_file_list, field_filedepot_file_data) "
+                 . "VALUES (%d, %d, %d, %d, 1, '%s')";
+            db_query($sql, $newrec['vid'], $newrec['nid'], $delta, $sfile->field_filedepot_file_fid, $sfile->field_filedepot_file_data);
           }
         }
       } 

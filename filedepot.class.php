@@ -657,7 +657,7 @@ class filedepot {
     if ($newcid > 0) {
       $query = db_query("SELECT fname,cid,version,submitter FROM {filedepot_files} WHERE fid=%d", $fid);
       list ($fname, $orginalCid, $curVersion, $submitter) = array_values(db_fetch_array($query));
-      if ($submitter == $user->uid OR fm_getPermission($newcid, 'admin')) {
+      if ($submitter == $user->uid OR $this->checkPermission($newcid, 'admin')) {
         if ($newcid !== intval($orginalCid)) {
           // Check if there is more then 1 reference to this file in this category
           if (db_result(db_query("SELECT fid from {filedepot_files} WHERE cid=%d AND fname='%s'", $originalCid, $fname)) > 1) {

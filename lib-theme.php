@@ -92,7 +92,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $variables['LANG_folderordermsg'] = t('Displayed in increments of 10 for easy editing');
   $variables['LANG_newfiles'] = t('Alert me if new files are added');
   $variables['LANG_filechanges'] = t('Alert me if files are changed');
-  $variables['LANG_statsmsg'] = t('Stats that include this folder and all subfolders');
+  $variables['LANG_statsmsg'] = t('Folder & subfolders stats');
   $variables['LANG_foldercount'] = t('Folder Count');
   $variables['LANG_filecount'] = t('File Count');
   $variables['LANG_totalsize'] = t('Total Size');
@@ -250,7 +250,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   */
   $rec = $variables['listingrec'];
   $level = $variables['level'];
-
+  $variables['subfolder_id'] = $rec['cid'];
   $variables['show_submitter'] = 'none';
   $variables['padding_left'] = ($level * $filedepot->listingpadding) + $filedepot->listingpadding;
   $variables['file_desc_padding_left'] = $filedepot->filedescriptionOffset + ($level * $filedepot->listingpadding);
@@ -273,11 +273,10 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     $variables['modified_date'] = strftime($filedepot->shortdate, $rec['date']);
   }
 
-  $variables['folder_link'] = "{$base_url}/filedepot/index.php?cid={$rec['subfolderId']}";
+  $variables['folder_link'] = "{$base_url}/filedepot/index.php?cid={$rec['cid']}";
   $variables['folder_name'] = filter_xss($rec['foldername']);
   $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
   $variables['file_number'] = "{$variables['foldernumber']}.{$filenum}";
-  $variables['subfolder_id'] = $rec['cid'];
   $variables['file_description'] = nl2br(filter_xss($rec['description']));
 
   $tags = $nexcloud->get_itemtags($variables['fid']);
@@ -331,7 +330,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
       $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
         array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
-      if ($user->uid > 0) {
+      if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload','upload_dir'), $user->uid)) {
         $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
         $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
           array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));

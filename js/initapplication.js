@@ -15,25 +15,31 @@ var init_filedepot = function() {
 
   var el = document.getElementById('filedepot');
   if (pagewidth == 0) {
-    layoutPageWidth = Dom.get('filedepot').offsetWidth - 10;   //Width of the outer element
+    layoutPageWidth = Dom.get('filedepotmodule').offsetWidth;   //Width of the outer element
   } else {
     layoutPageWidth = pagewidth;
   }
+  
+  layoutPageHeight = Dom.get('filedepotmodule').offsetHeight - 0;   //Width of the outer element  
+  var leftcolwidth = Dom.get('filedepot_sidecol').offsetWidth + 42;
+  
   //YAHOO.log('width: ' + layoutPageWidth);
   var layout = new YAHOO.widget.Layout(el,{
-    height: Dom.getClientHeight(), //Height of the viewport
+    height: layoutPageHeight, //Height of the viewport
     width: layoutPageWidth, //Width of the outer element
     minHeight: 150, //So it doesn't get too small
     units: [
-    { position: 'left',  width: leftcolwidth, resize: true, body: 'filedepot_sidecol', scroll: true, animate: true },
-    { position: 'center', body: 'filedepot_centercol', gutter: '0px 4px 12px 0px', scroll: true }
+    { position: 'left',  width: leftcolwidth, resize: true, body: 'filedepot_sidecol', scroll: true, animate: true, gutter: '0px 25px 15px 0px' },
+    { position: 'center', body: 'filedepot_centercol', gutter: '0px 6px 15px 0px', scroll: true, resize: true }
     ]
   });
 
   if (pagewidth == 0)
     layout.on('beforeResize', function() {
-    Dom.setStyle('filedepot', 'height', Dom.getClientHeight() + 'px');
-    Dom.setStyle('filedepot', 'width', Dom.getClientWidth() - rightmargin_allowance + 'px');
+      if (pagewidth == 0) {
+        layoutPageWidth = Dom.get('filedepotmodule').offsetWidth;   //Width of the outer element      
+      }
+      Dom.setStyle('filedepot', 'width', layoutPageWidth + 'px');
   });
   layout.render();
   Dom.setStyle('filedepottoolbar','display','block');  
@@ -89,6 +95,7 @@ var init_filedepot = function() {
   YAHOO.container.tagspanel.render();
 
   <!-- File Details Dialogs -->
+  Dom.setStyle('filedetails', 'display', 'block');     
   YAHOO.container.filedetails = new YAHOO.widget.Panel("filedetails",
   { width : "670px",
     fixedcenter : true,
@@ -105,6 +112,7 @@ var init_filedepot = function() {
   Event.on(closeEl, 'click', function(e){ YAHOO.container.menuBar.cfg.setProperty("visible",false); });
 
   <!-- Folder Perms Panel -->
+  Dom.setStyle('folderperms', 'display', 'block');   
   YAHOO.container.folderperms = new YAHOO.widget.Panel("folderperms",
   { width : "750px",
     fixedcenter : true,

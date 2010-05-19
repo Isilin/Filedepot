@@ -6,11 +6,11 @@
   */
 ?>
 <div id="activefolder"><a href="#" onclick="edit_activefolder();" TITLE="<?php print $LANG_click_adminmsg ?>"><?php print $active_folder_name ?></a></div>
-<div id="edit_activefolder" style="display:none;">
+<div id="edit_activefolder">
   <form name="frm_activefolder" method="post" action="<?php print $action_url ?>">
     <input type="hidden" name="op" value="updatefolder">
     <input type="hidden" name="cid" value="<?php print $active_category_id ?>">
-    <div style="float:left;width:420px;margin-right:10px;">
+    <div style="float:left;width:68%;">
       <table class="plugin">
         <tr>
           <td width="100">Folder Name:</td>
@@ -59,7 +59,7 @@
         </tr>
       </table>
     </div>
-    <div style="float:left;margin-left:10px;">
+    <div style="float:left;margin-left:2px;width:30%">
       <table class="plugin" style="margin-bottom:10px;">
         <tr>
           <td colspan="2" class="pluginReportTitle pluginMediumText"><?php print $LANG_statsmsg ?></td>

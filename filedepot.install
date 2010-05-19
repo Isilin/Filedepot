@@ -186,7 +186,6 @@ $schema['filedepot_files'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -367,7 +366,6 @@ $schema['filedepot_fileversions'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -572,7 +570,6 @@ $schema['filedepot_filesubmissions'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -719,7 +716,6 @@ $schema['filedepot_import_queue'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),

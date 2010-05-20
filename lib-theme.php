@@ -325,7 +325,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
         array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
       $variables['action2_link'] = '';
     }
-    else {
+    else {      
       $variables['action1_link'] = $downloadlink;
       $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
       $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
@@ -541,18 +541,14 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['catid'] = $variables['cid'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
+  $variables['group_options'] = filedepot_getGroupOptions();
 
-  $variables['LANG_selectusers'] = t('Select Users');
-  $variables['LANG_selectroles'] = t('Select Roles');
-  $variables['LANG_accessrights'] = t('Access Rights');
   $variables['LANG_viewcategory'] = t('View Category');
   $variables['LANG_uploadapproval'] = t('Upload with Approval');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
   $variables['LANG_uploaddirect'] = t('Upload Direct');
   $variables['LANG_categoryadmin'] = t('Category Admin');
   $variables['LANG_uploadversions'] = t('Upload New Versions');
-  $variables['LANG_userrecords'] = t('User Access Records');
-  $variables['LANG_rolerecords'] = t('Role Access Records');
   $variables['LANG_user'] = t('User');
   $variables['LANG_admin'] = t('Admin');
   $variables['LANG_action'] = t('Action');
@@ -562,23 +558,50 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['LANG_directupload'] = t('Direct Upload');
   $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
 
-
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = %d";
   $query = db_query($sql, $variables['cid']);
+  $i = 0;
   while ($permrec = db_fetch_array($query)) {
+    $i++;
     $user_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'user');
   }
-  $variables['user_perm_records'] = $user_perm_records;
+  if ($i > 0) {
+    $variables['user_perm_records'] = $user_perm_records;
+  } 
+  else {
+    $variables['user_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
+  }   
+  
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql .= "FROM {filedepot_access} WHERE permtype = 'group' AND permid > 0 AND catid = %d";
+  $query = db_query($sql, $variables['cid']);
+  $i = 0;     
+  while ($permrec = db_fetch_array($query)) {
+    $i++;
+    $group_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'group');
+  }
+  if ($i > 0) {
+    $variables['group_perm_records'] = $group_perm_records;
+  } 
+  else {
+    $variables['group_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';  
+  }
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = %d";
   $query = db_query($sql, $variables['cid']);
+  $i = 0;  
   while ($permrec = db_fetch_array($query)) {
+    $i++;
     $role_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'role');
   }
-  $variables['role_perm_records'] = $role_perm_records;
-
+  if ($i > 0) {
+    $variables['role_perm_records'] = $role_perm_records;
+  } 
+  else {
+    $variables['role_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';  
+  }
 }
 
 
@@ -586,7 +609,10 @@ function template_preprocess_filedepot_folderperm_rec(&$variables) {
   list($accid, $permid, $acc_view, $acc_upload, $acc_uploaddirect, $acc_uploadver, $acc_approval, $acc_admin) = array_values($variables['permRec']);
   if ($variables['mode'] == 'user') {
     $variables['name'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $permid));
-  } 
+  }
+  else if ($variables['mode'] == 'group') {
+    $variables['name'] = db_result(db_query("SELECT title FROM {node} WHERE nid=%d", $permid));    
+  }
   else {
     $variables['name'] = db_result(db_query("SELECT name FROM {role} WHERE rid=%d", $permid));
   }

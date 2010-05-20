@@ -298,6 +298,15 @@ function filedepot_getRoleOptions() {
   return $retval; 
 }
 
+function filedepot_getGroupOptions() {
+  $retval = '';
+  $groups = og_all_groups_options();
+  foreach ($groups as $grpid => $grpname) {
+    $retval .= '<option value="' . $grpid . '">' . $grpname . '</option>';
+  }
+  return $retval; 
+}
+
 
 /**
  * Send out notifications to all users that have subscribed to this file or file category

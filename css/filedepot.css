@@ -568,7 +568,7 @@ a.cancelbutton:hover {
   padding:0px;
 }
 
-#activefolder_container {
+#activefolder_container, #folder_options_container {
   background-color:#F2F2F2;
 }
 

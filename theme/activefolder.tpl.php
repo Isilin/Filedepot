@@ -11,10 +11,10 @@
     <div class="floatleft" style="font-size:9pt;height:26px;padding-bottom:5px;display:<?php print $show_breadcrumbs ?>;"><?php print $folder_breadcrumb_links ?></div>
     <div style="float:right;width:50%"><?php print $ajaxstatus; print $ajaxactivity ?></div>    
     <div class="clearboth"></div>
-    <div class="floatleft" style="padding-right:5px;padding-bottom:10px;vertical-align:top;width:5%">
+    <div class="floatleft" style="padding-right:5px;padding-bottom:10px;vertical-align:top;width:3%">
       <span style="padding-left:2px;"><img src="<?php print $layout_url ?>/css/images/allfolders-16x16.png"></span>
     </div>
-    <div id="activefolder_area" style="width:93%;">
+    <div id="activefolder_area" style="width:96%;">
        <?php print $active_folder_admin ?>
     </div>
     <div class="clearboth"></div>

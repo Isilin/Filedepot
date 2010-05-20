@@ -404,7 +404,7 @@ function filedepot_access($op, $node) {
  */
 function filedepot_main() {
   global $base_url, $base_path, $user;
-
+  
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');
   drupal_add_js($modulepath . '/js/filedepotlanguage.js');

@@ -317,6 +317,7 @@ function filedepot_dispatcher($action) {
       $cid,                          // Category ID
       $_POST['cb_access'],           // Array of permissions checked by user
       $_POST['selusers'],            // Array of site members
+      $_POST['selgroups'],           // Array of group members
       $_POST['selroles'])            // Array of roles
       ) {
         $data['html'] = theme('filedepot_folderperms', $cid);

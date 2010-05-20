@@ -243,6 +243,30 @@ class filedepot {
           return TRUE;
         }
       }
+      
+      // Retrieve all the Organic Groups this user is a member of
+      $sql = "SELECT node.nid AS nid FROM node node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid " 
+           . "INNER JOIN users users ON node.uid = users.uid "
+           . "WHERE (node.status <> 0) AND (node.type IN ('group')) AND (og_uid.uid = %d) ";
+      $groupquery = db_query($sql, $uid);
+      while ($grouprec = db_fetch_array($groupquery)) {
+        $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d";
+        $query = db_query($sql, $cid, $grouprec['nid']);         
+        while ($rec = db_fetch_array($query)) {
+          list ($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
+          if (is_array($rights)) {
+            foreach ($rights as $key) {      // Field name above needs to match access right name
+              if ($$key == 1)  {
+                return TRUE;
+              }
+            }
+          } 
+          elseif ($$rights == 1) {
+            return TRUE;
+          }
+        }
+      }
+            
 
       // For each role that the user is a member of - check if they have the right
       foreach ($user->roles as $rid => $role) {     
@@ -296,7 +320,7 @@ class filedepot {
   }  
 
 
-  public function updatePerms($id, $accessrights, $users='', $roles='') {
+  public function updatePerms($id, $accessrights, $users='', $groups='', $roles='') {
     if ($users != '' AND !is_array($users)) {
       $users = array($users);
     }
@@ -357,6 +381,25 @@ class filedepot {
           }
         }
       }
+      
+      if (!empty($groups)) {
+        foreach($groups as $gid ) {
+          $gid = intval($gid);
+          $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d", $id, $gid);
+          if (db_result($query) === FALSE) {
+            $sql = "INSERT INTO {filedepot_access} "
+            . "(catid,permid,permtype,view,upload,upload_direct,upload_ver,approval,admin) "
+            . "VALUES (%d,%d,'group',%d,%d,%d,%d,%d,%d)";
+            db_query($sql, $id, $gid, $view, $upload, $direct, $versions, $approval, $admin);                      
+          } 
+          else {
+            $sql = "UPDATE {filedepot_access} SET view=%d, upload=%d, "
+            . "upload_direct=%d, upload_ver=%d, approval=%d, "
+            . "admin=%d WHERE catid=%d AND permtype='group' AND permid=%d";
+            db_query($sql, $view, $upload, $direct, $versions, $approval, $admin, $id, $gid);
+          }
+        }
+      }      
 
       if (!empty($roles)) {
         foreach($roles as $rid ) {
@@ -435,7 +478,7 @@ class filedepot {
     $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
     if ($cid > 0 AND $this->createStorageFolder($cid)) {
       $this->cid = $cid;  
-      $catpid = db_result(db_query("SELECT pid FROM {filedepot_categories} WHERE cid=%d", $cid));         
+      $catpid = db_result(db_query("SELECT pid FROM {filedepot_categories} WHERE cid=%d", $cid));       
       if ($node->inherit == 1 AND $catpid > 0) {       
         // Retrieve parent User access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin FROM {filedepot_access} "
@@ -466,7 +509,7 @@ class filedepot {
           foreach ($this->defRoleRights as $role => $perms) {
             $rid = db_result(db_query("SELECT rid FROM {role} WHERE name='%s'", $role));
             if ($rid and $rid > 0) {
-              $this->updatePerms($cid, $perms, '',array($rid));
+              $this->updatePerms($cid, $perms,'','',array($rid));
             }
           }
         }

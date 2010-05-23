@@ -1080,8 +1080,10 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   global $user, $filedepot, $nexcloud;
 
   $roleids = implode(',', array_keys($user->roles));
+  $groupids = implode(',',array_keys($user->og_groups)); 
   $sql  = "SELECT metric from {nextag_metrics} WHERE type='%s' ";
   $sql .= "AND roleid IN ($roleids) ";
+  if (!empty($groupids)) $sql .= "OR groupid in ($groupids) ";
   $sql .= "ORDER BY metric DESC limit 1";
   $qmaxm = db_query($sql, $nexcloud->_type);
   $rec = db_fetch_array($qmaxm);
@@ -1090,7 +1092,9 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
     list ($maxm) = array_values($rec);
     $sql = "SELECT a.tagid,b.tagword,a.metric from {nextag_metrics} a ";
     $sql .= "LEFT JOIN {nextag_words} b ON a.tagid=b.id ";
-    $sql .= "WHERE b.tagword is not NULL AND type='{$nexcloud->_type}' AND roleid IN ($roleids) ";
+    $sql .= "WHERE b.tagword is not NULL AND type='{$nexcloud->_type}' ";
+    $sql .= "AND roleid IN ($roleids) ";
+    if (!empty($groupids)) $sql .= "OR groupid in ($groupids) ";
     if (!empty($nexcloud->_activetags)) {
       $sql .= "AND a.tagid NOT in ({$nexcloud->_activetags}) ";
     }

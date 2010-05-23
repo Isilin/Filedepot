@@ -1016,11 +1016,19 @@ return $schema;
 
 /**
  * Implementation of hook_update_N().
+ * RC3 - Change the size field to support a larger file size (bytes)
  */
 function filedepot_update_6001() {
-  db_query(" ALTER TABLE {filedepot_files} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
-  db_query(" ALTER TABLE {filedepot_fileversions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
-  db_query(" ALTER TABLE {filedepot_filesubmissions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
-  db_query(" ALTER TABLE {filedepot_import_queue} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query("ALTER TABLE {filedepot_files} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query("ALTER TABLE {filedepot_fileversions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query("ALTER TABLE {filedepot_filesubmissions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+  db_query("ALTER TABLE {filedepot_import_queue} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'"); 
+}
 
+/**
+ * Implementation of hook_update_N().
+ * RC4 - After adding support for OG - needed to change the tag class to allow perms/metrics assigned by groups
+ */
+function filedepot_update_6002() {
+  db_query("ALTER TABLE {nextag_metrics} CHANGE `uid` `groupid` MEDIUMINT( 9 ) NULL DEFAULT NULL");
 }

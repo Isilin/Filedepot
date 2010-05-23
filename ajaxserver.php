@@ -455,7 +455,7 @@ function filedepot_dispatcher($action) {
       $tags  = $_POST['tags'];
       $data = array();
       $data['tagerror'] = '';        
-      $data['errmsg'] = '';        
+      $data['errmsg'] = '';    
 
       if ($_POST['cid'] == 'incoming' AND $fid > 0) {
           $filemoved = FALSE;
@@ -488,9 +488,11 @@ function filedepot_dispatcher($action) {
             $newcid = $folder;
             db_query("UPDATE {filedepot_files} SET title='%s',description='%s',date=%d WHERE fid=%d", $filetitle, $description, time(), $fid);
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
-            $filemoved = $filedepot->moveFile($fid, $newcid);
-            if ($filemoved == FALSE) {
-              $data['errmsg'] = t('Error moving file');
+            if ($cid != $newcid) {
+              $filemoved = $filedepot->moveFile($fid, $newcid);
+              if ($filemoved == FALSE) {
+                $data['errmsg'] = t('Error moving file');
+              }              
             }
             $data['cid'] = $newcid;
             unset($_POST['tags']);  // Format tags will check this to format tags in case we are doing a search which we are not in this case.
@@ -499,7 +501,7 @@ function filedepot_dispatcher($action) {
           db_query("UPDATE {filedepot_fileversions} SET notes='%s' WHERE fid=%d and version=%d", $vernote, $fid, $version);
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
           if ($filedepot->checkPermission($folder, 'view', 0, FALSE) AND !$nexcloud->update_tags($fid, $tags)) {
-            $data['tagerror'] = t('Tags not added - Group view perms required');
+            $data['tagerror'] = t('Tags not added - Group or Role assigned view perms required');
             $data['tags'] = '';
           }          
         }

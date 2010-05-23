@@ -177,7 +177,7 @@ All the needed style sheets should be loaded automatically by the loader.
         <div id="cancelalert" class="floatright" style="position:relative;top:4px;padding-right:10px;">
           <a class="cancelbutton" href="#">&nbsp;</a>
         </div>
-        <div class="x1 clearboth"></div>
+        <div class="clearboth"></div>
       </div>
       <div id="activefolder_container"></div>
       <div class="clearboth" id="showactivetags" style="display:none;">
@@ -186,16 +186,16 @@ All the needed style sheets should be loaded automatically by the loader.
       <div class="clearboth"></div>      
       <div style="margin-right:0px;">
         <div id="filelistingheader" style="margin-bottom:10px;"></div>
-        <div class="x1 clearboth"></div>        
+        <div class="clearboth"></div>        
         <form name="frmfilelisting" action="{action_url}" method="post" style="margin:0px;">
           <div id="filelisting_container"></div>
         </form>
       </div>
-      <div class="x2  clearboth"></div>    
+      <div class="clearboth"></div>    
 
     </div> <!-- end of filedepot_centercol div -->
     
-    <div class="x3  clearboth"></div>  
+    <div class="clearboth"></div>  
   </div>   <!-- end of filedepot div --> 
  
   <div class="clearboth"></div> 

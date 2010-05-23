@@ -526,7 +526,7 @@ function filedepot_delTree($dir) {
   $files = glob( $dir . '*', GLOB_MARK );
   foreach ( $files as $file ) {
     if ( drupal_substr( $file, -1 ) == '/' ) {
-      delTree( $file );
+      filedepot_delTree( $file );
     } 
     else {
       @unlink( $file );

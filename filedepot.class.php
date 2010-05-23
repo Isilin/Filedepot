@@ -776,6 +776,9 @@ class filedepot {
             db_query($sql, $newrec['vid'], $newrec['nid'], $delta, $sfile->field_filedepot_file_fid, $sfile->field_filedepot_file_data);
           }
         }
+        else {
+          $filemoved = TRUE;  // No move requested but no errors or warnings so return true
+        }
       } 
       else {
         watchdog('filedepot', 'User (@user) does not have access to move file(@fid): @name to category: @newcid',
@@ -1011,7 +1014,6 @@ class filedepot {
       return FALSE;
     } 
 
-
   }
 
   public function approveFileSubmission($id) {
@@ -1025,6 +1027,9 @@ class filedepot {
       $curfile = "{$this->root_storage_path}{$rec->cid}/submissions/{$rec->tempname}";
       $newfile = "{$this->root_storage_path}{$rec->cid}/{$rec->fname}";
       $rename = @rename($curfile, $newfile);
+      
+      // Need to update the filename path in the drupal files table
+      db_query("UPDATE {files} SET filename='%s', filepath='%s' WHERE fid=%d", $rec->fname, $newfile, $rec->cckfid);      
 
       $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,cckfid,size,mimetype,submitter,status,date,version_ctl) "
       . "VALUES (%d,'%s','%s','%s',1,%d,%d,'%s',%d,1,%d,%d)";

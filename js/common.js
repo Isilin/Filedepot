@@ -694,6 +694,8 @@ var makeAJAXLoadFileDetails = function(id) {
           YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);
           var download_url = siteurl + '/index.php?q=filedepot_download/' + oResults.nid + '/' + oResults.fid;
           if (reportmode == 'incoming') download_url += '/incoming';
+          if (reportmode == 'approvals') download_url += '/0/moderator';
+
           Dom.get('menubar_downloadlink').href = download_url;                    
           if (!Event.getListeners('menubar_downloadlink')) {   // Check first to see if listener already active
             Event.addListener("menubar_downloadlink", "click", hideFileDetailsPanelDelay);

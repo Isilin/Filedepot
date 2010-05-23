@@ -598,6 +598,10 @@ function filedepot_delete($node) {
  * returns -1 drupal_access_denied() will be returned. If one or more modules
  * returned headers the download will start with the returned headers. If no
  * modules respond drupal_not_found() will be returned.
+ * 
+ * $mode:  default is for normal files, 
+ *         'edit' for the download for edit operation
+ *         'moderator' to indicate file is not yet approved - moderator request to download file
  */
 function filedepot_download($node, $fid, $version, $mode='') {
   global $conf, $user, $filedepot;
@@ -659,17 +663,38 @@ function filedepot_download($node, $fid, $version, $mode='') {
       $fname = db_result(db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=%d AND version=%d", $fid, $version));
       $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
     }
+    else if ($mode == 'moderator') {
+      $query = db_query("SELECT cid,fname,tempname FROM {filedepot_filesubmissions} WHERE id=%d", $fid);
+      $rec = db_fetch_array($query);
+      if ($rec === FALSE) {
+        watchdog('filedepot', "Download request for moderated file - invalid file reference");
+        return drupal_access_denied();
+      }      
+      list($cid, $fname, $tempname) = array_values($rec);      
+    }
     else {
       $query = db_query("SELECT cid,fname FROM {filedepot_files} WHERE fid=%d", $fid);
-      list($cid, $fname) = array_values(db_fetch_array($query));
+      $rec = db_fetch_array($query);
+      if ($rec === FALSE) {
+        watchdog('filedepot', "Download request - invalid file reference");
+        return drupal_access_denied();
+      }
+      else {
+        list($cid, $fname) = array_values($rec);
+      }
     }
     if ($cid == 0) {
       watchdog('filedepot', "Download request - null category id");
       return drupal_access_denied();
     }
     else {
-      $filepath = $filedepot->root_storage_path . "{$cid}/{$fname}";
-      if (file_exists($filepath)) {
+      if ($mode == 'moderator') {      
+        $filepath = $filedepot->root_storage_path . "{$cid}/submissions/{$tempname}";
+      }
+      else {
+        $filepath = $filedepot->root_storage_path . "{$cid}/{$fname}";
+      }
+      if (file_exists($filepath) AND !is_dir($filepath)) {
         $system_directory_path = $conf['file_directory_path'];
         $conf['file_directory_path'] = $filedepot->root_storage_path . $cid;
         $result = db_query("SELECT * FROM {files} WHERE filepath = '%s'", $filepath);
@@ -679,11 +704,17 @@ function filedepot_download($node, $fid, $version, $mode='') {
           watchdog('filedepot', "File record not found");
           return drupal_access_denied();
         }
-        if (db_result(db_query("SELECT COUNT(*) FROM {filedepot_downloads} WHERE uid=%d AND fid=%d", $user->uid, $fid)) == 0) {
-          db_query("INSERT into {filedepot_downloads} (uid,fid,remote_ip,date) VALUES (%d,%d,'%s',%d)", $user->uid, $fid, $_SERVER['REMOTE_ADDR'], time());
+        if ($mode == 'moderator') {
+          $name = mime_header_encode($fname);
+          $type = mime_header_encode($file->filemime);          
         }
-        $name = mime_header_encode($file->filename);
-        $type = mime_header_encode($file->filemime); 
+        else {
+          if (db_result(db_query("SELECT COUNT(*) FROM {filedepot_downloads} WHERE uid=%d AND fid=%d", $user->uid, $fid)) == 0) {
+            db_query("INSERT into {filedepot_downloads} (uid,fid,remote_ip,date) VALUES (%d,%d,'%s',%d)", $user->uid, $fid, $_SERVER['REMOTE_ADDR'], time());
+          }
+          $name = mime_header_encode($file->filename);
+          $type = mime_header_encode($file->filemime);
+        } 
         // By default, serve images, text, and flash content for display rather than
         // download. Or if variable 'filefield_inline_types' is set, use its patterns.
         $inline_types = variable_get('filefield_inline_types', array('^text/', '^image/', 'flash$'));

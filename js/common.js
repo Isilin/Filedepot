@@ -604,6 +604,8 @@ function moveSelectedFiles() {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
+        if (document.frmtoolbar.reportmode.value == 'incoming')
+          document.frmtoolbar.reportmode.value = '';
         if (oResults.cid > 0) {
           makeAJAXGetFolderListing(oResults.cid);
         } else {

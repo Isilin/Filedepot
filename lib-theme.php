@@ -278,6 +278,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
   $variables['file_number'] = "{$variables['foldernumber']}.{$filenum}";
   $variables['file_description'] = nl2br(filter_xss($rec['description']));
+  $variables['actionclass'] = 'twoactions';
 
   $tags = $nexcloud->get_itemtags($variables['fid']);
   $variables['tags'] = filedepot_formatfiletags($tags);
@@ -324,6 +325,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
         array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
       $variables['action2_link'] = '';
+      $variables['actionclass'] = 'oneaction';
     }
     else {      
       $variables['action1_link'] = $downloadlink;
@@ -337,6 +339,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       }
       else {
         $variables['action2_link'] = '';
+        $variables['actionclass'] = 'oneaction';          
       }
     }
 

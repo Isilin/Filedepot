@@ -34,31 +34,31 @@
     <div style="text-align:center;background-color:#BBBECE;"><strong><?php print t('Access Rights'); ?></strong></div>
       <div style="padding-left:15px;font-size:90%;">
         <div>
-          <div class="form-item form-option" style="margin-right:5px;width:130px;float:left;">
+          <div class="form-item form-option filedepot_perms_leftoption">
             <span style="float:left;"><label for="feature1"><?php print $LANG_viewcategory ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="view"  id="feature1"></span>
           </div>
-          <div class="form-item form-option" style="width:165px;float:left;">     
+          <div class="form-item form-option filedepot_perms_rightoption">     
             <span style="float:left;"><label for="feature2"><?php print $LANG_uploadapproval ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload"  id="feature2"></span>
           </div>
         </div>
         <div style="background-color:#FFFFFF;">
-          <div class="form-item form-option" style="margin-right:5px;width:130px;float:left;">
+          <div class="form-item form-option filedepot_perms_leftoption">
             <span style="float:left;"><label for="feature3"><?php print $LANG_uploadadmin ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="approval"  id="feature3"></span>
           </div>
-          <div class="form-item form-option" style="width:165px;float:left;">     
+          <div class="form-item form-option filedepot_perms_rightoption">     
             <span style="float:left;"><label for="feature4"><?php print $LANG_uploaddirect ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload_direct"  id="feature4"></span>
           </div>
         </div>
         <div>
-          <div class="form-item form-option" style="margin-right:5px;width:130px;float:left;">
+          <div class="form-item form-option filedepot_perms_leftoption">
             <span style="float:left;"><label for="feature5"><?php print $LANG_categoryadmin ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="admin"  id="feature5"></span>
           </div>
-          <div class="form-item form-option" style="width:165px;float:left;">     
+          <div class="form-item form-option filedepot_perms_rightoption">     
             <span style="float:left;"><label for="feature6"><?php print $LANG_uploadversions ?></label></span>
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload_ver"  id="feature6"></span>
           </div>

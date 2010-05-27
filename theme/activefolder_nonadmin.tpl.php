@@ -24,7 +24,7 @@
             <tr>
                 <td colspan="2" class="aligncenter" style="padding:5px;">
                     <input type="submit" value="Save Settings" onClick="doAJAXUpdateFolderNotificationSettings(this.form);return false;">
-                    <span style="padding-left:10px;"><input type="button" value="Close" onClick="togglefolderoptions();"></span>
+                    <span style="padding-left:10px;"><input type="button" class="form-submit" value="Close" onClick="togglefolderoptions();"></span>
                 </td>
             </tr>
         </table>

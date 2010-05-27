@@ -335,6 +335,16 @@ body.layout-left-main .outer { margin-left:0px !important; }
     color:#666;
 }
 
+#filelisting_container div.twoactions {
+  padding-right:40px;
+  white-space:nowrap  
+}
+
+#filelisting_container div.oneaction {
+  padding-right:60px;
+  white-space:nowrap  
+}
+
 #filelisting_container .loading {
     background-color:#FFEFAD;
     color: #FA0032;
@@ -601,6 +611,17 @@ a.cancelbutton:hover {
 
 #edit_activefolder td { padding:3px; }
 #folderperms td { padding:2px; }
+
+.filedepot_perms_leftoption {
+  margin-right:5px;
+  width:130px;
+  float:left;
+}
+
+.filedepot_perms_rightoption {
+  width:165px;
+  float:left;
+}
 
 #frmFileDetails input { font-size:9pt; }
 #frmFileDetails label { font-weight:normal; font-size:9pt; }

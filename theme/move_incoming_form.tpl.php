@@ -17,9 +17,9 @@
                             </tr>
                             <tr>
                                 <td colspan="2" style="text-align:center;padding:15px;">
-                                    <input id="btnMoveIncomingFileSubmit" type="button" value="<?php print $LANG_submit ?>">
+                                    <input id="btnMoveIncomingFileSubmit" class="form-submit" type="button" value="<?php print $LANG_submit ?>">
                                     <span style="padding-left:10px;">
-                                        <input id="btnMoveIncomingFileCancel" type="button" value="<?php print $LANG_cancel ?>">
+                                        <input id="btnMoveIncomingFileCancel" class="form-submit" type="button" value="<?php print $LANG_cancel ?>">
                                     </span>
                                 </td>
                             </tr>

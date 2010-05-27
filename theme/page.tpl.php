@@ -250,7 +250,7 @@ All the needed style sheets should be loaded automatically by the loader.
           <table width="100%" style="margin:10px;">
             <tr>
               <td width="100"><label><?php print $LANG_filename ?></label></td>
-              <td width="225"><input type="text" name="filetitle" size="29" value="" style="width:195px;" /></td>
+              <td width="225"><input type="text" class="form-text" name="filetitle" size="29" value="" style="width:195px;" /></td>
               <td width="80"><label><?php print $LANG_folder ?></label></td>
               <td width="255" id="folderoptions"></td>
             </tr>
@@ -272,17 +272,18 @@ All the needed style sheets should be loaded automatically by the loader.
               <td><label><?php print $LANG_versionnote ?></label></td>
               <td><textarea rows="3" cols="30" name="version_note" style="width:195px;"></textarea></td>
               <td><label><?php print $LANG_tags ?></label></td>
-              <td><div id="tagsfield" style="padding-bottom:15px;">
-                  <input id="editfile_tags" name="tags" type="text" size="30" style="width:210px" />
+              <td>
+                <div id="tagsfield" style="padding-bottom:15px;">
+                  <input id="editfile_tags" class="form-text" name="tags" type="text" size="30" style="width:210px" />
                   <div id="editfile_autocomplete" style="width:210px;"></div>
                 </div>
                 <div id="tagswarning" class="pluginAlert" style="width:180px;display:none;"><?php print $LANG_folderpermsmsg ?></div>
               </td>
-            </tr>
+            </tr>  
             <tr>
               <td colspan="4" style="padding-top:10px;text-align:center;">
-                <input type="button" value="Submit"  onClick="makeAJAXUpdateFileDetails(this.form)"/>
-                <span style="padding-left:10px;"><input id="filedetails_cancel" type="button" value="<?php print $LANG_cancel ?>"></span>
+                <input type="button" value="Submit" class="form-submit" onClick="makeAJAXUpdateFileDetails(this.form)"/>
+                <span style="padding-left:10px;"><input id="filedetails_cancel" class="form-submit" type="button" value="<?php print $LANG_cancel ?>"></span>
               </td>
             </tr>
           </table>

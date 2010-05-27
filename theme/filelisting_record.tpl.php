@@ -24,7 +24,7 @@
         </div>
         <div class="tags" id="listingTagsRec<?php print $fid ?>"><?php print $tags ?></div>
         <div class="floatright">
-            <div class="actions floatright" style="white-space:nowrap;padding-right:40px;">
+            <div class="floatright <?php print $actionclass?>">
                 <span><?php print $action1_link ?></span>
                 <span><?php print $action2_link ?></span>
             </div>

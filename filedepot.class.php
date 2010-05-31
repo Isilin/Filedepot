@@ -245,8 +245,8 @@ class filedepot {
       }
       
       // Retrieve all the Organic Groups this user is a member of
-      $sql = "SELECT node.nid AS nid FROM node node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid " 
-           . "INNER JOIN users users ON node.uid = users.uid "
+      $sql = "SELECT node.nid AS nid FROM {node} node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid " 
+           . "INNER JOIN {users} users ON node.uid = users.uid "
            . "WHERE (node.status <> 0) AND (node.type IN ('group')) AND (og_uid.uid = %d) ";
       $groupquery = db_query($sql, $uid);
       while ($grouprec = db_fetch_array($groupquery)) {

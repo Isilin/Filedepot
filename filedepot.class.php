@@ -500,6 +500,18 @@ class filedepot {
           . "(%d,'role',%d,%d,%d,%d,%d,%d,%d)";
           db_query($sql, $cid, $rec->permid, $rec->view, $rec->upload, $rec->upload_direct, $rec->upload_ver, $rec->approval, $rec->admin);
         }
+        
+        // Retrieve parent Group Access records - for each record create a new one for this category
+        $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin "
+        . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=%d";
+        $q3 = db_query($sql, $catpid);
+        while ($rec = db_fetch_object($q3)) {
+          $sql = "INSERT INTO {filedepot_access} "
+          . "(catid,permtype,permid,view,upload,upload_direct,upload_ver,approval,admin) VALUES "
+          . "(%d,'group',%d,%d,%d,%d,%d,%d,%d)";
+          db_query($sql, $cid, $rec->permid, $rec->view, $rec->upload, $rec->upload_direct, $rec->upload_ver, $rec->approval, $rec->admin);
+        }
+        
 
       } 
       else {

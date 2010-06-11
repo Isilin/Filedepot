@@ -1877,7 +1877,7 @@ function updateCheckedItems(obj,type) {
   }
   // Remove any leading comma
   field.value = field.value.replace(/^,*/g, '');
-  enable_multiaction(field.value);
+  enable_multiaction(field.value,document.frmtoolbar.checkedfolders.value);
 }
 
 function toggleCheckedItems(obj,files) {
@@ -2243,6 +2243,13 @@ function renderFileListing(oResults) {
     Event.addListener(folderList[i], 'mouseout', hideFolderMoveActions, folderList[i]);
   }
   clearCheckedItems();
+  if(document.frmfilelisting.chkfile) {
+    if(document.frmfilelisting.chkfile.length == 'undefined' || document.frmfilelisting.chkfile.length == 1)     // No files in listing - disable the header checkall checkbox
+      Dom.get('headerchkall').disabled = true;
+  } else { 
+    Dom.get('headerchkall').disabled = true;  
+  }
+  
 }
 
 YAHOO.filedepot.showLeftNavigation = function() {

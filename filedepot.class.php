@@ -574,6 +574,7 @@ class filedepot {
         db_query("DELETE FROM {filedepot_access} WHERE catid=%d", $cid);
         db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_notifications} WHERE cid=%d", $cid);
+        db_query("DELETE FROM {filedepot_filesubmissions} WHERE cid=%d", $cid);
 
         $catdir = $this->root_storage_path . $cid;
         if (file_exists($catdir)) {

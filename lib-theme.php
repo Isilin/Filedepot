@@ -273,11 +273,11 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['filesize'] = filedepot_formatFileSize($rec['fsize']);
   $variables['file_name'] = filter_xss($rec['title']);
 
-  if (isset($rec['last_modified_date']) AND $rec['last_modified_date'] > 0) {
-    $variables['modified_date'] = strftime($filedepot->shortdate, $rec['last_modified_date']);
+  if (isset($rec['date']) AND $rec['date'] > 0) {
+    $variables['modified_date'] = strftime($filedepot->shortdate, $rec['date']);
   } 
   else {
-    $variables['modified_date'] = strftime($filedepot->shortdate, $rec['date']);
+    $variables['modified_date'] = '';
   }
 
   $variables['folder_link'] = "{$base_url}/filedepot/index.php?cid={$rec['cid']}";

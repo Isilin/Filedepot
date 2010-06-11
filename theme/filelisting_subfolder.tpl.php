@@ -16,7 +16,7 @@
         <span style="padding-left:5px;padding-right:5px;color:#666;"><?php print $folder_number ?></span>
         <span class="folderlink"><a href="#" onClick="makeAJAXGetFolderListing(<?php print $folder_id ?>);return false;" TITLE="Folder id: <?php print $folder_id ?>  Parent:<?php print $parent_folder_id ?>"><?php print$folder_name ?></a></span>
       </div>
-      <div class="floatright" style="padding-right:29px;width:125px;"><?php print $last_modified_date ?>&nbsp;</div>
+      <div class="floatright" style="padding-right:0px;width:125px;"><?php print $last_modified_date ?>&nbsp;</div>
       <?php print $onhover_move_options ?>
     </div>
   </div>

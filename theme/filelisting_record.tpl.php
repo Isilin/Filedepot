@@ -27,9 +27,10 @@
             <div class="floatright <?php print $actionclass?>">
                 <span><?php print $action1_link ?></span>
                 <span><?php print $action2_link ?></span>
+                <span style="display:<?php print $show_approvalsubmitter ?>;"><?php print $submitter ?></span>
             </div>
             <div class="floatright" style="padding-right:40px"><?php print $modified_date ?></div>
-            <div class="floatright" style="padding-right:40px; display:<?php print $show_submitter ?>;"><?php print $submitter ?></div>
+            <div class="floatright" style="padding-right:40px;display:<?php print $show_submitter ?>;"><?php print $submitter ?></div>
             <div class="floatright" style="padding-right:20px;display:<?php print $show_foldername ?>;"><a href="#" onClick="makeAJAXGetFolderListing(<?php print $subfolder_id ?>);return false;"><?php print $folder_name ?></a></div>
         </div>
     </div>

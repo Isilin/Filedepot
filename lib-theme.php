@@ -31,15 +31,22 @@ function template_preprocess_filedepot_header(&$variables) {
   $variables['LANG_folder'] = t('Folder');
   $variables['LANG_submitted'] = t('Submitted');
   $variables['LANG_owner'] = t('Owner');
-
+  $variables['rightpadding'] = '35';  // Need to tweek the right most padding of the far right heading column for the approvals report view. 
+  
   if ($filedepot->activeview == 'incoming') {
     $variables['show_incomingheader'] = '';
     $variables['show_mainheader'] = 'none';
   }
 
-  if ($filedepot->cid > 0 OR $filedepot->activeview == 'approvals') {
+  if ($filedepot->cid > 0) {
+    $variables['rightpadding'] = '10';
     $variables['show_folder'] = 'none';
     $variables['show_folderexpandlink'] = '';
+  }
+  elseif ($filedepot->activeview == 'approvals') {
+    $variables['rightpadding'] = '10';    
+    $variables['show_folder'] = '';
+    $variables['show_folderexpandlink'] = 'none';  
   } 
   else {
     $variables['show_folder'] = '';
@@ -296,9 +303,11 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     }
   }
 
-  if ($filedepot->activeview == 'approvals') {
-    $variables['show_submitter'] = '';
-    $variables['show_foldername'] = 'none';
+  $variables['show_approvalsubmitter'] = 'none';   
+  if ($filedepot->activeview == 'approvals') {    
+    $variables['show_approvalsubmitter'] = '';
+    $variables['show_submitter'] = 'none';
+    $variables['show_foldername'] = '';
     $variables['submitter'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $rec['submitter']));
   } 
   elseif ($filedepot->activeview == 'incoming') {

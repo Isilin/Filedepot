@@ -319,8 +319,8 @@ function filedepot_displaySearchListing($query) {
   global $filedepot;
 
   $query = addslashes($query);    
-  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date as last_modified_date,file.version,file.submitter,file.status,";
-  $sql .= "file.description,category.name,category.pid ";
+  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
+  $sql .= "file.description,category.name as foldername,category.pid,category.nid ";
   $sql .= "FROM {filedepot_files} file ";
   $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
   $sql .= "WHERE 1=1 ";
@@ -342,8 +342,8 @@ function filedepot_displaySearchListing($query) {
 function filedepot_displayTagSearchListing($query) {
   global $filedepot, $nexcloud;
 
-  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date as last_modified_date,file.version,file.submitter,file.status,";
-  $sql .= "file.description,category.name,category.pid ";
+  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
+  $sql .= "file.description,category.name as foldername,category.pid,category.nid ";
   $sql .= "FROM {filedepot_files} file ";
   $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
   $sql .= "WHERE 1=1 ";
@@ -424,7 +424,7 @@ function filedepot_getFileListingSQL($cid) {
   elseif ($filedepot->activeview == 'approvals') {
     // Determine if this user has any submitted files that they can approve
     $sql = "SELECT file.id,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
-    $sql .= "file.description,category.name,category.pid,0 as changedby_uid, size ";
+    $sql .= "file.description,category.name as foldername,category.pid,0 as changedby_uid, size ";
     $sql .= "FROM {filedepot_filesubmissions} file ";
     $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
     if (!user_access('administer filedepot', $user)) {

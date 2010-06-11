@@ -361,6 +361,13 @@ function filedepot_dispatcher($action) {
               $_FILES['files'][$dataitem][$keyname] = $value;
             }
           }
+          // fix http://drupal.org/node/803694
+          // seems that SWF (Flash) may always set the Content-Type to 'application/octet-stream'
+          // no matter what.  Check the type and see if this has happened.
+          if ($file->type == 'application/octet-stream') {
+              // see if we can get a better answer from Drupal file type guessing
+              $file->type = file_get_mimetype($file->name);
+          }
           $validators = array();
           $upload_direct = $filedepot->checkPermission($cid, 'upload_dir');
           $upload_moderated = $filedepot->checkPermission($cid, 'upload');

@@ -860,6 +860,14 @@ class filedepot {
         $dest = $rec->filepath;
         $ext = end(explode(".", $file->name));
 
+        // fix http://drupal.org/node/803694
+        // seems that SWF (Flash) may always set the Content-Type to 'application/octet-stream'
+        // no matter what.  Check the type and see if this has happened.
+        // $file->type should have the MIME type guessed by Drupal in this instance.
+        if ($rec->filemime == 'application/octet-stream') {
+            db_query("UPDATE {files} SET filemime = '%s' WHERE fid = %d", $file->type, $nodefile['fid']);
+        }
+
         if ($file->moderated) {   // Save record in submission table and set status to 0 -- not online
           $sql =  "INSERT INTO {filedepot_filesubmissions} "
           . "(cid, fname, tempname, title, description, cckfid, version_note, size, mimetype, extension, submitter, date, tags, notify) "
@@ -1041,11 +1049,11 @@ class filedepot {
       $rename = @rename($curfile, $newfile);
       
       // Need to update the filename path in the drupal files table
-      db_query("UPDATE {files} SET filename='%s', filepath='%s' WHERE fid=%d", $rec->fname, $newfile, $rec->cckfid);      
+      db_query("UPDATE {files} SET filename='%s', filepath='%s', filemime='%s' WHERE fid=%d", $rec->fname, $newfile, $rec->mimetype, $rec->cckfid);      
 
-      $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,cckfid,size,mimetype,submitter,status,date,version_ctl) "
-      . "VALUES (%d,'%s','%s','%s',1,%d,%d,'%s',%d,1,%d,%d)";
-      db_query($sql, $rec->cid, $rec->fname, $rec->title, $rec->description, $rec->cckfid, $rec->size, $rec->mimetype, $rec->submitter, time(), $rec->version_ctl);
+      $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,cckfid,size,mimetype,submitter,status,date,version_ctl,extension) "
+      . "VALUES (%d,'%s','%s','%s',1,%d,%d,'%s',%d,1,%d,%d,'%s')";
+      db_query($sql, $rec->cid, $rec->fname, $rec->title, $rec->description, $rec->cckfid, $rec->size, $rec->mimetype, $rec->submitter, time(), $rec->version_ctl, $rec->extension);
       // Get fileid for the new file record
       $args = array($rec->cid, $rec->submitter);
       $newfid = db_result(db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d AND submitter=%d ORDER BY fid DESC", $args, 0, 1));

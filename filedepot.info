@@ -1,6 +1,6 @@
 ; $Id$
 name = Filedepot
-version = 6.x-1.0-rc3
+version = 6.x-1.0-rc4
 description = Filedepot File Management System
 core = 6.x
 php = 5.x;

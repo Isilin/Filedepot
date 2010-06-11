@@ -694,6 +694,12 @@ function filedepot_download($node, $fid, $version, $mode='') {
       else {
         $filepath = $filedepot->root_storage_path . "{$cid}/{$fname}";
       }
+      
+      if ($filedepot->checkPermission($cid, 'view') === FALSE) {
+        watchdog('filedepot', "Download request for incoming file invalid access to folder ($cid) for user: {$user->name}");
+        return drupal_access_denied();          
+      }
+
       if (file_exists($filepath) AND !is_dir($filepath)) {
         $system_directory_path = $conf['file_directory_path'];
         $conf['file_directory_path'] = $filedepot->root_storage_path . $cid;

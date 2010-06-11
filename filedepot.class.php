@@ -570,12 +570,13 @@ class filedepot {
         while ($A = db_fetch_array($query))  {
           $this->deleteFile($A['fid']);
         }        
+        $deleteNodeId = db_result(db_query("SELECT nid FROM {filedepot_categories} WHERE cid=%d", $cid));                  
         db_query("DELETE FROM {filedepot_categories} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_access} WHERE catid=%d", $cid);
         db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_notifications} WHERE cid=%d", $cid);
         db_query("DELETE FROM {filedepot_filesubmissions} WHERE cid=%d", $cid);
-
+        db_query("DELETE FROM {node} WHERE nid=%d", $deleteNodeId);
         $catdir = $this->root_storage_path . $cid;
         if (file_exists($catdir)) {
           @unlink($this->root_storage_path . "$cid/.htaccess");

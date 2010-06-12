@@ -50,8 +50,19 @@ Install
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.
    
 Notes:
-i)  You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.
-ii) A new content type is automatically created 'filedepot folder'. When adding the very first folder, the content type
+a)  You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.
+b)  A new content type is automatically created 'filedepot folder'. When adding the very first folder, the content type
     will be modified to programtically add the the CCK filefield type for the files or attachements.
     It is not possible to execute the CCK import to modify the content type during the install as the module has to be first active.
+c)  You can setup filedepot to not load the YUI libraries remotely from Yahoo via the module admin settings page.
+    Set the baseurl to be a local URL and download the YUI libraries from http://yuilibrary.com/downloads/#yui2
+    Only version 2.7.0 of the libraries is supported at present.
+
+    You can also load the YUI libraries from Google:
+    http://ajax.googleapis.com/ajax/libs/yui/2.7.0/build/
+
+    Only google supports loading them using a https URL
+    https://ajax.googleapis.com/ajax/libs/yui/2.7.0/build/
+
+
     

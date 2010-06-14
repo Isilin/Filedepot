@@ -977,7 +977,7 @@ $schema['nextag_metrics'] = array(
       'length' => '32',
       'not null' => TRUE,
     ),
-    'uid' => array(
+    'groupid' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
       'size' => 'medium',

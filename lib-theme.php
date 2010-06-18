@@ -317,7 +317,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       $variables['action2_link'] = $deletelink;
       $variables['submitter'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $rec['submitter']));         
       $variables['show_submitter'] = '';
-      $variables['show_foldername'] = 'none';
+      $variables['show_foldername'] = 'none';     
   } 
   else {
     if ($filedepot->cid == 0 AND !empty($filedepot->activeview)) {

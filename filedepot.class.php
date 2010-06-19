@@ -344,7 +344,7 @@ class filedepot {
       else {
         $approval = 0;
       }
-      if (in_array('upload_direct', $accessrights)) {
+      if (in_array('upload_dir', $accessrights)) {
         $direct = 1;
       }
       else {
@@ -1139,7 +1139,7 @@ class filedepot {
     if ($matchesArray[0][0] != '' && isset($matchesArray[0][0])) {
       $token = str_replace("{", "", $matchesArray[0][0]);
       $token = str_replace("t}", "", $token);
-      watchdog('filedepot', 'Processing a edit file upload - token:@token - uid:@uid', array('@token' => $token, '@uid' => $uid));          
+      watchdog('filedepot', 'Processing a edit file upload - token:@token - uid:@uid', array('@token' => $token, '@uid' => $uid));
       $fid = db_result(db_query("SELECT fid FROM {filedepot_export_queue} WHERE token = '%s'", $token));
 
       // Using the fid and token, we align this to the export table and ensure this is a valid upload!

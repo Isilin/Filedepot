@@ -563,7 +563,7 @@ class filedepot {
         return TRUE;
      }
     }
-  }  
+  }
 
 
   public function deleteFolder($nid) {
@@ -673,14 +673,13 @@ class filedepot {
           watchdog('filedepot', 'Delete file failed - no matching record, cid: @cid, file: @file',
           array('@cid' => $cid, '@file' => $fname));
         }
+        $nexcloud->clear_tags($fid);
         db_query("DELETE FROM {filedepot_fileversions} WHERE fid=%d", $fid);
         db_query("DELETE FROM {filedepot_files} WHERE fid=%d", $fid);
         db_query("DELETE FROM {filedepot_notifications} WHERE fid=%d", $fid);
 
         // Remove the CCK records for this attachment (file)
         $this->deleteNodeCCKField($cid,$cckfid);
-
-        $nexcloud->clear_tags($fid);
 
         return TRUE;
       }

@@ -356,7 +356,7 @@ function filedepot_sendNotification($id, $type=1) {
       $link = "{$base_url}/index.php?q=filedepot&cid={$cid}&fid={$fid}";     
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');       
       $messagetext = t('Site member %@name: your file in folder: !folder', 
-      array('!folder' => !catname)) . '<p>';
+      array('!folder' => $catname)) . '<p>';
       $messagetext .= t('The file: !filename has been approved and can be accessed !link',
       array('!filename' => $fname, '!link' => $link)) . '</p><p>';
       $messagetext .= t('You are receiving this because you requested to be notified.') . '</p><p>';

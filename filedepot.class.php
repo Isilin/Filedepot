@@ -818,7 +818,7 @@ class filedepot {
     if (!$this->checkFilter($file->name, $file->type)) {
       $message = t('The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
       drupal_set_message($message, 'error');
-      watchdog('filedepot', $message);
+      watchdog('filedepot', 'The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
       return FALSE;
     }
 
@@ -941,7 +941,7 @@ class filedepot {
     if (!$this->checkFilter($file->name, $file->type)) {
       $message = t('The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
       drupal_set_message($message, 'error');
-      watchdog('filedepot', $message);
+      watchdog('filedepot', 'The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
       return FALSE;
     }
 
@@ -1116,11 +1116,11 @@ class filedepot {
     // Check for allowable file type.
     if (!$this->checkFilter($_FILES['file']['name'], $_FILES['file']['type'])) {
       $message = t('The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $_FILES['file']['name'], '%mimetype' => $_FILES['file']['type'] ));
-      watchdog('filedepot', $message);
+      watchdog('filedepot', 'The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $_FILES['file']['name'], '%mimetype' => $_FILES['file']['type'] ));
       return FALSE;
     }
 
-    watchdog('filedepot', "Processing client upload of file {$_FILES['file']['name']}");
+    watchdog('filedepot', 'Processing client upload of file @file', array('@file' => "{$_FILES['file']['name']}"));
 
     // Need to setup $_FILES the way Drupal field_file_save_file wants it
     $_FILES['files'] = $_FILES['file'];
@@ -1139,7 +1139,7 @@ class filedepot {
     if ($matchesArray[0][0] != '' && isset($matchesArray[0][0])) {
       $token = str_replace("{", "", $matchesArray[0][0]);
       $token = str_replace("t}", "", $token);
-      watchdog('filedepot', "Processing a edit file upload - token:$token - uid:$uid");
+      watchdog('filedepot', 'Processing a edit file upload - token:@token - uid:@uid', array('@token' => $token, '@uid' => $uid));          
       $fid = db_result(db_query("SELECT fid FROM {filedepot_export_queue} WHERE token = '%s'", $token));
 
       // Using the fid and token, we align this to the export table and ensure this is a valid upload!
@@ -1147,7 +1147,7 @@ class filedepot {
       $A = db_fetch_object($res);
       if ($A->fid > 0) {
         $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $A->fid));
-        watchdog('filedepot', "rename {$fileArray['tmp_name']} to {$this->root_storage_path}/{$cid}/{$A->orig_filename}");
+        watchdog('filedepot', 'rename @fromfile to @tofile', array('@fromfile' => "{$fileArray['tmp_name']}", '@tofile' => "{$this->root_storage_path}/{$cid}/{$A->orig_filename}"));
         // Update the repository with the new file - PHP/Windows will not rename a file if it exists
         // Rename is atomic and fast vs copy and unlink as there is a chance someone may be trying to download the file
         if (@rename($fileArray['tmp_name'], "{$this->root_storage_path}{$cid}/{$A->orig_filename}") == FALSE) {
@@ -1159,7 +1159,7 @@ class filedepot {
 
       }
       else {
-        watchdog('filedepot', "Save file to the import queue");
+        watchdog('filedepot', 'Save file to the import queue');
         // Save file via Drupal file API to the temporary incoming folder
         $nodefile = field_file_save_file($_FILES['files']['tmp_name'], array(), $this->tmp_incoming_path);
         if (is_array($nodefile) AND $nodefile['fid'] > 0) {
@@ -1173,7 +1173,7 @@ class filedepot {
           $outputInformation .=  ("File: {$filename} has been updated...\n" );
         }
         else {
-          watchdog('filedepot', "Client error 9001 uploading file $filename");
+            watchdog('filedepot', 'Client error 9001 uploading file @file', array('@file' => "$filename"));
         }
       }
 
@@ -1191,7 +1191,7 @@ class filedepot {
         $outputInformation .=  ("File: {$filename} has been added to incoming queue...\n" );
       }
       else {
-        watchdog('filedepot', "Client error 9002 uploading file $filename");
+        watchdog('filedepot', 'Client error 9002 uploading file @file', array('@file' => "$filename"));
       }
     }
     return $outputInformation;

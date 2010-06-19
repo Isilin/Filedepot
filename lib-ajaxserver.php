@@ -896,6 +896,9 @@ function filedepotAjaxServer_updateFolder() {
     $retval['retcode'] =  200;
     $retval['cid'] = $cid;
     db_query("UPDATE {filedepot_categories} SET name='%s', description='%s' WHERE cid=%d", $catname, $catdesc, $cid);
+    $nid = db_result(db_query("SELECT nid FROM {filedepot_categories} WHERE cid=%d", $cid)); 
+    db_query("UPDATE {node} SET title='%s' WHERE nid=%d", $catname, $nid);
+    db_query("UPDATE {node_revisions} SET title='%s' WHERE nid=%d", $catname, $nid);
     if (db_result(db_query("SELECT folderorder FROM {filedepot_categories} WHERE cid=%d", $cid)) != $folderorder) {
       db_query("UPDATE {filedepot_categories} SET folderorder=%d WHERE cid=%d", $folderorder, $cid);
       /* Re-order any folders that may have just been moved */

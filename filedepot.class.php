@@ -865,7 +865,7 @@ class filedepot {
 
         // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
         // Check and see what the final filename and use that to update the filedepot tables
-        $rec = db_fetch_object(db_query("SELECT filename,filepath from {files} WHERE fid=%d", $nodefile['fid']));
+        $rec = db_fetch_object(db_query("SELECT filename,filepath,filemime from {files} WHERE fid=%d", $nodefile['fid']));
         $file->name = $rec->filename;
         $dest = $rec->filepath;
         $ext = end(explode(".", $file->name));

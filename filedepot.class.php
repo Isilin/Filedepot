@@ -245,25 +245,27 @@ class filedepot {
         }
       }
 
-      // Retrieve all the Organic Groups this user is a member of
-      $sql = "SELECT node.nid AS nid FROM {node} node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid "
-           . "INNER JOIN {users} users ON node.uid = users.uid "
-           . "WHERE (node.status <> 0) AND (og_uid.uid = %d) ";
-      $groupquery = db_query($sql, $uid);
-      while ($grouprec = db_fetch_array($groupquery)) {
-        $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d";
-        $query = db_query($sql, $cid, $grouprec['nid']);
-        while ($rec = db_fetch_array($query)) {
-          list ($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
-          if (is_array($rights)) {
-            foreach ($rights as $key) {      // Field name above needs to match access right name
-              if ($$key == 1)  {
-                return TRUE;
+      if ($this->ogenabled) {
+        // Retrieve all the Organic Groups this user is a member of
+        $sql = "SELECT node.nid AS nid FROM {node} node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid "
+             . "INNER JOIN {users} users ON node.uid = users.uid "
+             . "WHERE (node.status <> 0) AND (og_uid.uid = %d) ";
+        $groupquery = db_query($sql, $uid);
+        while ($grouprec = db_fetch_array($groupquery)) {
+          $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d";
+          $query = db_query($sql, $cid, $grouprec['nid']);
+          while ($rec = db_fetch_array($query)) {
+            list ($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
+            if (is_array($rights)) {
+              foreach ($rights as $key) {      // Field name above needs to match access right name
+                if ($$key == 1)  {
+                  return TRUE;
+                }
               }
             }
-          }
-          elseif ($$rights == 1) {
-            return TRUE;
+            elseif ($$rights == 1) {
+              return TRUE;
+            }
           }
         }
       }

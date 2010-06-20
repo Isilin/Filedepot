@@ -62,21 +62,21 @@
       $perms = array();
       $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
       if ($cid > 0) {
-        $groupids = implode(',', array_keys($user->og_groups));
-        if (!empty($groupids)) {
-          $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='group' AND view = 1 AND permid > 0 ";
-          $sql .= "AND permid in ($groupids) ";
-          $query = db_query($sql, $cid);
-          if ($query) {
-            while ($A = db_fetch_array($query)) {
-              $perms['groups'][] = $A['permid'];
+        if ($user->og_groups != NULL) {
+          $groupids = implode(',', array_keys($user->og_groups));
+          if (!empty($groupids)) {
+            $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='group' AND view = 1 AND permid > 0 ";
+            $sql .= "AND permid in ($groupids) ";
+            $query = db_query($sql, $cid);
+            if ($query) {
+              while ($A = db_fetch_array($query)) {
+                $perms['groups'][] = $A['permid'];
+              }
             }
           }
         }
-
         // Determine all the roles the active user has and test for view permission.
         $roleids = implode(',', array_keys($user->roles));
-        $perms['roles'][] = $this->_allusers;
         if (!empty($roleids)) {
           $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='role' AND view = 1 AND permid > 0 ";
           $sql .= "AND permid in ($roleids) ";

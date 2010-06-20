@@ -24,11 +24,18 @@ The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine
 Dependencies
 ------------
  * Content, FileField
+
+ Organic Groups is not required but if you install the modules 'og' and 'og_access',
+ then you will be able to manage folder access via organic groups. 
+ The module will automatically detect if both modules are enabled and will only 
+ show the group options for permissions once both 'og' and 'og_access' modules are enabled.
  
 Requirements
 ------------ 
  PHP 5.2+ and PHP JSON library enabled.
  Flash 10.x Addon installed in the browser.
+
+
 
 Install
 -------

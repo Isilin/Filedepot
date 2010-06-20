@@ -4,10 +4,10 @@
   * @file
   * page.tpl.php
   */
-?>  
+?>
 
 <?php
-  // Initialize variable id unknown to solve any PHP Notice level error messages 
+  // Initialize variable id unknown to solve any PHP Notice level error messages
   if (!isset($search_query)) $search_query = 0;
 ?>
 
@@ -15,7 +15,7 @@
 Not sure why this panel is the only one that was not being styled correctly but loading these 2 style sheets fixes the issue
 All the needed style sheets should be loaded automatically by the loader.
 -->
-   
+
 
 <!-- On-Demand loading the Module Javascript using YUI Loader -->
 
@@ -55,7 +55,7 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript">
   var YUIBaseURL  = "<?php print $yui_base_url ?>";
 </script>
-  
+
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>nexpro.js"></script>
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>plugins.js"></script>
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>initapplication.js"></script>
@@ -63,7 +63,7 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript" src="<?php print $filedepot_javascript_url ?>encoder.js"></script>
 
 <script type="text/javascript">
-   jQuery.blockUI(); 
+   jQuery.blockUI();
    if (useYuiLoader == true) {
     // Instantiate and configure Loader:
     var loader = new YAHOO.util.YUILoader({
@@ -78,7 +78,7 @@ All the needed style sheets should be loaded automatically by the loader.
       loadOptional: true,
 
       // The function to call when all script/css resources have been loaded
-      onSuccess: function() { 
+      onSuccess: function() {
         blockui=true;
         //jQuery.blockUI();
         timeDiff.setStartTime();
@@ -106,7 +106,7 @@ All the needed style sheets should be loaded automatically by the loader.
     // the constructor, so we don't need to pass anything to insert().
     loader.insert();
 
-  } else {    
+  } else {
     blockui=true;
     jQuery.blockUI();
     timeDiff.setStartTime();
@@ -123,7 +123,7 @@ All the needed style sheets should be loaded automatically by the loader.
 
 <!-- filedepot module wrapper div -->
 <div id="filedepotmodule">
-   
+
   <div id="filedepot">
 
       <div id="filedepottoolbar" class="filedepottoolbar" style="margin-right:0px;padding:5px;display:none;margin-bottom:1px;">
@@ -154,9 +154,9 @@ All the needed style sheets should be loaded automatically by the loader.
         </div>
         <div class="tagsearchboxcontainer" style="display:{hideheader};width:10%;padding:5px;">
           <div><a id="showsearchtags" href="#">Tags</a></div>
-        </div>      
+        </div>
       </div>
-    </div>  
+    </div>
     <div class="tagsearchboxcontainer">
       <div id="tagspanel" style="display:none;">
         <div class="hd"><?php print $LANG_searchtags ?></div>
@@ -165,11 +165,11 @@ All the needed style sheets should be loaded automatically by the loader.
         </div>
       </div>
     </div>
-             
+
     <div id="filedepot_sidecol">
       <!-- Leftside Folder Navigation generated onload by page javascript -->
       <div id="filedepotNavTreeDiv"></div>
-      <div class="clearboth"></div>       
+      <div class="clearboth"></div>
     </div>
     <div id="filedepot_centercol">
       <div id="filedepot_alert" class="filedepot_alert" style="display: <?php print $show_alert ?>;overflow:hidden;">
@@ -183,24 +183,24 @@ All the needed style sheets should be loaded automatically by the loader.
       <div class="clearboth" id="showactivetags" style="display:none;">
         <div id="tagsearchbox" style="padding-bottom:5px;">Search Tags:&nbsp;<span id="activesearchtags"></span></div>
       </div>
-      <div class="clearboth"></div>      
+      <div class="clearboth"></div>
       <div style="margin-right:0px;">
         <div id="filelistingheader" style="margin-bottom:10px;"></div>
-        <div class="clearboth"></div>        
+        <div class="clearboth"></div>
         <form name="frmfilelisting" action="{action_url}" method="post" style="margin:0px;">
           <div id="filelisting_container"></div>
         </form>
       </div>
-      <div class="clearboth"></div>    
+      <div class="clearboth"></div>
 
     </div> <!-- end of filedepot_centercol div -->
-    
-    <div class="clearboth"></div>  
-  </div>   <!-- end of filedepot div --> 
- 
-  <div class="clearboth"></div> 
-  
-  <!-- Supporting Panels - initially hidden -->  
+
+    <div class="clearboth"></div>
+  </div>   <!-- end of filedepot div -->
+
+  <div class="clearboth"></div>
+
+  <!-- Supporting Panels - initially hidden -->
 
     <div id="filedetails" style="display:none;">
       <div id="filedetails_titlebar" class="hd"><?php print $LANG_filedetails ?></div>
@@ -232,7 +232,7 @@ All the needed style sheets should be loaded automatically by the loader.
               <a id="broadcastnotificationlink" href="#" TITLE="<?php print $LANG_broadcasttmsg ?>"><?php print $LANG_broadcast_menuitem ?></a>
             </li>
           </ul>
-        </div>   
+        </div>
       </div>
       <div id="filedetails_statusmsg" class="pluginInfo alignleft" style="display:none;"></div>
       <div id="displayfiledetails" class="alignleft" style="display:block;">
@@ -279,7 +279,7 @@ All the needed style sheets should be loaded automatically by the loader.
                 </div>
                 <div id="tagswarning" class="pluginAlert" style="width:180px;display:none;"><?php print $LANG_folderpermsmsg ?></div>
               </td>
-            </tr>  
+            </tr>
             <tr>
               <td colspan="4" style="padding-top:10px;text-align:center;">
                 <input type="button" value="Submit" class="form-submit" onClick="makeAJAXUpdateFileDetails(this.form)"/>
@@ -295,7 +295,7 @@ All the needed style sheets should be loaded automatically by the loader.
       <div class="hd">Folder Permissions</div>
       <div id="folderperms_content" class="bd alignleft"></div>
     </div>
-    
+
     <div id="newfolderdialog" style="display:none;">
       <div class="hd"><?php print $LANG_addfolder ?></div>
       <div id="newfolderdialog_form" class="bd" style="text-align:left;">
@@ -415,7 +415,7 @@ All the needed style sheets should be loaded automatically by the loader.
           </table>
         </form>
       </div>
-    </div>    
+    </div>
 
 
 </div>   <!-- end of filedepotmodule wrapper div -->

@@ -12,7 +12,7 @@ function template_preprocess_filedepot_toolbar_form(&$variables) {
   global $base_url;
   $variables['report_option'] = 'latestfiles';
   $variables['base_url']       = $base_url;
-  if (!isset($_GET['cid'])) $_GET['cid'] = 0;  
+  if (!isset($_GET['cid'])) $_GET['cid'] = 0;
   if (intval($_GET['cid']) > 0) {
     $variables['current_category'] = intval($_GET['cid']);
   }
@@ -31,8 +31,8 @@ function template_preprocess_filedepot_header(&$variables) {
   $variables['LANG_folder'] = t('Folder');
   $variables['LANG_submitted'] = t('Submitted');
   $variables['LANG_owner'] = t('Owner');
-  $variables['rightpadding'] = '35';  // Need to tweek the right most padding of the far right heading column for the approvals report view. 
-  
+  $variables['rightpadding'] = '35';  // Need to tweek the right most padding of the far right heading column for the approvals report view.
+
   if ($filedepot->activeview == 'incoming') {
     $variables['show_incomingheader'] = '';
     $variables['show_mainheader'] = 'none';
@@ -44,10 +44,10 @@ function template_preprocess_filedepot_header(&$variables) {
     $variables['show_folderexpandlink'] = '';
   }
   elseif ($filedepot->activeview == 'approvals') {
-    $variables['rightpadding'] = '10';    
+    $variables['rightpadding'] = '10';
     $variables['show_folder'] = '';
-    $variables['show_folderexpandlink'] = 'none';  
-  } 
+    $variables['show_folderexpandlink'] = 'none';
+  }
   else {
     $variables['show_folder'] = '';
     $variables['show_folderexpandlink'] = 'none';
@@ -55,14 +55,14 @@ function template_preprocess_filedepot_header(&$variables) {
 
   if ($filedepot->activeview == 'approvals') {
     $variables['LANG_action'] = t('Submitter');
-  } 
+  }
   else {
     $variables['LANG_action'] = t('Action');
   }
 
   if ($reportmode == 'incoming' AND user_access('administer filedepot', $user)) {
     $variables['show_owner'] = '';
-  } 
+  }
   else {
     $variables['show_owner'] = 'none';
   }
@@ -134,7 +134,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
     $B = db_fetch_array($query);
     if ($B['cid_newfiles'] == 1) $variables['chk_fileadded'] = "CHECKED=checked";
     if ($B['cid_changes'] == 1) $variables['chk_filechanged'] = "CHECKED=checked";
-  } 
+  }
   else {
     $variables['chk_fileadded'] = '';
     $variables['chk_filechanged'] = '';
@@ -156,7 +156,7 @@ function template_preprocess_filedepot_activefolder(&$variables) {
       $variables['report_heading'] = t('@heading', array('@heading' => $filedepot->activeview));
       $variables['show_reportmodeheader'] = '';
     }
-  } 
+  }
   else {
     $variables['show_activefolder'] = '';
     $pid = db_result(db_query("SELECT pid FROM {filedepot_categories} WHERE cid=%d", $filedepot->cid));
@@ -177,7 +177,7 @@ function template_preprocess_filedepot_activefolder(&$variables) {
     }
     if ($filedepot->checkPermission($filedepot->cid, 'admin')) {
       $variables['active_folder_admin'] = theme('filedepot_activefolder_admin');
-    } 
+    }
     else {
       $variables['show_nonadmin'] = '';
       $variables['active_folder_admin'] = theme('filedepot_activefolder_nonadmin');
@@ -207,7 +207,7 @@ function template_preprocess_filedepot_folderlisting(&$variables) {
   $variables['folder_number'] = "{$variables['folderprefix']}.0";
   if ($rec['last_modified_date'] > 0) {
     $variables['last_modified_date'] = strftime($filedepot->shortdate, $rec['last_modified_date']);
-  } 
+  }
   else {
     $variables['last_modified_date'] = '';
   }
@@ -223,7 +223,7 @@ function template_preprocess_filedepot_folderlisting(&$variables) {
   $variables['folder_files'] = implode(',', $files);
   if ($filedepot->checkPermission($rec['cid'], 'admin')) {
     $variables['onhover_move_options'] = theme('filedepot_folder_moveoptions', $rec['cid'], $rec['folderorder'], $variables['maxorder']);
-  } 
+  }
   else {
     $variables['onhover_move_options'] = '';
   }
@@ -235,16 +235,16 @@ function template_preprocess_filedepot_folder_moveoptions(&$variables) {
   $variables['LANG_movedown'] = t('Move Folder Down');
   if ($variables['order'] == 10) {
     $variables['hide_moveup'] = 'none';
-  } 
+  }
   else {
     $variables['hide_moveup'] = '';
   }
   if ($variables['order']  < $variables['maxorder']) {
     $variables['hide_movedown'] = '';
-  } 
+  }
   else {
     $variables['hide_movedown'] = 'none';
-  }  
+  }
 }
 
 
@@ -264,7 +264,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['locked_icon'] = base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('locked');
   if ($rec['status'] == 2) {
     $variables['show_lock'] = '';
-  } 
+  }
   else  {
     $variables['show_lock'] = 'none';
   }
@@ -275,7 +275,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
 
   if (isset($rec['date']) AND $rec['date'] > 0) {
     $variables['modified_date'] = strftime($filedepot->shortdate, $rec['date']);
-  } 
+  }
   else {
     $variables['modified_date'] = '';
   }
@@ -296,33 +296,33 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     if (db_result(db_query("SELECT count(fid) FROM {filedepot_favorites} WHERE uid=%d AND fid=%d", $user->uid, $variables['fid'])) > 0) {
       $variables['favorite_status_image'] = "{$variables['layout_url']}/css/images/{$filedepot->iconmap['favorite-on']}";
       $variables['LANG_favorite_status'] = t('Click to clear favorite');
-    } 
+    }
     else {
       $variables['favorite_status_image'] = "{$variables['layout_url']}/css/images/{$filedepot->iconmap['favorite-off']}";
       $variables['LANG_favorite_status'] = t('Click to mark item as a favorite');
     }
   }
 
-  $variables['show_approvalsubmitter'] = 'none';   
-  if ($filedepot->activeview == 'approvals') {    
+  $variables['show_approvalsubmitter'] = 'none';
+  if ($filedepot->activeview == 'approvals') {
     $variables['show_approvalsubmitter'] = '';
     $variables['show_submitter'] = 'none';
     $variables['show_foldername'] = '';
     $variables['submitter'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $rec['submitter']));
-  } 
+  }
   elseif ($filedepot->activeview == 'incoming') {
       $movelink = "<a class=\"moveincoming\" href=\"?fid={$rec['fid']}\" onClick=\"return false;\">" . t('Move') .'</a>';
       $deletelink = "<a class=\"deleteincoming\" href=\"?fid={$rec['fid']}\" onClick=\"return false;\">" . t('Delete') .'</a>';
       $variables['action1_link'] = $movelink;
       $variables['action2_link'] = $deletelink;
-      $variables['submitter'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $rec['submitter']));         
+      $variables['submitter'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $rec['submitter']));
       $variables['show_submitter'] = '';
-      $variables['show_foldername'] = 'none';     
-  } 
+      $variables['show_foldername'] = 'none';
+  }
   else {
     if ($filedepot->cid == 0 AND !empty($filedepot->activeview)) {
       $folder_admin = $filedepot->checkPermission($rec['subfolderId'], 'admin');
-    } 
+    }
     else {
       $variables['show_foldername'] = 'none';
     }
@@ -336,7 +336,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       $variables['action2_link'] = '';
       $variables['actionclass'] = 'oneaction';
     }
-    else {      
+    else {
       $variables['action1_link'] = $downloadlink;
       $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
       $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
@@ -348,7 +348,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       }
       else {
         $variables['action2_link'] = '';
-        $variables['actionclass'] = 'oneaction';          
+        $variables['actionclass'] = 'oneaction';
       }
     }
 
@@ -357,28 +357,28 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $icon = $filedepot->getFileIcon($rec['fname']);
   $variables['extension_icon'] = "{$variables['layout_url']}/css/images/$icon";
   if ($variables['morerecords'] == 'loadfolder_msg') {
-    $variables['more_records_message'] = theme('filedepot_filelisting_loadfolder', $rec['cid'], $variables['fid'], $variables['file_number'], $level);  
-  } 
+    $variables['more_records_message'] = theme('filedepot_filelisting_loadfolder', $rec['cid'], $variables['fid'], $variables['file_number'], $level);
+  }
   elseif ($variables['morerecords'] != '') {
-    $variables['more_records_message'] = theme('filedepot_filelisting_moredata', $rec['cid'], $variables['fid'], $variables['file_number'], $level);  
-  } 
+    $variables['more_records_message'] = theme('filedepot_filelisting_moredata', $rec['cid'], $variables['fid'], $variables['file_number'], $level);
+  }
   else {
     $variables['more_records_message'] = '';
   }
 
-  
+
 }
 
 function template_preprocess_filedepot_filelisting_moredata(&$variables) {
   global $filedepot;
-  $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);    
+  $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);
 }
 
 function template_preprocess_filedepot_filelisting_loadfolder(&$variables) {
   global $filedepot;
 
-  $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);  
-  
+  $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);
+
 }
 
 
@@ -389,12 +389,12 @@ function template_preprocess_filedepot_newfiledialog_folderoptions(&$variables) 
 
 function template_preprocess_filedepot_newfolderdialog(&$variables) {
   $variables['folder_options'] = filedepot_recursiveAccessOptions('admin', $variables['cid']);
-  $variables['LANG_folder'] = t('Folder Name');   
-  $variables['LANG_description'] = t('Description');   
-  $variables['LANG_inherit'] = t('Inherit Parent Permissions');   
-  $variables['LANG_submit'] = t('Submit');   
-  $variables['LANG_cancel'] = t('Cancel');   
-  $variables['LANG_parentfolder'] = t('Parent Folder');   
+  $variables['LANG_folder'] = t('Folder Name');
+  $variables['LANG_description'] = t('Description');
+  $variables['LANG_inherit'] = t('Inherit Parent Permissions');
+  $variables['LANG_submit'] = t('Submit');
+  $variables['LANG_cancel'] = t('Cancel');
+  $variables['LANG_parentfolder'] = t('Parent Folder');
 
 
 }
@@ -402,15 +402,15 @@ function template_preprocess_filedepot_newfolderdialog(&$variables) {
 function template_preprocess_filedepot_movefiles_form(&$variables) {
   $variables['movefolder_options'] = filedepot_recursiveAccessOptions('admin');
   $variables['LANG_newfolder'] = t('New Folder');
-  $variables['LANG_submit'] = t('Submit');    
-  $variables['LANG_cancel'] = t('Cancel');   
+  $variables['LANG_submit'] = t('Submit');
+  $variables['LANG_cancel'] = t('Cancel');
 }
 
 function template_preprocess_filedepot_moveincoming_form(&$variables) {
   $variables['movefolder_options'] = filedepot_recursiveAccessOptions('admin');
-  $variables['LANG_newfolder'] = t('New Folder');    
-  $variables['LANG_submit'] = t('Submit');    
-  $variables['LANG_cancel'] = t('Cancel');    
+  $variables['LANG_newfolder'] = t('New Folder');
+  $variables['LANG_submit'] = t('Submit');
+  $variables['LANG_cancel'] = t('Cancel');
 }
 
 function template_preprocess_filedepot_filedetail(&$variables) {
@@ -440,7 +440,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $sql .= "file.description,file.uid,9,file.version_note,'' ";
     $sql .= "FROM {filedepot_import_queue} file ";
     $sql .= "WHERE file.id=%d";
-  }   
+  }
   else {
     $sql  = "SELECT file.cid, file.title, file.fname, file.date, file.version, file.size, ";
     $sql .= "file.description, file.submitter, file.status, v.notes, '' as tags ";
@@ -477,9 +477,9 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['statusmessage'] = '* '.  t('File Submission to Approve');
     }
     elseif ($status == FILEDEPOT_INCOMING_STATUS) {
-      $variables['status_image']   = '&nbsp;'; 
+      $variables['status_image']   = '&nbsp;';
       $variables['statusmessage'] = '* '.  t('Incoming File - needs to be moved or deleted');
-      $variables['disable_download'] = 'onClick="return false;"';      
+      $variables['disable_download'] = 'onClick="return false;"';
     }
     elseif ($status == FILEDEPOT_LOCKED_STATUS) {
       $stat_userid = db_result(db_query("SELECT status_changedby_uid FROM {filedepot_files} WHERE fid=%d", $fid));
@@ -488,7 +488,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['statusmessage'] = '* ' . t('Locked by %name', array('%name' => $stat_user));
       $variables['LANG_DOWNLOAD_MESSAGE'] = t('File Locked by: %name', array('%name' => $stat_user));
       $variables['disable_download'] = 'onClick="return FALSE;"';
-    } 
+    }
     else {
       $variables['show_statusmsg'] = 'none';
       $variables['status_image']   = '&nbsp;';
@@ -550,6 +550,59 @@ function template_preprocess_filedepot_fileversion(&$variables) {
 
 
 function template_preprocess_filedepot_folderperms(&$variables) {
+  global $filedepot;
+
+  $variables['catid'] = $variables['cid'];
+  $variables['user_options'] = filedepot_getUserOptions();
+  $variables['role_options'] = filedepot_getRoleOptions();
+  $variables['LANG_viewcategory'] = t('View Category');
+  $variables['LANG_uploadapproval'] = t('Upload with Approval');
+  $variables['LANG_uploadadmin'] = t('Upload Admin');
+  $variables['LANG_uploaddirect'] = t('Upload Direct');
+  $variables['LANG_categoryadmin'] = t('Category Admin');
+  $variables['LANG_uploadversions'] = t('Upload New Versions');
+  $variables['LANG_user'] = t('User');
+  $variables['LANG_admin'] = t('Admin');
+  $variables['LANG_action'] = t('Action');
+  $variables['LANG_view'] = t('View');
+  $variables['LANG_uploadadmin'] = t('Upload Admin');
+  $variables['LANG_uploadversions'] = t('Upload Versions');
+  $variables['LANG_directupload'] = t('Direct Upload');
+  $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
+
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = %d";
+  $query = db_query($sql, $variables['cid']);
+  $i = 0;
+  while ($permrec = db_fetch_array($query)) {
+    $i++;
+    $user_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'user');
+  }
+  if ($i > 0) {
+    $variables['user_perm_records'] = $user_perm_records;
+  }
+  else {
+    $variables['user_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
+  }
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = %d";
+  $query = db_query($sql, $variables['cid']);
+  $i = 0;
+  while ($permrec = db_fetch_array($query)) {
+    $i++;
+    $role_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'role');
+  }
+  if ($i > 0) {
+    $variables['role_perm_records'] = $role_perm_records;
+  }
+  else {
+    $variables['role_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
+  }
+}
+
+function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
+  global $filedepot;
+
   $variables['catid'] = $variables['cid'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
@@ -580,41 +633,42 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   }
   if ($i > 0) {
     $variables['user_perm_records'] = $user_perm_records;
-  } 
+  }
   else {
     $variables['user_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
-  }   
-  
+  }
+
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'group' AND permid > 0 AND catid = %d";
   $query = db_query($sql, $variables['cid']);
-  $i = 0;     
+  $i = 0;
   while ($permrec = db_fetch_array($query)) {
     $i++;
     $group_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'group');
   }
   if ($i > 0) {
     $variables['group_perm_records'] = $group_perm_records;
-  } 
+  }
   else {
-    $variables['group_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';  
+    $variables['group_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
   }
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = %d";
   $query = db_query($sql, $variables['cid']);
-  $i = 0;  
+  $i = 0;
   while ($permrec = db_fetch_array($query)) {
     $i++;
     $role_perm_records .= theme('filedepot_folderperm_rec', $permrec, 'role');
   }
   if ($i > 0) {
     $variables['role_perm_records'] = $role_perm_records;
-  } 
+  }
   else {
-    $variables['role_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';  
+    $variables['role_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
   }
 }
+
 
 
 function template_preprocess_filedepot_folderperm_rec(&$variables) {
@@ -623,7 +677,7 @@ function template_preprocess_filedepot_folderperm_rec(&$variables) {
     $variables['name'] = db_result(db_query("SELECT name FROM {users} WHERE uid=%d", $permid));
   }
   else if ($variables['mode'] == 'group') {
-    $variables['name'] = db_result(db_query("SELECT title FROM {node} WHERE nid=%d", $permid));    
+    $variables['name'] = db_result(db_query("SELECT title FROM {node} WHERE nid=%d", $permid));
   }
   else {
     $variables['name'] = db_result(db_query("SELECT name FROM {role} WHERE rid=%d", $permid));
@@ -657,7 +711,7 @@ function template_preprocess_filedepot_notifications_file(&$variables) {
   $variables['recid'] = $rec['id'];
   $variables['fid'] = $rec['fid'];
   $variables['date'] = strftime($filedepot->shortdate, $rec['date']);
-  $variables['LANG_delete'] = t('Delete');  
+  $variables['LANG_delete'] = t('Delete');
 
   $sql = "SELECT a.title,a.cid,b.name as folder FROM {filedepot_files} a ";
   $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid = a.cid WHERE a.fid={$rec['fid']} ";
@@ -675,16 +729,16 @@ function template_preprocess_filedepot_notifications_folder(&$variables) {
   $variables['recid'] = $rec['id'];
   $variables['date'] = strftime($filedepot->shortdate, $rec['date']);
   $variables['folderid'] = $rec['cid'];
-  $variables['LANG_delete'] = t('Delete');    
+  $variables['LANG_delete'] = t('Delete');
   if ($rec['cid_newfiles'] == 1)  {
     $variables['chk_newfiles'] = 'CHECKED=checked';
-  } 
+  }
   else {
     $variables['chk_newfiles'] = '';
   }
   if ($rec['cid_changes'] == 1) {
     $variables['chk_filechanges'] = 'CHECKED=checked';
-  } 
+  }
   else {
     $variables['chk_filechanges'] = '';
   }
@@ -707,52 +761,52 @@ function template_preprocess_filedepot_notifications_history(&$variables) {
   $variables['fid'] = $rec['fid'];
   $variables['cid'] = $rec['cid'];
   $variables['notification_date'] = strftime('%b %d %y, %I:%M', $rec['datetime']);
-  $variables['site_url'] = $base_url;   
+  $variables['site_url'] = $base_url;
 }
 
 function template_preprocess_filedepot_notifications(&$variables) {
   global $user, $filedepot;
 
-  $variables['LANG_yes'] = t('Yes');  
-  $variables['LANG_no'] = t('No');    
-  $variables['LANG_files_menuitem'] = t('Files');    
-  $variables['LANG_folder_menuitem'] = t('Folders');    
-  $variables['LANG_history_menuitem'] = t('Notification&nbsp;History');    
-  $variables['LANG_settings_menuitem'] = t('Settings');    
-  $variables['LANG_filename'] = t('File Name');  
+  $variables['LANG_yes'] = t('Yes');
+  $variables['LANG_no'] = t('No');
+  $variables['LANG_files_menuitem'] = t('Files');
+  $variables['LANG_folder_menuitem'] = t('Folders');
+  $variables['LANG_history_menuitem'] = t('Notification&nbsp;History');
+  $variables['LANG_settings_menuitem'] = t('Settings');
+  $variables['LANG_filename'] = t('File Name');
   $variables['LANG_folder'] = t('Folder');
-  $variables['LANG_dateadded'] = t('Date Added');  
-  $variables['LANG_action'] = t('Action');  
-  $variables['LANG_newfiles'] = t('New Files');  
-  $variables['LANG_changes'] = t('Changes');  
-  $variables['LANG_historymsg'] = t('Log of notification emails sent - max 100');  
-  $variables['LANG_clearhistory'] = t('Clear History');  
-  $variables['LANG_date'] = t('Date');  
-  $variables['LANG_type'] = t('Type');  
-  $variables['LANG_submitter'] = t('Submitter');  
-  $variables['LANG_file'] = t('File');  
-  $variables['LANG_norecords'] = t('No notification history on file');  
-  $variables['LANG_savesettings'] = t('Save Settings');  
-  $variables['LANG_settingheading'] = t('Setup your personal notification defaults. Individual folder and file notifications can also be used to over-ride these defaults.');  
-  $variables['LANG_settingline1'] = t('If you want to be notified of all new new files being added for all folders you have access, then you only need to enable the setting here');  
-  $variables['LANG_settingline2'] = t('If you only want to be notified of new files being added to selected folders, then disable the setting here and enable the notification for those selected folders only'); 
-  $variables['LANG_settingline3'] = t('Folder Notification options are set by first selecting that folder and once the folder listing is in the main right panel, click on the folder name in the main right panel above the file listing to view/update the notification options');  
-  $variables['LANG_settingline4'] = t('Broadcast Notifications can be sent out by folder administrators  even if you are not subscribed to updates unless you disable broadcasts here');  
-  $variables['LANG_personalsettings'] = t('Personal Notification Setting');    
-  $variables['LANG_default'] = t('Default');  
-  $variables['LANG_newfilesadded'] = t('New Files being added');  
-  $variables['LANG_yes'] = t('Yes');  
-  $variables['LANG_no'] = t('No');  
-  $variables['LANG_filesupdated'] = t('Files updated');  
-  $variables['LANG_allowadminbroadcasts'] = t('Allow Admin Broadcasts'); 
-  
+  $variables['LANG_dateadded'] = t('Date Added');
+  $variables['LANG_action'] = t('Action');
+  $variables['LANG_newfiles'] = t('New Files');
+  $variables['LANG_changes'] = t('Changes');
+  $variables['LANG_historymsg'] = t('Log of notification emails sent - max 100');
+  $variables['LANG_clearhistory'] = t('Clear History');
+  $variables['LANG_date'] = t('Date');
+  $variables['LANG_type'] = t('Type');
+  $variables['LANG_submitter'] = t('Submitter');
+  $variables['LANG_file'] = t('File');
+  $variables['LANG_norecords'] = t('No notification history on file');
+  $variables['LANG_savesettings'] = t('Save Settings');
+  $variables['LANG_settingheading'] = t('Setup your personal notification defaults. Individual folder and file notifications can also be used to over-ride these defaults.');
+  $variables['LANG_settingline1'] = t('If you want to be notified of all new new files being added for all folders you have access, then you only need to enable the setting here');
+  $variables['LANG_settingline2'] = t('If you only want to be notified of new files being added to selected folders, then disable the setting here and enable the notification for those selected folders only');
+  $variables['LANG_settingline3'] = t('Folder Notification options are set by first selecting that folder and once the folder listing is in the main right panel, click on the folder name in the main right panel above the file listing to view/update the notification options');
+  $variables['LANG_settingline4'] = t('Broadcast Notifications can be sent out by folder administrators  even if you are not subscribed to updates unless you disable broadcasts here');
+  $variables['LANG_personalsettings'] = t('Personal Notification Setting');
+  $variables['LANG_default'] = t('Default');
+  $variables['LANG_newfilesadded'] = t('New Files being added');
+  $variables['LANG_yes'] = t('Yes');
+  $variables['LANG_no'] = t('No');
+  $variables['LANG_filesupdated'] = t('Files updated');
+  $variables['LANG_allowadminbroadcasts'] = t('Allow Admin Broadcasts');
+
   $sql = "SELECT a.id,a.fid,a.cid,a.date,cid_newfiles,cid_changes FROM {filedepot_notifications} a ";
   $sql .= "WHERE uid={$user->uid} AND a.ignore_filechanges = 0 ORDER BY a.date DESC";
   $query = db_query($sql);
   while ($A = db_fetch_array($query)) {
     if ($A['fid'] != 0) {
       $variables['file_records'] .= theme('filedepot_notifications_file', $A);
-    } 
+    }
     elseif ($A['cid'] > 0) {
       $variables['folder_records'] .= theme('filedepot_notifications_folder', $A);
     }
@@ -760,19 +814,19 @@ function template_preprocess_filedepot_notifications(&$variables) {
 
   if ($filedepot->notify_newfile) {
     $variables['chk_fileadded_on'] = 'CHECKED=checked';
-  } 
+  }
   else {
     $variables['chk_fileadded_off'] = 'CHECKED=checked';
   }
   if ($filedepot->notify_changedfile) {
     $variables['chk_filechanged_on'] = 'CHECKED=checked';
-  } 
+  }
   else {
     $variables['chk_filechanged_off'] = 'CHECKED=checked';
   }
   if ($filedepot->allow_broadcasts) {
     $variables['chk_broadcasts_on'] = 'CHECKED=checked';
-  } 
+  }
   else {
     $variables['chk_broadcasts_off'] = 'CHECKED=checked';
   }
@@ -783,7 +837,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
     if ($A['notify_newfile'] == 1) {
       $variables['chk_fileadded_off'] = '';
       $variables['chk_fileadded_on'] = 'CHECKED=checked';
-    } 
+    }
     else {
       $variables['chk_fileadded_on'] = '';
       $variables['chk_fileadded_off'] = 'CHECKED=checked';
@@ -791,7 +845,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
     if ($A['notify_changedfile'] == 1) {
       $variables['chk_filechanged_off'] = '';
       $variables['chk_filechanged_on'] = 'CHECKED=checked';
-    } 
+    }
     else {
       $variables['chk_filechanged_on'] = '';
       $variables['chk_filechanged_off'] = 'CHECKED=checked';
@@ -799,7 +853,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
     if ($A['allow_broadcasts'] == 1) {
       $variables['chk_broadcasts_off'] = '';
       $variables['chk_broadcasts_on'] = 'CHECKED=checked';
-    } 
+    }
     else {
       $variables['chk_broadcasts_on'] = '';
       $variables['chk_broadcasts_off'] = 'CHECKED=checked';

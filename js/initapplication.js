@@ -1,4 +1,4 @@
-// $Id$ 
+// $Id$
 
 /*
  * @file initapplication.js
@@ -6,7 +6,7 @@
  */
 
 var init_filedepot = function() {
-  
+
   YAHOO.widget.Logger.enableBrowserConsole()
   // Since we are using AJAX to update display, the cookie is not updated as the page is not refreshing.
   // We can use this variable anyways for the session since it will not be reset until a page refresh
@@ -19,10 +19,10 @@ var init_filedepot = function() {
   } else {
     layoutPageWidth = pagewidth;
   }
-  
-  layoutPageHeight = Dom.get('filedepotmodule').offsetHeight - 0;   //Width of the outer element  
+
+  layoutPageHeight = Dom.get('filedepotmodule').offsetHeight - 0;   //Width of the outer element
   var leftcolwidth = Dom.get('filedepot_sidecol').offsetWidth + 42;
-  
+
   //YAHOO.log('width: ' + layoutPageWidth);
   var layout = new YAHOO.widget.Layout(el,{
     height: layoutPageHeight, //Height of the viewport
@@ -37,12 +37,12 @@ var init_filedepot = function() {
   if (pagewidth == 0)
     layout.on('beforeResize', function() {
       if (pagewidth == 0) {
-        layoutPageWidth = Dom.get('filedepotmodule').offsetWidth;   //Width of the outer element      
+        layoutPageWidth = Dom.get('filedepotmodule').offsetWidth;   //Width of the outer element
       }
       Dom.setStyle('filedepot', 'width', layoutPageWidth + 'px');
   });
   layout.render();
-  Dom.setStyle('filedepottoolbar','display','block');  
+  Dom.setStyle('filedepottoolbar','display','block');
   updateAjaxStatus('Loading Workspace ...')
 
   if (pagewidth == 0)
@@ -59,14 +59,14 @@ var init_filedepot = function() {
   } catch(e) {}
 
   var oSearchButton = new YAHOO.widget.Button("searchbutton");
-  
+
   try {
     if (show_newfolder) {
       Dom.setStyle('newfolderlink','display','');
       var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
       Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
     }
-  } catch(e) {}  
+  } catch(e) {}
 
   // User may not have upload rights
   try {
@@ -79,9 +79,9 @@ var init_filedepot = function() {
     uploader.addListener('uploadCompleteData',onUploadResponse);
     document.getElementById('btnNewFileSubmit').disabled=true;
     if (show_upload) Dom.setStyle('newfilelink','display','');
-  } catch(e) { 
+  } catch(e) {
     //alert(e.message);
-    alert('failed to load uploader'); 
+    alert('failed to load uploader');
   }
 
 
@@ -95,7 +95,7 @@ var init_filedepot = function() {
   YAHOO.container.tagspanel.render();
 
   <!-- File Details Dialogs -->
-  Dom.setStyle('filedetails', 'display', 'block');     
+  Dom.setStyle('filedetails', 'display', 'block');
   YAHOO.container.filedetails = new YAHOO.widget.Panel("filedetails",
   { width : "670px",
     fixedcenter : true,
@@ -112,7 +112,7 @@ var init_filedepot = function() {
   Event.on(closeEl, 'click', function(e){ YAHOO.container.menuBar.cfg.setProperty("visible",false); });
 
   <!-- Folder Perms Panel -->
-  Dom.setStyle('folderperms', 'display', 'block');   
+  Dom.setStyle('folderperms', 'display', 'block');
   YAHOO.container.folderperms = new YAHOO.widget.Panel("folderperms",
   { width : "750px",
     fixedcenter : true,
@@ -199,7 +199,7 @@ var init_filedepot = function() {
     }
   } catch(e) {}
 
-  
+
   try {
     if (show_newfolder) {
       Dom.setStyle('newfolderlink','display','');
@@ -209,12 +209,12 @@ var init_filedepot = function() {
   } catch(e) {}
 
   Event.addListener("filedetails_cancel", "click", hideFileDetailsPanel);
-  Event.addListener("showsearchtags", "click", function(e) 
+  Event.addListener("showsearchtags", "click", function(e)
   {
     if (YAHOO.container.tagspanel.cfg.getProperty('visible')) {
       YAHOO.container.tagspanel.hide();
     } else {
-      YAHOO.container.tagspanel.show(); 	    	  
+      YAHOO.container.tagspanel.show();
     }
   });
   Event.addListener("searchbutton", "click", makeAJAXSearch);

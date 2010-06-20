@@ -58,6 +58,7 @@ class filedepot {
   public $ajaxBackgroundMode = FALSE;
   private $upload_prefix_character_count = 18;
   private $download_chunk_rate =   8192;  //set to 8k download chunks
+  public $ogenabled = FALSE;
 
   public $notificationTypes = array(
   1   => 'New File Added',
@@ -108,6 +109,10 @@ class filedepot {
 
     $this->defRoleRights = $permsdata;
 
+    if (module_exists('og') AND module_exists('og_access')) {
+      $this->ogenabled = TRUE;
+    }
+
     if (user_is_logged_in()) {
 
       // This cached setting will really only benefit when there are many thousand access records like portal23
@@ -154,11 +159,7 @@ class filedepot {
 
   public static function getInstance() {
     if ( self::$_instance === NULL) {
-      //watchdog('filedepot', "Initializing Filedepot Class");
       self::$_instance = new self();
-    }
-    else {
-      //watchdog('filedepot', "Filedepot Class already initialized");
     }
     return self::$_instance;
 
@@ -247,7 +248,7 @@ class filedepot {
       // Retrieve all the Organic Groups this user is a member of
       $sql = "SELECT node.nid AS nid FROM {node} node LEFT JOIN og_uid og_uid ON node.nid = og_uid.nid "
            . "INNER JOIN {users} users ON node.uid = users.uid "
-           . "WHERE (node.status <> 0) AND (node.type IN ('group')) AND (og_uid.uid = %d) ";
+           . "WHERE (node.status <> 0) AND (og_uid.uid = %d) ";
       $groupquery = db_query($sql, $uid);
       while ($grouprec = db_fetch_array($groupquery)) {
         $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d";

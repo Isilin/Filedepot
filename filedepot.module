@@ -250,6 +250,12 @@ function filedepot_theme() {
   'cid' => NULL
   )
   ),
+  'filedepot_folderperms_ogenabled'  => array(
+  'template'  => 'theme/folderperms_ogenabled',
+  'arguments' => array(
+  'cid' => NULL
+  )
+  ),
   'filedepot_folderperm_rec'  => array(
   'template'  => 'theme/folderperm_record',
   'arguments' => array(
@@ -355,11 +361,9 @@ function filedepot_user_access($perm) {
   }
   elseif ($perm == 'filedepot desktop client' AND isset($_POST['username']) AND isset($_POST['password']))  {
     if (db_result(db_query("SELECT count(*) FROM {users} WHERE name='%s' AND pass='%s'", $_POST['username'], $_POST['password'])) == 1) {
-      //watchdog('filedepot', 'filedepot_user_access  - desktop client login success');
       return TRUE;
     }
     else {
-      //watchdog('filedepot', 'filedepot_user_access  - desktop client login fail');
       return FALSE;
     }
   }
@@ -1086,7 +1090,11 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   global $user, $filedepot, $nexcloud;
 
   $roleids = implode(',', array_keys($user->roles));
-  $groupids = implode(',',array_keys($user->og_groups));
+  if ($filedepot->ogenabled) {
+    $groupids = implode(',',array_keys($user->og_groups));
+  } else {
+    $groupids = '';
+  }
   $sql  = "SELECT metric from {nextag_metrics} WHERE type='%s' ";
   $sql .= "AND roleid IN ($roleids) ";
   if (!empty($groupids)) $sql .= "OR groupid in ($groupids) ";

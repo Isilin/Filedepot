@@ -1075,7 +1075,7 @@ class filedepot {
       VALUES (%d,%d,'%s','1','%s',%d,%d,%d,1)", $newfid, $rec->cckfid, $rec->fname, $rec->version_note, $rec->size, time(), $rec->submitter);
 
       if (!empty($rec->tags) AND $this->checkPermission($rec->cid, 'view', 0, FALSE)) {
-        $nexcloud->update_tags($fid, $file->tags);
+        $nexcloud->update_tags($fid, $red->tags);
       }
 
     }

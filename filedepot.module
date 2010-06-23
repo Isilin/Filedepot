@@ -968,7 +968,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['site_url']              = $base_url;
   $variables['ajax_server_url']       = url('filedepot_ajax');
   $variables['actionurl_dir']         = base_path() . drupal_get_path('module', 'filedepot');
-  $variables['LANG_searchprompt']     = 'Keyword Search';
+  $variables['LANG_searchprompt']     = t('Keyword Search');
   $variables['filedepot_javascript_url']= base_path() . drupal_get_path('module', 'filedepot') . '/js/';
 
   $variables['LANG_addfolder'] = t('Add a new folder');

@@ -588,8 +588,14 @@ function checkMultiAction(selectoption) {
 }
 
 function postSubmitMultiactionResetIfNeed(selectoption) {
-  if (selectoption == 'archive')
+  if (selectoption == 'archive') {
     timer = setTimeout('document.frmtoolbar.multiaction.selectedIndex=0', 3000);
+  } else if (selectoption == 'delete') {
+    if (document.frmtoolbar.reportmode.value == 'notifications') {
+      clearCheckedItems();
+    }
+  }
+
 }
 
 function moveSelectedFiles() {
@@ -1855,6 +1861,7 @@ function clearCheckedItems() {
   Dom.get('multiaction').disabled = true;
   Dom.replaceClass('multiaction','enabled_element','disabled_element');
   document.frmtoolbar.checkeditems.value='';
+  document.frmtoolbar.checkedfolders.value='';
   Dom.get('headerchkall').checked = false;
 
 }

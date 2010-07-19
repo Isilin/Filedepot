@@ -384,7 +384,11 @@ function template_preprocess_filedepot_filelisting_loadfolder(&$variables) {
 
 
 function template_preprocess_filedepot_newfiledialog_folderoptions(&$variables) {
-  $variables['folder_options'] = filedepot_recursiveAccessOptions(array('upload', 'upload_dir'), $variables['cid']);
+  $variables['folder_options'] = filedepot_recursiveAccessOptions(array('upload', 'upload_dir'), $variables['cid'], 0, 1, FALSE);
+  if (empty($variables['folder_options'])) {
+    // must have some option for the enclosing select
+    $variables['folder_options'] = '<option value="0" disabled="disabled">' . t('Top Level Folder') . '</option>' . LB;
+  }
 }
 
 function template_preprocess_filedepot_newfolderdialog(&$variables) {

@@ -79,14 +79,14 @@ function filedepot_recursiveAccessArray($perms, $id=0, $level=1) {
  * @param        int                 $selected     Will make this item the selected item in the listbox
  * @param        string              $id           Parent category to start at and then recursively check
  * @param        string              $level        Used by this function as it calls itself to control the indent formatting
- * @param        string              $selectlist   Used by this function to be able to append to the formatted select list
+ * @param        boolean             $addRootOpt   Add the 'Top Level Folder' option, when appropriate.  Defaults to @c TRUE.
  * @return       string                            Return a formatted HTML Select listbox of categories
  */
-function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level='1') {
+function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level='1', $addRootOpt=TRUE) {
   global $filedepot;
 
   $selectlist = '';
-  if ($level == 1 AND user_access('administer filedepot')) {
+  if ($addRootOpt AND $level == 1 AND user_access('administer filedepot')) {
     $selectlist = '<option value="0">' . t('Top Level Folder') . '</option>' . LB;
   }
   $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=%d ORDER BY cid", $id);
@@ -114,11 +114,11 @@ function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level=
           else {
             $selectlist .= '">' . $indent . $name . '</option>' . LB;
           }
-          $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1);
+          $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1, $addRootOpt);
         } 
         else {
           // Need to check for any folders with admin even subfolders of parents that user does not have access
-          $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1);
+          $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level+1, $addRootOpt);
         }
 
       } 

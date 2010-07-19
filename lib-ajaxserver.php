@@ -608,9 +608,8 @@ function filedepotAjaxServer_loadFileDetails() {
 
       // Setup the folder option select HTML options
       $cid = intval($retval['cid']);
-      $folderoptions = filedepot_recursiveAccessOptions('admin', $cid);
-      if ($filedepot->checkPermission($retval['cid'], 'admin')) {
-        $folderoptions = '<option value="0">Top Level</option>' . $folderoptions;
+      $folderoptions = filedepot_recursiveAccessOptions('admin', $cid, 0, 1, FALSE);
+      if (!empty($folderoptions) AND $filedepot->checkPermission($retval['cid'], 'admin')) {
         $retval['folderoptions'] = '<select name="folder" style="width:220px;">' . $folderoptions . '</select>';
       } 
       else {

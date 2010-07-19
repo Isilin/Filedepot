@@ -44,7 +44,7 @@
           </div>
           <div class="form-item form-option filedepot_perms_rightoption">
             <span style="float:left;"><label for="feature4"><?php print $LANG_uploaddirect ?></label></span>
-            <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload_direct"  id="feature4"></span>
+            <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload_dir"  id="feature4"></span>
           </div>
         </div>
         <div>

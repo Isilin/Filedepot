@@ -153,7 +153,7 @@ function template_preprocess_filedepot_activefolder(&$variables) {
 
   if ($filedepot->cid == 0) {
     if (in_array($filedepot->activeview, $filedepot->validReportingModes)) {
-      $variables['report_heading'] = t('@heading', array('@heading' => $filedepot->activeview));
+      $variables['report_heading'] = t($filedepot->activeview);
       $variables['show_reportmodeheader'] = '';
     }
   }

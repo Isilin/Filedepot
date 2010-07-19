@@ -2172,7 +2172,7 @@ function renderLeftNavigation(oResults) {
   if((oResults.reports) && (oResults.reports.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.reports)) {
-      var reportlinks = new YAHOO.widget.TextNode("Reports", root, true);
+      var reportlinks = new YAHOO.widget.TextNode(NEXLANG_intelfolder1, root, true);
       reportlinks.labelStyle = "icon-files";
       for (var i=0; i<oResults.reports.length; i++) {
         eval('var menuobj = { label: "' + oResults.reports[i]['name'] + '", href:"' + oResults.reports[i]['link'] + '" }');
@@ -2185,7 +2185,7 @@ function renderLeftNavigation(oResults) {
   if((oResults.recentfolders) && (oResults.recentfolders.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.recentfolders)) {
-      var recentfolders = new YAHOO.widget.TextNode("Recent&nbsp;Folders", root, true);
+      var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
       recentfolders.labelStyle = "icon-allfolders";
       for (var i=0; i<oResults.recentfolders.length; i++) {
         eval('var menuobj = { label: "' + oResults.recentfolders[i]['name'] + '", href:"' + oResults.recentfolders[i]['link'] + '" }');
@@ -2200,6 +2200,7 @@ function renderLeftNavigation(oResults) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.topfolders)) {
       var topfolders = new YAHOO.widget.TextNode("Top&nbsp;Level&nbsp;Folders", root, true);
+      var topfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder3, root, true);
       topfolders.labelStyle = "icon-allfolders";
       for (var i=0; i<oResults.topfolders.length; i++) {
         eval('var menuobj = { label: "' + oResults.topfolders[i]['name'] + '", href:"' + oResults.topfolders[i]['link'] + '" }');
@@ -2401,7 +2402,7 @@ YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,p
 
 }
 
- 
+
 /* Make the AJAX call to generate an updated file listing and leftside navigation */
 YAHOO.filedepot.showfiles = function(cid) {
   //YAHOO.log('showfiles: start AJAX call:' + timeDiff.getDiff() + 'ms');

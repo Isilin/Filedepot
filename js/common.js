@@ -2206,7 +2206,6 @@ function renderLeftNavigation(oResults) {
   if((oResults.topfolders) && (oResults.topfolders.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.topfolders)) {
-      var topfolders = new YAHOO.widget.TextNode("Top&nbsp;Level&nbsp;Folders", root, true);
       var topfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder3, root, true);
       topfolders.labelStyle = "icon-allfolders";
       for (var i=0; i<oResults.topfolders.length; i++) {

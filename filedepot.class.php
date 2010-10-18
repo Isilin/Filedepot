@@ -638,7 +638,7 @@ class filedepot {
           //unset($node->field_filedepot_file[$id]);
           //node_save($node);
           db_query("DELETE FROM {files} WHERE fid = %d", $cckfid);  // Remove  the record from the drupal files table
-          db_query("DELETE FROM content_field_filedepot_file WHERE vid = %d AND field_filedepot_file_fid = %d", $nid, $cckfid);
+          db_query("DELETE FROM {content_field_filedepot_file} WHERE vid = %d AND field_filedepot_file_fid = %d", $nid, $cckfid);
           // Adding this function to clear CCK cache appears to have fixed the delete issue.
           content_clear_type_cache();
         }
@@ -782,7 +782,7 @@ class filedepot {
             $q1 = db_query("SELECT nid,vid FROM {filedepot_categories} WHERE cid=%d", $newcid);
             $newrec = db_fetch_array($q1);
             // Get the current file (attachment) offset for the target folder node
-            $q2 = db_query("SELECT delta FROM content_field_filedepot_file WHERE nid=%d AND vid=%d ORDER BY delta DESC LIMIT 1", $newrec['nid'], $newrec['vid']);
+            $q2 = db_query("SELECT delta FROM {content_field_filedepot_file} WHERE nid=%d AND vid=%d ORDER BY delta DESC LIMIT 1", $newrec['nid'], $newrec['vid']);
             $delta = db_result($q2);
             if ($delta !== FALSE) {
               $delta++;
@@ -791,11 +791,11 @@ class filedepot {
               $delta = 0;
             }
             // Retrieve the current record data -- we will need to change the nid and update the delta (offset) so it will be correct for the new folder
-            $q3 = db_query("SELECT * FROM content_field_filedepot_file WHERE field_filedepot_file_fid=%d", $cckfid);
+            $q3 = db_query("SELECT * FROM {content_field_filedepot_file} WHERE field_filedepot_file_fid=%d", $cckfid);
             $sfile = db_fetch_object($q3);
-            db_query("DELETE FROM content_field_filedepot_file WHERE field_filedepot_file_fid=%d", $cckfid);
+            db_query("DELETE FROM {content_field_filedepot_file} WHERE field_filedepot_file_fid=%d", $cckfid);
             // Insert new record for the moved file - for the target node
-            $sql = "INSERT INTO content_field_filedepot_file "
+            $sql = "INSERT INTO {content_field_filedepot_file} "
                  . "(vid, nid, delta, field_filedepot_file_fid, field_filedepot_file_list, field_filedepot_file_data) "
                  . "VALUES (%d, %d, %d, %d, 1, '%s')";
             db_query($sql, $newrec['vid'], $newrec['nid'], $delta, $sfile->field_filedepot_file_fid, $sfile->field_filedepot_file_data);

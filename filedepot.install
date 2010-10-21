@@ -941,8 +941,8 @@ $schema['nextag_items'] = array(
   'fields' => array(
     'itemid' => array(
       'description' => t('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '128',
+      'type' => 'int',
+      'size' => 'medium',
       'not null' => TRUE,
     ),
     'type' => array(

@@ -144,7 +144,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
 
 
 function template_preprocess_filedepot_activefolder(&$variables) {
-  global $base_url, $filedepot;
+  global $filedepot;
 
   $variables['show_activefolder'] = 'none';
   $variables['show_reportmodeheader'] = 'none';
@@ -191,7 +191,7 @@ function template_preprocess_filedepot_activefolder(&$variables) {
 
 
 function template_preprocess_filedepot_folderlisting(&$variables) {
-  global $filedepot, $base_url;
+  global $filedepot;
 
   $rec = $variables['folderrec'];      // cid,pid,name,description,folderorder,last_modified_date
   $level = $variables['level'];
@@ -249,7 +249,7 @@ function template_preprocess_filedepot_folder_moveoptions(&$variables) {
 
 
 function template_preprocess_filedepot_filelisting(&$variables) {
-  global $user, $filedepot, $nexcloud, $base_url;
+  global $user, $filedepot, $nexcloud;
 
   /* listing rec format
   file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,
@@ -280,7 +280,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     $variables['modified_date'] = '';
   }
 
-  $variables['folder_link'] = "{$base_url}/filedepot/index.php?cid={$rec['cid']}";
+  $variables['folder_link'] = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $rec['cid'])), 'absolute' => true));
   $variables['folder_name'] = filter_xss($rec['foldername']);
   $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
   $variables['file_number'] = "{$variables['foldernumber']}.{$filenum}";

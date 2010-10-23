@@ -8,7 +8,7 @@
 
 <table width="100%" border="0" cellspacing="2" cellpadding="0">
     <tr class="pluginRow<?php print $cssid ?>">
-        <td class="aligntop" style="padding-left:10px;padding-top:10px;"><img src="<?php print $fileicon ?>">&nbsp;<a href="<?php print $site_url?>index.php?q=filedepot_download/<?php print $nid ?>/<?php print $fid ?>/<?php print $file_version ?>" TITLE="<?php print $LANG_download ?>"><strong><?php print $vname ?></strong></a>&nbsp;<span style="font-size:9pt;"><?php print $file_versionnum ?></span></td>
+        <td class="aligntop" style="padding-left:10px;padding-top:10px;"><img src="<?php print $fileicon ?>">&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>" title="<?php print $LANG_download ?>"><strong><?php print $vname ?></strong></a>&nbsp;<span style="font-size:9pt;"><?php print $file_versionnum ?></span></td>
         <td width="15%" class="alignright" style="padding-top:10px;" nowrap><span style="font-size:8pt;"><?php print $ver_shortdate ?><br /><strong><?php print $LANG_size ?>:</strong>&nbsp;<?php print $ver_size ?></span></td>
     </tr>
     <tr class="pluginRow<?php print $cssid ?>">
@@ -32,6 +32,6 @@
         </td>
     </tr>
     <tr class="pluginRow<?php print $cssid ?>">
-        <td colspan="2" style="padding-left:10px;"><?php print $LANG_author ?>:&nbsp;<?php print $ver_author ?>&nbsp;&nbsp;<a href="<?php print $site_url?>index.php?q=filedepot_download/<?php print $nid ?>/<?php print $fid ?>/<?php print $file_version ?>"><?php print $LANG_download ?></a><span style="padding-left:10px;"><a href="#" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"><?php print $LANG_edit ?></a></span><span style="padding-left:10px;"><a href="#" onclick="doAJAXDeleteVersion(<?php print $fid ?>,<?php print $file_version ?>)"><?php print $LANG_delete ?></a></span></td>
+        <td colspan="2" style="padding-left:10px;"><?php print $LANG_author ?>:&nbsp;<?php print $ver_author ?>&nbsp;&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>"><?php print $LANG_download ?></a><span style="padding-left:10px;"><a href="#" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"><?php print $LANG_edit ?></a></span><span style="padding-left:10px;"><a href="#" onclick="doAJAXDeleteVersion(<?php print $fid ?>,<?php print $file_version ?>)"><?php print $LANG_delete ?></a></span></td>
     </tr>
 </table>

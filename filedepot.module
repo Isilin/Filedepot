@@ -407,7 +407,6 @@ function filedepot_access($op, $node) {
  * Implementation of hook_main().
  */
 function filedepot_main() {
-  global $base_url, $base_path, $user;
 
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');
@@ -1054,7 +1053,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
  */
 
 function theme_filedepot_files($node) {
-  global $filedepot, $base_url;
+  global $filedepot;
 
   $layout_url = base_path() . drupal_get_path('module', 'filedepot');
   $retval = '';

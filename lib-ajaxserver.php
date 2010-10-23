@@ -1121,7 +1121,7 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
 
 
 function filedepotAjaxServer_broadcastAlert($fid, $comment) {
-  global $user, $filedepot, $base_url;
+  global $user, $filedepot;
 
   $retval = '';
   $target_users = array();
@@ -1184,10 +1184,11 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
     if (count($distribution) > 0) {
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('Broadcast Notification');
       $message['body'] = $comment . "\n\n";
+      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $frec->cid)), 'absolute' => true));
       $message['body'] .= t('The file: !filename can be accessed at !link',
-      array('!filename' => $frec->title, '!link' => "{$base_url}?q=filedepot&cid={$frec->cid}")) . "\n\n";
+        array('!filename' => $frec->title, '!link' => $link)) . "\n\n";
       $message['body'] .= t('You are receiving this broadcast alert, because your notification setting is enabled.');
-      $message['to'] = 'Fildepot Distribution';
+      $message['to'] = 'Filedepot Distribution';
       $message['headers']['Bcc'] = implode(',', $distribution);
       drupal_mail_send($message);
       $retval['retcode'] = 200;

@@ -316,7 +316,7 @@ function filedepot_getGroupOptions() {
  * @return       Boolean     Returns TRUE if atleast 1 message was sent out
  */
 function filedepot_sendNotification($id, $type=1) {
-  global $user, $filedepot, $base_url, $REMOTE_ADDR;
+  global $user, $filedepot;
 
   /* If notifications have been disabled via the module admin settings - return TRUE */
   if (variable_get('filedepot_notifications_enabled', 1) == 0) { 
@@ -335,7 +335,7 @@ function filedepot_sendNotification($id, $type=1) {
       . "WHERE file.cid=category.cid and file.fid=%d";
       $query = DB_query($sql, $id);
       list($fid, $fname, $cid, $submitter, $catname) = array_values(db_fetch_array($query));
-      $link = "{$base_url}/index.php?q=filedepot&cid={$cid}&fid={$fid}";        
+      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $cid, 'fid' => $fid)), 'absolute' => true));
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New Document Management Update');
       $messagetext2ary = array('!file' => $fname,
                              '!bp' => '<p>',
@@ -351,7 +351,7 @@ function filedepot_sendNotification($id, $type=1) {
       list($fid, $fname, $cid, $submitter, $catname) = array_values(db_fetch_array($query));
       // Just need to create this SQL record for this user - to fake out logic below
       $target_users[] = $submitter;
-      $link = "{$base_url}/index.php?q=filedepot&cid={$cid}&fid={$fid}";     
+      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $cid, 'fid' => $fid)), 'absolute' => true));
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');       
       $messagetext = t('Site member %@name: your file in folder: !folder', 
       array('!folder' => $catname)) . '<p>';

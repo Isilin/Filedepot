@@ -7,7 +7,7 @@
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
 function filedepot_dispatcher($action) {
-  global $base_url, $base_path, $user, $filedepot, $nexcloud;
+  global $user, $filedepot, $nexcloud;
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-ajaxserver.php';
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';

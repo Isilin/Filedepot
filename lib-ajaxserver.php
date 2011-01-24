@@ -55,7 +55,7 @@ function filedepotAjaxServer_getfilelisting() {
     $data['header'] = theme('filedepot_header');
 
   }
-  elseif ($cid == 0) {
+  elseif ($filedepot->cid == 0) {
     $data['retcode'] = 200;
     $data['cid'] = $filedepot->cid;
     $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
@@ -635,7 +635,6 @@ function filedepotAjaxServer_loadFileDetails() {
       else {
         $retval['folderoptions'] = '<input type="text" name="folder" value="' . $retval['folder'] . '" READONLY />';
       }
-
       if ($filedepot->checkPermission($retval['cid'], 'admin')) {
         $retval['downloadperm'] = TRUE;
         $retval['editperm'] = TRUE;

@@ -241,7 +241,7 @@ All the needed style sheets should be loaded automatically by the loader.
 
       <div id="editfiledetails" class="alignleft" style="display:none;">
         <form id="frmFileDetails" name="frmFileDetails" method="POST">
-          <input type="hidden" name="cid" value="{current_category}">
+          <input type="hidden" name="cid" value="">
           <input type="hidden" name="id" value="">
           <input type="hidden" name="version" value="">
           <input type="hidden" name="tagstore" value="">

@@ -7,7 +7,7 @@
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
 function filedepot_dispatcher($action) {
-  global $user, $filedepot, $nexcloud;
+  global $base_url, $base_path, $user, $filedepot, $nexcloud;
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-ajaxserver.php';
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
@@ -504,16 +504,21 @@ function filedepot_dispatcher($action) {
           list ($fname, $cid, $current_version) = array_values(db_fetch_array($query));
           // Allow updating the category, title, description and image for the current version and primary file record
           if ($version == $current_version) {
-            $newcid = $folder;
             db_query("UPDATE {filedepot_files} SET title='%s',description='%s',date=%d WHERE fid=%d", $filetitle, $description, time(), $fid);
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
-            if ($cid != $newcid) {
-              $filemoved = $filedepot->moveFile($fid, $newcid);
-              if ($filemoved == FALSE) {
-                $data['errmsg'] = t('Error moving file');
+            if ($folder > 0) {
+              $newcid = $folder;
+              if ($cid != $newcid) {
+                $filemoved = $filedepot->moveFile($fid, $newcid);
+                if ($filemoved == FALSE) {
+                  $data['errmsg'] = t('Error moving file');
+                }
               }
+              $data['cid'] = $newcid;
             }
-            $data['cid'] = $newcid;
+            else {
+              $data['cid'] = $cid;
+            }
             unset($_POST['tags']);  // Format tags will check this to format tags in case we are doing a search which we are not in this case.
             $data['tags'] = filedepot_formatfiletags($tags);
           }

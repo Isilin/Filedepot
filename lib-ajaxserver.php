@@ -19,6 +19,10 @@ function filedepotAjaxServer_getfilelisting() {
     $filedepot->ajaxBackgroundMode = FALSE;
   }
 
+  if (db_result(db_query("SELECT COUNT(*) FROM {filedepot_categories} WHERE cid=%d", $filedepot->cid)) == 0) {
+    $filedepot->cid = 0;
+  }
+
   if ($filedepot->activeview == 'notifications') {
     $data['cid'] = $filedepot->cid;
     $data['retcode'] = 200;
@@ -1185,7 +1189,7 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
       $message['body'] = $comment . "\n\n";
       $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $frec->cid)), 'absolute' => true));
       $message['body'] .= t('The file: !filename can be accessed at !link',
-        array('!filename' => $frec->title, '!link' => $link)) . "\n\n";
+      array('!filename' => $frec->title, '!link' => $link)) . "\n\n";
       $message['body'] .= t('You are receiving this broadcast alert, because your notification setting is enabled.');
       $message['to'] = 'Filedepot Distribution';
       $message['headers']['Bcc'] = implode(',', $distribution);

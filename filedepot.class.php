@@ -551,6 +551,14 @@ class filedepot {
     $path = $this->root_storage_path . $cid;
     if (@is_dir($path)) {
       @chmod($path, FILEDEPOT_CHMOD_DIRS);
+      if ($fh = fopen($path . '/.htaccess', 'w')) {
+        fwrite($fh, "deny from all\n");
+        fclose($fh);
+      }
+      if ($fh = fopen("$path/submissions" . '/.htaccess', 'w')) {
+        fwrite($fh, "deny from all\n");
+        fclose($fh);
+      }
       return TRUE;
     }
     else {
@@ -563,6 +571,14 @@ class filedepot {
         RETURN FALSE;
       }
       else {
+        if ($fh = fopen($path . '/.htaccess', 'w')) {
+          fwrite($fh, "deny from all\n");
+          fclose($fh);
+        }
+        if ($fh = fopen("$path/submissions" . '/.htaccess', 'w')) {
+          fwrite($fh, "deny from all\n");
+          fclose($fh);
+        }
         return TRUE;
      }
     }

@@ -99,7 +99,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $variables['LANG_folderordermsg'] = t('Displayed in increments of 10 for easy editing');
   $variables['LANG_newfiles'] = t('Alert me if new files are added');
   $variables['LANG_filechanges'] = t('Alert me if files are changed');
-  $variables['LANG_statsmsg'] = t('Folder & subfolders stats');
+  $variables['LANG_statsmsg'] = t('Folder & Sub Folders Stats');
   $variables['LANG_foldercount'] = t('Folder Count');
   $variables['LANG_filecount'] = t('File Count');
   $variables['LANG_totalsize'] = t('Total Size');
@@ -320,33 +320,59 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       $variables['show_foldername'] = 'none';
   }
   else {
-    if ($filedepot->cid == 0 AND !empty($filedepot->activeview)) {
-      $folder_admin = $filedepot->checkPermission($rec['subfolderId'], 'admin');
-    }
-    else {
+    $folder_admin = $filedepot->checkPermission($rec['cid'], 'admin');
+    if ($filedepot->cid > 0 OR empty($filedepot->activeview)) {
       $variables['show_foldername'] = 'none';
     }
     $variables['action1_link'] = '&nbsp;';
     $variables['action2_link'] = '&nbsp;';
+    $variables['actionclass'] = 'noactions';
+    $allowLockedFileDownloads = variable_get('filedepot_locked_file_download_enabled', 0);  // Check admin config setting
 
-    if (!$folder_admin AND $rec['status'] == FILEDEPOT_LOCKED_STATUS AND $rec['changedby_uid'] != $user->uid ) {  // File locked but not by user
-      $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
-      $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
-        array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
-      $variables['action2_link'] = '';
-      $variables['actionclass'] = 'oneaction';
+    if ($rec['status'] == FILEDEPOT_LOCKED_STATUS) {
+      if ($folder_admin OR $rec['changedby_uid'] == $user->uid) {  // File locked and folder admin or file owner
+        $variables['action1_link'] = $downloadlink;
+        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
+          array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
+        if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
+          $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
+          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
+            array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
+        }
+        else {
+          $variables['action2_link'] = '';
+          $variables['actionclass'] = 'oneaction';
+        }
+      }
+      elseif ($allowLockedFileDownloads == 1) {  // File locked and downloads allowed
+        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
+          array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
+        $variables['action2_link'] = '';
+        $variables['actionclass'] = 'oneaction';
+      }
     }
     else {
-      $variables['action1_link'] = $downloadlink;
-      $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
-      $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
-        array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
-      if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
-        $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
-        $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
-          array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
+      if ($folder_admin OR $rec['changedby_uid'] == $user->uid) {
+        $variables['action1_link'] = $downloadlink;
+        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
+          array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
+        if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
+          $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
+          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
+            array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
+        }
+        else {
+          $variables['action2_link'] = '';
+          $variables['actionclass'] = 'oneaction';
+        }
       }
       else {
+        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
+          array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         $variables['action2_link'] = '';
         $variables['actionclass'] = 'oneaction';
       }

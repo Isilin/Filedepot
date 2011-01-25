@@ -92,6 +92,19 @@ function filedepot_admin_settings() {
   '#default_value' => variable_get('filedepot_default_notify_filechange', 0),
   '#description' => t('If enabled, users with view access to a folder will be notified of new file versions being added.'));
 
+  $form['options'] = array(
+  '#type' => 'fieldset',
+  '#title' => t('Misc Options'),
+  '#collapsible' => TRUE,
+  '#collapsed' => TRUE
+  );
+
+  $form['options']['filedepot_locked_file_download_enabled'] = array('#type' => 'checkbox',
+  '#title' => t('Allow files to be downloaded if locked'),
+  '#default_value' => variable_get('filedepot_locked_file_download_enabled', 1),
+  '#description' => t('If enabled, users will be able to download a file when locked.'));
+
+
   $form['filetype_filter'] = array(
   '#type' => 'fieldset',
   '#title' => t('File Type Filtering and Extension Mapping'),

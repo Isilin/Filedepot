@@ -684,6 +684,9 @@ function filedepotAjaxServer_loadFileDetails() {
           if ($retval['submitter'] == $user->uid OR $retval['status_changedby_uid'] == $user->uid) {
             $retval['downloadperm'] = TRUE;
           }
+          elseif (variable_get('filedepot_locked_file_download_enabled', 0) == 1) {  // Check admin config setting
+            $retval['downloadperm'] = TRUE;
+          }
           else {
             $retval['downloadperm'] = FALSE;
           }

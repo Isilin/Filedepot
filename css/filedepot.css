@@ -345,6 +345,11 @@ body.layout-left-main .outer { margin-left:0px !important; }
   white-space:nowrap  
 }
 
+#filelisting_container div.noactions {
+  padding-right:65px;
+  white-space:nowrap
+}
+
 #filelisting_container .loading {
     background-color:#FFEFAD;
     color: #FA0032;

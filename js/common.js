@@ -739,15 +739,9 @@ var makeAJAXLoadFileDetails = function(id) {
           }
         }
         if (!oResults.lockperm) {
-          if (oResults.locked) {
-            YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", true);
-          } else {
-            YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);
-          }
           YAHOO.container.menuBar.getItem(5).cfg.setProperty("disabled", true);
           YAHOO.util.Event.removeListener("lockfiledetailslink", "click");
         } else {
-          YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);
           YAHOO.container.menuBar.getItem(5).cfg.setProperty("disabled", false);
           if (oResults.locked) {
             Dom.get('lockfiledetailslink').innerHTML = 'UnLock';
@@ -796,6 +790,7 @@ var makeAJAXLoadFileDetails = function(id) {
         document.frmFileDetails.id.value = oResults.fid;
         document.frmFileDetails.version.value = oResults.version;
         document.frmFileDetails.filetitle.value = oResults.title;
+        document.frmFileDetails.cid.value = oResults.cid;
         Dom.get('filedetails_titlebar').innerHTML = oResults.title + '&nbsp;-&nbsp;' + NEXLANG_details;
         Dom.get('disp_owner').innerHTML = oResults.name;
         Dom.get('disp_date').innerHTML = oResults.date;

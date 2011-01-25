@@ -205,21 +205,22 @@ function filedepot_getTopLevelParent($cid) {
  * @param        array      $list        Array of categories
  * @param        string     $cid         Category to lookup
  * @param        string     $perms       Permissions to check if user has access to catgegory
+ * @param        boolean    $override    Set to TRUE only if you don't want to test for permissions
  */
-function filedepot_getRecursiveCatIDs(&$list, $cid, $perms) {
+function filedepot_getRecursiveCatIDs(&$list, $cid, $perms,$override=false) {
   global $filedepot;
 
   $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=%d ORDER BY cid", $cid);
   while ( $A = db_fetch_array($query)) {
     // Check and see if this category has any sub categories - where a category record has this cid as it's parent
     if (db_result(db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=%d", $A['cid'])) > 0) {
-      if ($filedepot->checkPermission($A['cid'], $perms)) {
+      if ($override === TRUE OR $filedepot->checkPermission($A['cid'], $perms)) {
         array_push($list, $A['cid']);
-        filedepot_getRecursiveCatIDs($list, $A['cid'], $perms);
+        filedepot_getRecursiveCatIDs($list, $A['cid'], $perms, $override);
       }
-    } 
+    }
     else {
-      if ($filedepot->checkPermission($A['cid'], $perms)) {
+      if ($override === TRUE OR $filedepot->checkPermission($A['cid'], $perms)) {
         array_push($list, $A['cid']);
       }
     }

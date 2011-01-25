@@ -587,12 +587,22 @@ class filedepot {
 
   public function deleteFolder($nid) {
     $deleteFolderId = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $nid));
-    if ($deleteFolderId > 0) {
+
+    /* Test for valid folder and admin permission one more time
+     * We are going to override the permission test in the function filedepot_getRecursiveCatIDs()
+     * and return all subfolders in case hidden folders exist for this user.
+     * If this user has admin permission for parent -- then they should be able to delete it
+     * and any subfolders.
+     */
+
+    if ($deleteFolderId > 0 AND $this->checkPermission($deleteFolderId, 'admin')) {
       // Need to delete all files in the folder
       /* Build an array of all linked categories under this category the user has admin access to */
       $list = array();
       array_push($list, $deleteFolderId);
-      $list = filedepot_getRecursiveCatIDs ($list, $deleteFolderId, 'admin');
+
+      // Passing in permission check over-ride as noted above to filedepot_getRecursiveCatIDs()
+      $list = filedepot_getRecursiveCatIDs ($list, $deleteFolderId, 'admin',TRUE);
       foreach ($list as $cid) {
         $query = db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d", $cid);
         while ($A = db_fetch_array($query))  {
@@ -608,6 +618,7 @@ class filedepot {
         $catdir = $this->root_storage_path . $cid;
         if (file_exists($catdir)) {
           @unlink($this->root_storage_path . "$cid/.htaccess");
+          @unlink($this->root_storage_path . "$cid/submissions/.htaccess");
           @rmdir("{$catdir}/submissions");
           @rmdir($catdir);
         }

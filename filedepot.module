@@ -125,7 +125,7 @@ function filedepot_menu() {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implementation of hook_theme().
  */
 function filedepot_theme() {
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';

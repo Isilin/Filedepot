@@ -32,6 +32,10 @@
         </td>
     </tr>
     <tr class="pluginRow<?php print $cssid ?>">
-        <td colspan="2" style="padding-left:10px;"><?php print $LANG_author ?>:&nbsp;<?php print $ver_author ?>&nbsp;&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>"><?php print $LANG_download ?></a><span style="padding-left:10px;"><a href="#" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"><?php print $LANG_edit ?></a></span><span style="padding-left:10px;"><a href="#" onclick="doAJAXDeleteVersion(<?php print $fid ?>,<?php print $file_version ?>)"><?php print $LANG_delete ?></a></span></td>
+        <td colspan="2" style="padding-left:10px;">
+        <span><?php print $LANG_author ?>:&nbsp;<?php print $ver_author ?>&nbsp;&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>"><?php print $LANG_download ?></a></span>
+        <span style="padding-left:10px;display:<?php print $show_edit_version;?>"><a href="#" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"><?php print $LANG_edit ?></a></span>
+        <span style="padding-left:10px;display:<?php print $show_delete_version;?>"><a href="#" onclick="doAJAXDeleteVersion(<?php print $fid ?>,<?php print $file_version ?>)"><?php print $LANG_delete ?></a></span>
+        </td>
     </tr>
 </table>

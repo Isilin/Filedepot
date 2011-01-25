@@ -517,7 +517,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
 
 
 function template_preprocess_filedepot_fileversion(&$variables) {
-  global $filedepot;
+  global $filedepot, $user;
 
   $variables['site_url']              = base_path();
   list($fid, $fname, $file_version, $ver_note, $ver_size, $ver_date, $submitter, $nid) = array_values($variables['versionRec']);
@@ -531,6 +531,7 @@ function template_preprocess_filedepot_fileversion(&$variables) {
   $variables['LANG_delete'] = t('Delete File');
   $ver_shortdate = strftime($filedepot->shortdate, $ver_date);
   $ver_author = db_result(db_query("SELECT name from {users} WHERE uid=%d", $submitter));
+  $cid = db_result(db_query("SELECT cid from {filedepot_files} WHERE fid=%d", $fid));
   $icon = $filedepot->getFileIcon($fname);
   $variables['fileicon'] = "{$variables['layout_url']}/css/images/$icon";
   $variables['fid'] = $fid;
@@ -544,9 +545,11 @@ function template_preprocess_filedepot_fileversion(&$variables) {
   $variables['file_version'] = $file_version;
   $variables['edit_version_note'] = filter_xss($ver_note);
   $variables['version_note'] = nl2br(filter_xss($ver_note));
-  if ($filedepot->checkPermission($cid, 'admin')) {
-    $variables['link_edit'] = '<a href="' . $_SERVER['PHP_SELF'] . '?op=editfile&fid=' . $fid . '&version=' . $file_version . '">' . t('Edit') . '</a>';
-    $variables['link_delete'] = '<a href="' . $_SERVER['PHP_SELF'] . '?op=deletefile&fid=' . $fid . '&version=' . $file_version . '">' . t('Delete') . '</a>';
+  $variables['show_edit_version'] = 'none';
+  $variables['show_delete_version'] = 'none';
+  if ($user->uid == $submitter OR $filedepot->checkPermission($cid, 'admin')) {
+    $variables['show_edit_version'] = '';
+    $variables['show_delete_version'] = '';
   }
   $variables['cssid'] = ($variables['zebra'] == 'odd') ? 1: 2;
 
@@ -559,11 +562,11 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['catid'] = $variables['cid'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
-  $variables['LANG_viewcategory'] = t('View Category');
+  $variables['LANG_viewcategory'] = t('View Folder');
   $variables['LANG_uploadapproval'] = t('Upload with Approval');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
   $variables['LANG_uploaddirect'] = t('Upload Direct');
-  $variables['LANG_categoryadmin'] = t('Category Admin');
+  $variables['LANG_categoryadmin'] = t('Folder Admin');
   $variables['LANG_uploadversions'] = t('Upload New Versions');
   $variables['LANG_user'] = t('User');
   $variables['LANG_admin'] = t('Admin');
@@ -612,11 +615,11 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $variables['role_options'] = filedepot_getRoleOptions();
   $variables['group_options'] = filedepot_getGroupOptions();
 
-  $variables['LANG_viewcategory'] = t('View Category');
+  $variables['LANG_viewcategory'] = t('View Folder');
   $variables['LANG_uploadapproval'] = t('Upload with Approval');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
   $variables['LANG_uploaddirect'] = t('Upload Direct');
-  $variables['LANG_categoryadmin'] = t('Category Admin');
+  $variables['LANG_categoryadmin'] = t('Folder Admin');
   $variables['LANG_uploadversions'] = t('Upload New Versions');
   $variables['LANG_user'] = t('User');
   $variables['LANG_admin'] = t('Admin');

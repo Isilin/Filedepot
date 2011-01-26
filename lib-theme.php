@@ -336,6 +336,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
+          $variables['actionclass'] = 'twoactions';
           $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
           $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
@@ -360,6 +361,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
+          $variables['actionclass'] = 'twoactions';
           $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
           $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));

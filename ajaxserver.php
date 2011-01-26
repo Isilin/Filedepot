@@ -465,6 +465,7 @@ function filedepot_dispatcher($action) {
 
     case 'updatefile':
       $fid = intval($_POST['id']);
+      $folder_id = intval($_POST['cid']);
       $folder = intval($_POST['folder']);
       $version = intval($_POST['version']);
       $filetitle  = $_POST['filetitle'];
@@ -475,14 +476,13 @@ function filedepot_dispatcher($action) {
       $data = array();
       $data['tagerror'] = '';
       $data['errmsg'] = '';
-
       if ($_POST['cid'] == 'incoming' AND $fid > 0) {
           $filemoved = FALSE;
           $sql = "UPDATE {filedepot_import_queue} SET orig_filename='%s', description='%s',";
           $sql .= "version_note='%s' WHERE id=%d";
           db_query($sql, $filetitle, $description, $vernote, $fid);
           $data['retcode'] = 200;
-          if ($folder > 0 AND $filedepot->moveIncomingFile($fid, $folder)) {
+          if ($folder_id > 0 AND $filedepot->moveIncomingFile($fid, $folder_id)) {
             $filemoved = TRUE;
             $filedepot->activeview = 'incoming';
             $data = filedepotAjaxServer_generateLeftSideNavigation($data);
@@ -495,8 +495,8 @@ function filedepot_dispatcher($action) {
         if ($approved == 0) {
           $sql = "UPDATE {filedepot_filesubmissions} SET title='%s', description='%s',";
           $sql .= "version_note='%s', cid=%d, tags='%s' WHERE id=%d";
-          db_query($sql, $filetitle, $description, $vernote, $folder, $tags, $fid);
-          $data['cid'] = $folder;
+          db_query($sql, $filetitle, $description, $vernote, $folder_id, $tags, $fid);
+          $data['cid'] = $folder_id;
           $data['tags'] = '';
         }
         else {
@@ -506,8 +506,8 @@ function filedepot_dispatcher($action) {
           if ($version == $current_version) {
             db_query("UPDATE {filedepot_files} SET title='%s',description='%s',date=%d WHERE fid=%d", $filetitle, $description, time(), $fid);
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
-            if ($folder > 0) {
-              $newcid = $folder;
+            if ($folder_id > 0) {
+              $newcid = $folder_id;
               if ($cid != $newcid) {
                 $filemoved = $filedepot->moveFile($fid, $newcid);
                 if ($filemoved == FALSE) {
@@ -522,9 +522,10 @@ function filedepot_dispatcher($action) {
             unset($_POST['tags']);  // Format tags will check this to format tags in case we are doing a search which we are not in this case.
             $data['tags'] = filedepot_formatfiletags($tags);
           }
+
           db_query("UPDATE {filedepot_fileversions} SET notes='%s' WHERE fid=%d and version=%d", $vernote, $fid, $version);
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
-          if ($filedepot->checkPermission($folder, 'view', 0, FALSE) AND !$nexcloud->update_tags($fid, $tags)) {
+          if ($filedepot->checkPermission($folder_id, 'view', 0, FALSE) AND !$nexcloud->update_tags($fid, $tags)) {
             $data['tagerror'] = t('Tags not added - Group or Role assigned view perms required');
             $data['tags'] = '';
           }

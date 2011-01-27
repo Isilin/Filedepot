@@ -216,7 +216,6 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'updatefoldersettings':
-
       $cid = intval($_POST['cid']);
       $notifyadd = intval($_POST['fileadded_notify']);
       $notifychange = intval($_POST['filechanged_notify']);
@@ -293,16 +292,20 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'delfolderperms':
+
       $id = intval($_GET['id']);
       if ($id > 0) {
-        $cid = db_result(db_query("SELECT catid FROM {filedepot_access} WHERE accid=%d", $id));
-        if ($filedepot->checkPermission($cid, 'admin')) {
+        $query = db_query("SELECT catid, permtype, permid FROM  {filedepot_access} WHERE accid=%d", $id);
+        $A = db_fetch_array($query);
+        if ($filedepot->checkPermission($A['catid'], 'admin')) {
           db_query("DELETE FROM {filedepot_access} WHERE accid=%d", $id);
           db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+          // For this folder - I need to update the access metrics now that a permission has been removed
+          $nexcloud->update_accessmetrics($A['catid']);
           if ($filedepot->ogenabled) {
-            $data['html'] = theme('filedepot_folderperms_ogenabled', $cid);
+            $data['html'] = theme('filedepot_folderperms_ogenabled', $A['catid']);
           } else {
-            $data['html'] = theme('filedepot_folderperms', $cid);
+            $data['html'] = theme('filedepot_folderperms', $A['catid']);
           }
           $data['retcode'] = 200;
         }
@@ -322,18 +325,34 @@ function filedepot_dispatcher($action) {
         $data['retcode'] = 204;  // No permission options selected - return 'No content' statuscode
       }
       elseif ($filedepot->updatePerms(
-      $cid,                          // Category ID
-      $_POST['cb_access'],           // Array of permissions checked by user
-      $_POST['selusers'],            // Array of site members
-      $_POST['selgroups'],           // Array of group members
-      $_POST['selroles'])            // Array of roles
-      ) {
-        if ($filedepot->ogenabled) {
-          $data['html'] = theme('filedepot_folderperms_ogenabled', $cid);
-        } else {
-          $data['html'] = theme('filedepot_folderperms', $cid);
-        }
-        $data['retcode'] = 200;
+          $cid,                          // Category ID
+          $_POST['cb_access'],           // Array of permissions checked by user
+          $_POST['selusers'],            // Array of site members
+          $_POST['selgroups'],           // Array of group members
+          $_POST['selroles'])            // Array of roles
+          ) {
+          if (is_array($_POST['selroles']) AND count($_POST['selroles']) > 0) {
+            foreach($_POST['selroles'] as $roleid) {
+              $roleid = intval($roleid);
+              if ($roleid > 0) {
+                $nexcloud->update_accessmetrics($cid);
+              }
+            }
+          }
+          if ($filedepot->ogenabled) {
+            if (is_array($_POST['selgroups']) AND count($_POST['selgroups']) > 0) {
+              foreach($_POST['selgroups'] as $groupid) {
+                $groupid = intval($groupid);
+                if ($groupid > 0) {
+                  $nexcloud->update_accessmetrics($cid);
+                }
+              }
+            }
+            $data['html'] = theme('filedepot_folderperms_ogenabled', $cid);
+          } else {
+            $data['html'] = theme('filedepot_folderperms', $cid);
+          }
+          $data['retcode'] = 200;
       }
       else {
         $data['retcode'] = 403; // Forbidden
@@ -500,8 +519,8 @@ function filedepot_dispatcher($action) {
           $data['tags'] = '';
         }
         else {
-          $query = db_query("SELECT fname,cid,version FROM {filedepot_files} WHERE fid=%d", $fid);
-          list ($fname, $cid, $current_version) = array_values(db_fetch_array($query));
+          $query = db_query("SELECT fname,cid,version,submitter FROM {filedepot_files} WHERE fid=%d", $fid);
+          list ($fname, $cid, $current_version, $submitter) = array_values(db_fetch_array($query));
           // Allow updating the category, title, description and image for the current version and primary file record
           if ($version == $current_version) {
             db_query("UPDATE {filedepot_files} SET title='%s',description='%s',date=%d WHERE fid=%d", $filetitle, $description, time(), $fid);
@@ -525,7 +544,17 @@ function filedepot_dispatcher($action) {
 
           db_query("UPDATE {filedepot_fileversions} SET notes='%s' WHERE fid=%d and version=%d", $vernote, $fid, $version);
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
-          if ($filedepot->checkPermission($folder_id, 'view', 0, FALSE) AND !$nexcloud->update_tags($fid, $tags)) {
+          if ($filedepot->checkPermission($folder_id, 'view', 0, FALSE)) {
+            if($filedepot->checkPermission($folder_id, 'admin', 0, FALSE) OR $user->uid == $submitter) {
+              $admin = TRUE;
+            } else {
+              $admin = FALSE;
+            }
+            if (!$nexcloud->update_tags($fid, $tags, $admin)) {
+              $data['tagerror'] = t('Problem adding or updating tags');
+              $data['tags'] = '';
+            }
+          } else {
             $data['tagerror'] = t('Tags not added - Group or Role assigned view perms required');
             $data['tags'] = '';
           }

@@ -1242,9 +1242,9 @@ function makeAJAXGetFolderListing(cid) {
         }
         try {
           if (oResults.lastrenderedfiles) {
-            //YAHOO.log('showfiles: initiate getmorefiledata:' + timeDiff.getDiff() + 'ms');
+            //YAHOO.log('makeAJAXGetFolderListing: initiate getmorefiledata:' + timeDiff.getDiff() + 'ms');
             YAHOO.filedepot.getmorefiledata(oResults.lastrenderedfiles);
-            //YAHOO.log('showfiles: completed getmorefiledata:' + timeDiff.getDiff() + 'ms');
+            //YAHOO.log('makeAJAXGetFolderListing: completed getmorefiledata:' + timeDiff.getDiff() + 'ms');
           } else {
             YAHOO.filedepot.alternateRows.init('listing_record');
           }

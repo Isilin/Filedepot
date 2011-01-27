@@ -1,5 +1,5 @@
 /* $Id: */
- 
+
 body.layout-left-main .outer { margin-left:0px !important; }
 
 /* Filedepot CSS */
@@ -282,7 +282,7 @@ body.layout-left-main .outer { margin-left:0px !important; }
 }
 
 #reportheadercontainer {
-  background-color:#F2F2F2;    
+  background-color:#F2F2F2;
   float:left;
   width:100%;
   height:26px;
@@ -337,12 +337,12 @@ body.layout-left-main .outer { margin-left:0px !important; }
 
 #filelisting_container div.twoactions {
   padding-right:40px;
-  white-space:nowrap  
+  white-space:nowrap
 }
 
 #filelisting_container div.oneaction {
   padding-right:60px;
-  white-space:nowrap  
+  white-space:nowrap
 }
 
 #filelisting_container div.noactions {
@@ -467,12 +467,12 @@ a.morefolderdata:hover {
 }
 
 .filedepottoolbar_searchbox form {
-  background-color: #013763;  
+  background-color: #013763;
   margin:5px 0px 0px 10px;
 }
 
 .filedepottoolbar_searchbox table {
-  background-color: #013763;  
+  background-color: #013763;
   line-height:0px;
 }
 .filedepottoolbar_searchbox table td {
@@ -678,10 +678,10 @@ a.cancelbutton:hover {
     top:1.5em;
     margin:0px;
     padding:0px;
-    width:100%;   
+    width:100%;
 }
 
-/* YUI File details panel - close button was appearing as a un-styled link 
+/* YUI File details panel - close button was appearing as a un-styled link
    after force loading the container and menu.css at the top of this file
 */
 .yui-skin-sam .container-close {

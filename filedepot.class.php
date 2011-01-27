@@ -703,7 +703,7 @@ class filedepot {
           watchdog('filedepot', 'Delete file failed - no matching record, cid: @cid, file: @file',
           array('@cid' => $cid, '@file' => $fname));
         }
-        $nexcloud->clear_tags($fid);
+        $nexcloud->clear_tags($fid);  // Clear all tags and update metrics for this item
         db_query("DELETE FROM {filedepot_fileversions} WHERE fid=%d", $fid);
         db_query("DELETE FROM {filedepot_files} WHERE fid=%d", $fid);
         db_query("DELETE FROM {filedepot_notifications} WHERE fid=%d", $fid);

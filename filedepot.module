@@ -544,6 +544,7 @@ function filedepot_view($node, $teaser=FALSE, $page=FALSE) {
     else {
       $parentFolderName = db_result(db_query("SELECT name FROM {filedepot_categories} WHERE cid=%d", $parentFolder));
     }
+
     $node->content['parentfolder'] = array(
     '#value'  => theme('item', array('#title' => t('Parent Folder'), '#value' => $parentFolderName)),
     '#weight' => 3 );
@@ -590,7 +591,6 @@ function filedepot_update($node) {
 function filedepot_delete($node) {
   global $filedepot;
   $filedepot->deleteFolder($node->nid);
-
 }
 
 

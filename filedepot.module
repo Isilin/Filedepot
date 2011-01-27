@@ -131,7 +131,7 @@ function filedepot_theme() {
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';
   return array(
   'filedepot_main_page' => array(
-  'template' => 'theme/page',
+  'template' => 'theme/filedepot-mainpage',
   'arguments' => array('layout_url' => base_path() . drupal_get_path('module', 'filedepot'))
   ),
   'filedepot_header'  => array(

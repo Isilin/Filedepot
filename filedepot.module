@@ -1137,3 +1137,37 @@ function template_preprocess_filedepot_tagcloud_record(&$variables) {
   $variables['metric'] = $rec['metric'];
   $variables['tag'] = filter_xss($rec['tagword']);
 }
+
+
+/* Handle the OG module hooks with a user is added or deleted from a group
+ * Need to remove the users cached folder permissions.
+ * If user is being deleted from a group, then I need to check their last folders
+ * and update (remove folder if no longer access) as required.
+ */
+function filedepot_og($op, $gid, $uid, $args) {
+    $modified = FALSE;
+    if (!empty($uid) and !empty($gid)) {
+      switch ($op) {
+        case 'user insert':
+        case 'user update':
+          if (isset($args['is_active']) && $args['is_active']) {
+            $modified = TRUE;
+          }
+          break;
+
+        case 'user delete':
+          $resfolders = db_query("SELECT catid as cid FROM {filedepot_access} WHERE permtype='group' and permid=%d AND view=1", $gid);
+          /* foreach folder the user had access to via the group permission - remove from the recent folders */
+          while ($A = db_fetch_array($resfolders)) {
+            db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=%d AND uid=%d", $A['cid'], $uid);
+          }
+          $modified = TRUE;
+          break;
+      }
+
+      if ($modified) {
+        // Clear the cached user folder permissions
+        db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = '' WHERE uid=%d", $uid);
+      }
+    }
+}

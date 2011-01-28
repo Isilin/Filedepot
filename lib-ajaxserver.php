@@ -213,6 +213,8 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
     }
   }
 
+  if (empty($folderprefix)) $folderprefix = 0;
+
   $level++;
   if ($level == 1) {
     $retval .= nexdocsrv_generateFileListing($id, $level, $folderprefix);

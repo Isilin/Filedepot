@@ -104,6 +104,10 @@ function filedepot_admin_settings() {
   '#default_value' => variable_get('filedepot_locked_file_download_enabled', 1),
   '#description' => t('If enabled, users will be able to download a file when locked.'));
 
+  $form['options']['filedepot_show_index_enabled'] = array('#type' => 'checkbox',
+  '#title' => t('Display the index numbers in the listing of folders and files'),
+  '#default_value' => variable_get('filedepot_show_index_enabled', 1),
+  '#description' => t('If enabled, the display will show the index numbers before folder and file names.'));
 
   $form['filetype_filter'] = array(
   '#type' => 'fieldset',

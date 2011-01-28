@@ -204,7 +204,11 @@ function template_preprocess_filedepot_folderlisting(&$variables) {
   $variables['folder_description'] = filter_xss($rec['description']);
   //$variables['folder_link'] = l('/filedepot/index.php',array('query' => array('cid' => $rec['cid'])));
   $variables['folder_contents'] = $variables['foldercontent'];
-  $variables['folder_number'] = "{$variables['folderprefix']}.0";
+  if (variable_get('filedepot_show_index_enabled', 1) == 1) {  // Check admin config setting
+    $variables['folder_number'] = "{$variables['folderprefix']}.0";
+  } else {
+    $variables['folder_number'] = '';
+  }
   if ($rec['last_modified_date'] > 0) {
     $variables['last_modified_date'] = strftime($filedepot->shortdate, $rec['last_modified_date']);
   }
@@ -283,7 +287,11 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['folder_link'] = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $rec['cid'])), 'absolute' => true));
   $variables['folder_name'] = filter_xss($rec['foldername']);
   $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
+  if (variable_get('filedepot_show_index_enabled', 1) == 1) {  // Check admin config setting
   $variables['file_number'] = "{$variables['foldernumber']}.{$filenum}";
+  } else {
+    $variables['file_number'] = '';
+  }
   $variables['file_description'] = nl2br(filter_xss($rec['description']));
   $variables['actionclass'] = 'twoactions';
 

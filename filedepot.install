@@ -1013,6 +1013,34 @@ return $schema;
 
 }
 
+/**
+ * Implementation of hook_requirements().
+ *
+ * Check for PHP JSON extension and fail (or notify) if we cannot find it
+ */
+function filedepot_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  $value = $t('Enabled');
+  $severity = REQUIREMENT_OK;
+  $description = NULL;
+
+  if (!function_exists('json_encode')) {
+    $value = $t('Not enabled');
+    $severity = REQUIREMENT_ERROR;
+    $description = $t('Your server does not have the PHP JSON extension enabled.');
+  }
+
+  $requirements['filedepot_php_json_extension'] = array(
+    'title' => $t('PHP JSON extension'),
+    'value' => $value,
+    'severity' => $severity,
+    'description' => $description
+      );
+
+  return $requirements;
+}
 
 /**
  * Implementation of hook_update_N().

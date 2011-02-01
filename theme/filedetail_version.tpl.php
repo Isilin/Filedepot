@@ -24,8 +24,8 @@
                     <input type="hidden" name="version" value="<?php print $file_version ?>">
                     <textarea name="note" rows="3" cols="75"><?php print $edit_version_note ?></textarea>
                     <div style="padding-top:5px;padding-left:200px;">
-                      <input class="form-submit" type="button" value="Update" onclick="doAJAXEditVersionNote(this.form)"><span style="padding-left:10px;">
-                      <input type="button" class="form-submit" value="Cancel" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"></span>
+                      <input class="form-submit" type="button" value="<?php print t('Update'); ?>" onclick="doAJAXEditVersionNote(this.form)"><span style="padding-left:10px;">
+                      <input type="button" class="form-submit" value="<?php print t('Cancel'); ?>" onClick="toggleElements('detaildisp<?php print $fid ?>v<?php print $file_version ?>','detailedit<?php print $fid ?>v<?php print $file_version ?>');return false;"></span>
                     </div>
                 </form>
             </div>

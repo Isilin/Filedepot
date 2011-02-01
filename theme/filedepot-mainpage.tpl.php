@@ -282,7 +282,7 @@ All the needed style sheets should be loaded automatically by the loader.
             </tr>
             <tr>
               <td colspan="4" style="padding-top:10px;text-align:center;">
-                <input type="button" value="Submit" class="form-submit" onClick="makeAJAXUpdateFileDetails(this.form)"/>
+                <input type="button" value="<?php print t('Submit'); ?>" class="form-submit" onClick="makeAJAXUpdateFileDetails(this.form)"/>
                 <span style="padding-left:10px;"><input id="filedetails_cancel" class="form-submit" type="button" value="<?php print $LANG_cancel ?>"></span>
               </td>
             </tr>
@@ -380,9 +380,9 @@ All the needed style sheets should be loaded automatically by the loader.
               <td colspan="2" style="padding:15px 0px;">
                 <div class="floatleft required">*&nbsp;<?php print $LANG_required ?></div>
                 <div class="floatleft" style="width:80%;text-align:center;">
-                  <input id="btnNewFileSubmit" class="form-submit" type="button" value="Submit" onClick="upload(); return false;">
+                  <input id="btnNewFileSubmit" class="form-submit" type="button" value="<?php print t('Submit'); ?>" onClick="upload(); return false;">
                   <span style="padding-left:10px;">
-                    <input id="btnNewFileCancel" class="form-submit" type="button" value="Cancel">
+                    <input id="btnNewFileCancel" class="form-submit" type="button" value="<?php print t('Cancel'); ?>">
                   </span>
                 </div>
               </td>
@@ -406,9 +406,9 @@ All the needed style sheets should be loaded automatically by the loader.
             </tr>
             <tr>
               <td colspan="2" style="text-align:center;padding:15px;">
-                <input id="btnBroadcastSubmit" type="button" class="form-submit" value="Send">
+                <input id="btnBroadcastSubmit" type="button" class="form-submit" value="<?php print t('Send'); ?>">
                 <span style="padding-left:10px;">
-                  <input id="btnBroadcastCancel" type="button" class="form-submit" value="cancel">
+                  <input id="btnBroadcastCancel" type="button" class="form-submit" value="<?php print t('cancel'); ?>">
                 </span>
               </td>
             </tr>

@@ -45,15 +45,15 @@
         </tr>
         <tr>
           <td colspan="2" style="padding-top:10px;padding-bottom:10px;white-space:nowrap">
-            <input type="button" value="Update" class="form-submit" onClick="makeAJAXUpdateFolderDetails(this.form)"/>
+            <input type="button" value="<?php print t('Update'); ?>" class="form-submit" onClick="makeAJAXUpdateFolderDetails(this.form)"/>
             <span style="padding-left:5px;">
-              <input type="button" value="Close" class="form-submit" onClick="toggleElements('edit_activefolder','activefolder');">
+              <input type="button" value="<?php print t('Close'); ?>" class="form-submit" onClick="toggleElements('edit_activefolder','activefolder');">
             </span>
             <span class="deletebuttonborder">
-              <input type="button" value="Delete" class="form-submit" onclick="delete_activefolder(this.form);">
+              <input type="button" value="<?php print t('Delete'); ?>" class="form-submit" onclick="delete_activefolder(this.form);">
             </span>
             <div style="display:inline;margin-left:15px;padding:5px 1px;">
-              <input type="button" value="Permissions" class="form-submit" onClick="makeAJAXShowFolderPerms(this.form);">
+              <input type="button" value="<?php print t('Permissions'); ?>" class="form-submit" onClick="makeAJAXShowFolderPerms(this.form);">
             </div>
           </td>
         </tr>

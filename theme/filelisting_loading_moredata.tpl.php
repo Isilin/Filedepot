@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * filelisting_loading_moredata.tpl.php

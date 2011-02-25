@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * filelistingheader.tpl.php

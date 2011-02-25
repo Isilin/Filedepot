@@ -1,4 +1,3 @@
-// $Id$
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security. 
  - Documents can be saved outside the Drupal public directory to protect corporate documents for safe access and distribution.

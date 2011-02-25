@@ -1,4 +1,3 @@
-// $Id$   
 
 /*
  * @file common.js

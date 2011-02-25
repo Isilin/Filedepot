@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * newfile_folderoptions.tpl.php

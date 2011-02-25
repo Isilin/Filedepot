@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * newfolder_form.tpl.php

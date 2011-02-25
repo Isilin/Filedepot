@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * move_batch_form.tpl.php

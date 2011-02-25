@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * tagsearchlink.tpl.php

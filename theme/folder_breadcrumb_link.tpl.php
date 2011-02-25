@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * folder_breadcrumb_link.tpl.php

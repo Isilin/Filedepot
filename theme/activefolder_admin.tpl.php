@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * activefolder_admin.tpl.php

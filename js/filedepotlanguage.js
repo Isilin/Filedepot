@@ -1,4 +1,3 @@
-// $Id$
 /*
  * @file filedepotlanguage.js
  * Language defines extracted out and included using the drupal_add_js API for localization support

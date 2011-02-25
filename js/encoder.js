@@ -1,4 +1,3 @@
-// $Id$ 
 
 <!-- Contributed library from http://www.strictly-software.com/ -->
 <!-- Released with no restrictions other then to include authors website. -->

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * folderperm_record.tpl.php

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * tagcloud.tpl.php

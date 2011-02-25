@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * move_incoming_form.tpl.php

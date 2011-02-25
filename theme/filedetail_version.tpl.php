@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * filedetail_version.tpl.php

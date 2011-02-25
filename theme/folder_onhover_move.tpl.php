@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * folder_onhover_move.tpl.php

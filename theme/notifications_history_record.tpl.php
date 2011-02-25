@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * notifications_history_record.tpl.php

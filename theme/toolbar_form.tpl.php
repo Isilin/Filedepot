@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
   * @file
   * toolbar_form.tpl.php

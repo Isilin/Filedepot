@@ -825,6 +825,17 @@ function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
               * Need to process as the file description may have changed
               */
 
+              // Check for allowable file type.
+              if (!$filedepot->checkFilter($file['filename'], $file['filemime'])) {
+                // Error - TODO Find a better way
+                $delete = file_delete($file['filepath']);
+                db_query("DELETE FROM {files} WHERE filepath = '%s'", $file['filepath']);
+                $message = t('The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file['filename'], '%mimetype' => $file['filemime']));
+                drupal_set_message($message, 'error');
+                watchdog('filedepot', 'The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file['filename'], '%mimetype' => $file['filemime']));
+                return TRUE;
+              }
+
               $unapprovedfile = FALSE;
               $filedepot_fid = db_result(db_query("SELECT fid FROM {filedepot_files} WHERE cckfid=%d", $file['fid']));
               if ($filedepot_fid === FALSE) {  // If not, check if there is a record in the submissions table that has just not been approved

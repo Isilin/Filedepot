@@ -534,25 +534,6 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['statusmessage']  = '&nbsp;';
     }
 
-    $space = spaces_get_space();
-    if ($space && $space->type === 'og') {
-      $urlprefix = '';
-      switch (variable_get('purl_method_spaces_og', 'path')) {
-        case 'path':
-          $urlprefix = "{$space->group->purl}";
-          break;
-        case 'pair':
-          $urlprefix = "{$key}/{$space->id}";
-          break;
-      }
-    }
-
-    if (isset($urlprefix) AND !empty($urlprefix)) {
-      $variables['download_url'] = base_path() . "index.php?q=$urlprefix/filedepot&cid=$cid&fid=$fid";
-    } else {
-      $variables['download_url'] = base_path() . "index.php?q=filedepot&cid=$cid&fid=$fid";
-    }
-
     // Retrieve file versions
     $sql = "SELECT fid,fname,version,notes,size,date,uid FROM {filedepot_fileversions} "
     . "WHERE fid=%d AND version < %d ORDER by version DESC";

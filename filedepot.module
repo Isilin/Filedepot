@@ -619,14 +619,14 @@ function filedepot_download($node, $fid, $version, $mode='') {
     return drupal_access_denied();
   }
   elseif ($version == 'incoming') {
-    $query = db_query("SELECT cckfid,orig_filename FROM {filedepot_import_queue} WHERE id=%d", $fid);
-    list($cckfid, $fname) = array_values(db_fetch_array($query));
+    $query = db_query("SELECT cckfid,orig_filename,title FROM {filedepot_import_queue} WHERE id=%d", $fid);
+    list($cckfid, $fname, $filetitle) = array_values(db_fetch_array($query));
     if ($cckfid > 0) {
       $filepath = db_result(db_query("SELECT filepath FROM {files} WHERE fid=%d", $cckfid));
       if (file_exists($filepath)) {
         $result = db_query("SELECT * FROM {files} WHERE fid= %d", $cckfid);
         $file = db_fetch_object($result);
-        $name = mime_header_encode($fname);
+        $name = mime_header_encode($filetitle);
         $type = mime_header_encode($file->filemime);
         // By default, serve images, text, and flash content for display rather than
         // download. Or if variable 'filefield_inline_types' is set, use its patterns.
@@ -639,9 +639,9 @@ function filedepot_download($node, $fid, $version, $mode='') {
           }
         }
         $headers = array(
-        'Content-Type: ' . $type . '; name="' . $name . '"',
+        'Content-Type: ' . $type . '; name="' . $filetitle . '"',
         'Content-Length: ' . $file->filesize,
-        'Content-Disposition: ' . $disposition . '; filename="' . $name . '"',
+        'Content-Disposition: ' . $disposition . '; filename="' . $filetitle . '"',
         'Cache-Control: private',
         );
         if (count($headers)) {
@@ -662,27 +662,29 @@ function filedepot_download($node, $fid, $version, $mode='') {
   else {
     $version = intval($version);
     if ($version > 0) {
+
+      $filetitle = db_result(db_query("SELECT title FROM {filedepot_files} WHERE fid=%d", $fid));
       $fname = db_result(db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=%d AND version=%d", $fid, $version));
       $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
     }
     else if ($mode == 'moderator') {
-      $query = db_query("SELECT cid,fname,tempname FROM {filedepot_filesubmissions} WHERE id=%d", $fid);
+      $query = db_query("SELECT cid,fname,tempname,title FROM {filedepot_filesubmissions} WHERE id=%d", $fid);
       $rec = db_fetch_array($query);
       if ($rec === FALSE) {
         watchdog('filedepot', "Download request for moderated file - invalid file reference");
         return drupal_access_denied();
       }
-      list($cid, $fname, $tempname) = array_values($rec);
+      list($cid, $fname, $tempname, $filetitle) = array_values($rec);
     }
     else {
-      $query = db_query("SELECT cid,fname FROM {filedepot_files} WHERE fid=%d", $fid);
+      $query = db_query("SELECT cid,fname,title FROM {filedepot_files} WHERE fid=%d", $fid);
       $rec = db_fetch_array($query);
       if ($rec === FALSE) {
         watchdog('filedepot', "Download request - invalid file reference");
         return drupal_access_denied();
       }
       else {
-        list($cid, $fname) = array_values($rec);
+        list($cid, $fname, $filetitle) = array_values($rec);
       }
     }
     if ($cid == 0) {
@@ -713,14 +715,14 @@ function filedepot_download($node, $fid, $version, $mode='') {
           return drupal_access_denied();
         }
         if ($mode == 'moderator') {
-          $name = mime_header_encode($fname);
+          $name = mime_header_encode($filetitle);
           $type = mime_header_encode($file->filemime);
         }
         else {
           if (db_result(db_query("SELECT COUNT(*) FROM {filedepot_downloads} WHERE uid=%d AND fid=%d", $user->uid, $fid)) == 0) {
             db_query("INSERT into {filedepot_downloads} (uid,fid,remote_ip,date) VALUES (%d,%d,'%s',%d)", $user->uid, $fid, $_SERVER['REMOTE_ADDR'], time());
           }
-          $name = mime_header_encode($file->filename);
+          $name = mime_header_encode($filetitle);
           $type = mime_header_encode($file->filemime);
         }
         // By default, serve images, text, and flash content for display rather than
@@ -736,12 +738,12 @@ function filedepot_download($node, $fid, $version, $mode='') {
 
         if ($mode == 'edit') { // User is using the download for edit function
 
-          $ext = end(explode(".", $fname));
-          $pos=strpos($fname, ".");
+          $ext = end(explode(".", $filetitle));
+          $pos=strpos($filetitle, ".");
 
           // Generate a 15 character hash value (token) and append to filename
           // Create a unique filename for download and save the token for compare use on upload
-          $filename=substr($fname, 0, $pos);
+          $filename=substr($filetitle, 0, $pos);
           $hash = md5(uniqid(rand()));
           $token=substr($hash, 0, 15);
           $newfilename=$filename . '{' . $token . 't}' . ".$ext";
@@ -751,7 +753,7 @@ function filedepot_download($node, $fid, $version, $mode='') {
           $name = mime_header_encode($newfilename);
 
           $sql  = "INSERT INTO {filedepot_export_queue} (orig_filename,token,extension,timestamp,uid,fid) values ('%s','%s','%s',%d,%d,%d)";
-          db_query($sql, $fname, $token, $ext, time(), $user->uid, $fid);
+          db_query($sql, $filetitle, $token, $ext, time(), $user->uid, $fid);
           // Change file status to locked - being edited
           db_query("UPDATE {filedepot_files} SET status = 2, status_changedby_uid = %d WHERE fid=%d", $user->uid, $fid);
         }

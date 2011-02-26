@@ -806,7 +806,7 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'search':
-      $query = check_plain($_POST['query']);
+      $query = $_POST['query'];
       if (!empty($query)) {
         $filedepot->activeview = 'search';
         $filedepot->cid = 0;

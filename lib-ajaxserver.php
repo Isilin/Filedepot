@@ -324,18 +324,18 @@ function filedepot_displaySearchListing($query) {
   global $filedepot;
 
   $query = addslashes($query);
-  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
-  $sql .= "file.description,category.name as foldername,category.pid,category.nid ";
-  $sql .= "FROM {filedepot_files} file ";
-  $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
-  $sql .= "WHERE 1=1 ";
+  $sql = 'SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,';
+  $sql .= 'file.description,category.name as foldername,category.pid,category.nid ';
+  $sql .= 'FROM {filedepot_files} file ';
+  $sql .= 'LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ';
+  $sql .= 'WHERE 1=1 ';
   if (!empty($filedepot->allowableViewFoldersSql)) {
-    $sql .= "AND file.cid in ($filedepot->allowableViewFoldersSql) ";
+    $sql .= 'AND file.cid in (%s) ';
   }
-  $sql .= "AND (file.title LIKE '%$query%' OR file.title LIKE '$query%' OR file.description LIKE '%$query%' OR file.description LIKE '$query%') ";
-  $sql .= "ORDER BY file.date DESC ";
+  $sql .= 'AND (file.title LIKE "%%%s%%%" OR file.title LIKE "%%%s%%%" OR file.description LIKE "%%%s%%%" OR file.description LIKE "%%%s%%%") ';
+  $sql .= 'ORDER BY file.date DESC ';
 
-  $search_query = db_query($sql);
+  $search_query = db_query($sql, $filedepot->allowableViewFoldersSql, $query, $query, $query, $query);
   $output = '';
   while ( $A = db_fetch_array($search_query)) {
     $output .= theme('filedepot_filelisting', $A);

@@ -142,7 +142,7 @@ All the needed style sheets should be loaded automatically by the loader.
       <div class="filedepottoolbar_searchbox">
         <div class="filedepottoolbar_searchform">
           <form name="fsearch" onSubmit="makeAJAXSearch();return false;">
-            <input type="hidden" name="tags" value="{current_searchtags}">
+            <input type="hidden" name="tags" value="">
             <table>
               <tr>
                 <td width="50%"><input type="text" size="20" name="query" id="searchquery" class="form-text" style="height:12px;padding:3px 3px 5px 3px;" value="<?php print $search_query ?>" onClick="this.value='';"></td>
@@ -151,7 +151,7 @@ All the needed style sheets should be loaded automatically by the loader.
             </table>
           </form>
         </div>
-        <div class="tagsearchboxcontainer" style="display:{hideheader};width:10%;padding:5px;">
+        <div class="tagsearchboxcontainer" style=";width:10%;padding:5px;">
           <div><a id="showsearchtags" href="#">Tags</a></div>
         </div>
       </div>
@@ -186,7 +186,7 @@ All the needed style sheets should be loaded automatically by the loader.
       <div style="margin-right:0px;">
         <div id="filelistingheader" style="margin-bottom:10px;"></div>
         <div class="clearboth"></div>
-        <form name="frmfilelisting" action="{action_url}" method="post" style="margin:0px;">
+        <form name="frmfilelisting" action="<?php print $actionurl_dir; ?>" method="post" style="margin:0px;">
           <div id="filelisting_container"></div>
         </form>
       </div>
@@ -207,7 +207,7 @@ All the needed style sheets should be loaded automatically by the loader.
         <div class="bd" style="margin:0px;padding:0px 2px 2px 2px;border:0px;font-size:11pt;">
           <ul class="first-of-type">
             <li id="displaymenubaritem" class="yuimenubaritem first-of-type">
-              <a id="menubar_downloadlink" href="{action_url}" TITLE="<?php print $LANG_downloadmsg ?>"><?php print $LANG_download_menuitem ?></a>
+              <a id="menubar_downloadlink" href="" TITLE="<?php print $LANG_downloadmsg ?>"><?php print $LANG_download_menuitem ?></a>
             </li>
             <li id="editmenubaritem" class="yuimenubaritem first-of-type">
               <a id="editfiledetailslink" href="#" TITLE="<?php print $LANG_editmsg ?>"> <?php print $LANG_edit_menuitem ?> </a>
@@ -351,7 +351,6 @@ All the needed style sheets should be loaded automatically by the loader.
             <tr id="newfiledialog_folderrow">
               <td><label for="category"><?php print $LANG_parentfolder ?>:</label><span class="required">*</span></td>
               <td id="newfile_selcategory"><select id="newfile_category" name="category" style="width:290px" onChange="onCategorySelect(this);">
-                  {newfile_category_options}
                 </select>
               </td>
             </tr>

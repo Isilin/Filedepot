@@ -6,10 +6,13 @@
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
 function filedepot_dispatcher($action) {
-  global $base_url, $base_path, $user, $filedepot, $nexcloud;
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-ajaxserver.php';
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  global $user;
+
+  $filedepot = filedepot_filedepot();
+  $nexcloud =  filedepot_nexcloud();
+  module_load_include('php','filedepot','lib-theme');
+  module_load_include('php','filedepot','lib-ajaxserver');
+  module_load_include('php','filedepot','lib-common');
 
   timer_start($filedepot_timer);
   firelogmsg("AJAX Server code executing - action: $action");
@@ -19,11 +22,7 @@ function filedepot_dispatcher($action) {
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
       $reportmode = check_plain($_POST['reportmode']);
-      //if (empty($reportmode)) {
-      //  $filedepot->activeview = 'latestfiles';
-      //} else {
-        $filedepot->activeview = $reportmode;
-      //}
+      $filedepot->activeview = $reportmode;
       $filedepot->cid = $cid;
       $data = filedepotAjaxServer_getfilelisting();
       break;

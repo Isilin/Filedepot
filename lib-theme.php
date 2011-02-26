@@ -19,8 +19,7 @@ function template_preprocess_filedepot_toolbar_form(&$variables) {
 }
 
 function template_preprocess_filedepot_header(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $variables['show_mainheader']     = '';
   $variables['show_incomingheader'] = 'none';
   $variables['LANG_filename'] = t('Filename');
@@ -78,8 +77,7 @@ function template_preprocess_filedepot_folder_breadcrumb(&$variables) {
 
 
 function template_preprocess_filedepot_activefolder_nonadmin(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $foldername = db_result(db_query("SELECT name FROM {filedepot_categories} WHERE cid=%d", $filedepot->cid));
   $variables['active_category_id'] = $filedepot->cid;
   $variables['active_folder_name'] = filter_xss($foldername);
@@ -89,8 +87,9 @@ function template_preprocess_filedepot_activefolder_nonadmin(&$variables) {
 }
 
 function template_preprocess_filedepot_activefolder_admin(&$variables) {
-  global $filedepot, $user;
+  global $user;
 
+  $filedepot = filedepot_filedepot();
   $variables['LANG_click_adminmsg'] = t('Click to edit folder options or administrate folder');
   $variables['LANG_parentfolder'] = t('Parent Folder');
   $variables['LANG_description'] = t('Description');
@@ -143,8 +142,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
 
 
 function template_preprocess_filedepot_activefolder(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $variables['show_activefolder'] = 'none';
   $variables['show_reportmodeheader'] = 'none';
   $variables['show_nonadmin'] = 'none';
@@ -190,11 +188,9 @@ function template_preprocess_filedepot_activefolder(&$variables) {
 
 
 function template_preprocess_filedepot_folderlisting(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $rec = $variables['folderrec'];      // cid,pid,name,description,folderorder,last_modified_date
   $level = $variables['level'];
-
   $variables['padding_right'] = 0;
   $variables['folder_desc_padding_left'] = 23 + (($level) * 30);   // Version 3.0 - not presently used
   $variables['folder_id'] = $rec['cid'];
@@ -252,8 +248,10 @@ function template_preprocess_filedepot_folder_moveoptions(&$variables) {
 
 
 function template_preprocess_filedepot_filelisting(&$variables) {
-  global $user, $filedepot, $nexcloud;
+  global $user;
 
+  $filedepot = filedepot_filedepot();
+  $nexcloud = filedepot_nexcloud();
   /* listing rec format
   file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,
   detail.description,category.name as foldername,category.pid,category.last_modified_date,status_changedby_uid as changedby_uid, size
@@ -405,17 +403,14 @@ function template_preprocess_filedepot_filelisting(&$variables) {
 }
 
 function template_preprocess_filedepot_filelisting_moredata(&$variables) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
   $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);
 }
 
 function template_preprocess_filedepot_filelisting_loadfolder(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $variables['message_padding'] = 100 + ($variables['level'] * $filedepot->paddingsize);
-
 }
-
 
 
 function template_preprocess_filedepot_newfiledialog_folderoptions(&$variables) {
@@ -426,6 +421,7 @@ function template_preprocess_filedepot_newfiledialog_folderoptions(&$variables) 
   }
 }
 
+
 function template_preprocess_filedepot_newfolderdialog(&$variables) {
   $variables['folder_options'] = filedepot_recursiveAccessOptions('admin', $variables['cid']);
   $variables['LANG_folder'] = t('Folder Name');
@@ -434,9 +430,8 @@ function template_preprocess_filedepot_newfolderdialog(&$variables) {
   $variables['LANG_submit'] = t('Submit');
   $variables['LANG_cancel'] = t('Cancel');
   $variables['LANG_parentfolder'] = t('Parent Folder');
-
-
 }
+
 
 function template_preprocess_filedepot_movefiles_form(&$variables) {
   $variables['movefolder_options'] = filedepot_recursiveAccessOptions('admin');
@@ -453,8 +448,8 @@ function template_preprocess_filedepot_moveincoming_form(&$variables) {
 }
 
 function template_preprocess_filedepot_filedetail(&$variables) {
-  global $filedepot, $nexcloud;
-
+  $filedepot = filedepot_filedepot();
+  $nexcloud = filedepot_nexcloud();
   $fid = $variables['fid'];
   $variables['site_url']              = base_path();
   $variables['ajax_server_url']       = url('filedepot_ajax');
@@ -534,16 +529,18 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['statusmessage']  = '&nbsp;';
     }
 
-    $space = spaces_get_space();
-    if ($space && $space->type === 'og') {
-      $urlprefix = '';
-      switch (variable_get('purl_method_spaces_og', 'path')) {
-        case 'path':
-          $urlprefix = "{$space->group->purl}";
-          break;
-        case 'pair':
-          $urlprefix = "{$key}/{$space->id}";
-          break;
+    if (function_exists(spaces_get_space)) {
+      $space = spaces_get_space();
+      if ($space && $space->type === 'og') {
+        $urlprefix = '';
+        switch (variable_get('purl_method_spaces_og', 'path')) {
+          case 'path':
+            $urlprefix = "{$space->group->purl}";
+            break;
+          case 'pair':
+            $urlprefix = "{$key}/{$space->id}";
+            break;
+        }
       }
     }
 
@@ -571,11 +568,11 @@ function template_preprocess_filedepot_filedetail(&$variables) {
 
 
 function template_preprocess_filedepot_fileversion(&$variables) {
-  global $filedepot, $user;
+  global $user;
 
+  $filedepot = filedepot_filedepot();
   $variables['site_url']              = base_path();
   list($fid, $fname, $file_version, $ver_note, $ver_size, $ver_date, $submitter, $nid) = array_values($variables['versionRec']);
-
   $variables['LANG_version_note'] = t('Version Note');
   $variables['LANG_size'] = t('Size');
   $variables['LANG_download_message'] = t('Download Message');
@@ -611,8 +608,7 @@ function template_preprocess_filedepot_fileversion(&$variables) {
 
 
 function template_preprocess_filedepot_folderperms(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $variables['catid'] = $variables['cid'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
@@ -662,13 +658,11 @@ function template_preprocess_filedepot_folderperms(&$variables) {
 }
 
 function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $variables['catid'] = $variables['cid'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
   $variables['group_options'] = filedepot_getGroupOptions();
-
   $variables['LANG_viewcategory'] = t('View Folder');
   $variables['LANG_uploadapproval'] = t('Upload with Approval');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
@@ -731,7 +725,6 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
 }
 
 
-
 function template_preprocess_filedepot_folderperm_rec(&$variables) {
   list($accid, $permid, $acc_view, $acc_upload, $acc_uploaddirect, $acc_uploadver, $acc_approval, $acc_admin) = array_values($variables['permRec']);
   if ($variables['mode'] == 'user') {
@@ -760,14 +753,14 @@ function template_preprocess_filedepot_taglinkon(&$variables) {
   }
 }
 
+
 function template_preprocess_filedepot_searchtag(&$variables) {
   $variables['LANG_removetag'] = t('Remove search tag');
 }
 
 
 function template_preprocess_filedepot_notifications_file(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $rec = $variables['rec'];
   $variables['recid'] = $rec['id'];
   $variables['fid'] = $rec['fid'];
@@ -780,12 +773,10 @@ function template_preprocess_filedepot_notifications_file(&$variables) {
   $variables['folderid'] = $cid;
   $variables['filename'] = filter_xss($filename);
   $variables['foldername'] = filter_xss($folder);
-
 }
 
 function template_preprocess_filedepot_notifications_folder(&$variables) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $rec = $variables['rec'];
   $variables['recid'] = $rec['id'];
   $variables['date'] = strftime($filedepot->shortdate, $rec['date']);
@@ -808,8 +799,9 @@ function template_preprocess_filedepot_notifications_folder(&$variables) {
 }
 
 function template_preprocess_filedepot_notifications_history(&$variables) {
-  global $filedepot, $base_url;
+  global $base_url;
 
+  $filedepot = filedepot_filedepot();
   $rec = $variables['rec'];
   $variables['notification_type'] = t('@type', array(
   '@type' => $filedepot->notificationTypes[$rec['notification_type']])
@@ -826,8 +818,9 @@ function template_preprocess_filedepot_notifications_history(&$variables) {
 }
 
 function template_preprocess_filedepot_notifications(&$variables) {
-  global $user, $filedepot;
+  global $user;
 
+  $filedepot = filedepot_filedepot();
   $variables['LANG_yes'] = t('Yes');
   $variables['LANG_no'] = t('No');
   $variables['LANG_files_menuitem'] = t('Files');

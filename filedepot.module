@@ -34,12 +34,23 @@ if (!defined('LB')) {
   define('LB', "\n");
 }
 
-include_once './' . drupal_get_path('module', 'filedepot') . '/ajaxserver.php';
-include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
-$filedepot = filedepot::getInstance();
+function filedepot_filedepot() {
+  static $filedepot;
+  if (!isset($filedepot)) {
+    module_load_include('php','filedepot','filedepot.class');
+    $filedepot = filedepot::getInstance();
+  }
+  return $filedepot;
+}
 
-include_once('nexcloud.class.php');
-$nexcloud = new filedepotTagCloud();
+function filedepot_nexcloud() {
+  static $nexcloud;
+  if (!isset($nexcloud)) {
+    module_load_include('php','filedepot','nexcloud.class');
+    $nexcloud = new filedepotTagCloud();
+  }
+  return $nexcloud;
+}
 
 /**
  * Implementation of hook_help().
@@ -91,6 +102,7 @@ function filedepot_menu() {
   'access callback' => 'filedepot_user_access',
   'access arguments' => array('access filedepot'),
   'type' => MENU_CALLBACK,
+  'file'  => 'ajaxserver.php',
   );
 
   $items['filedepot_download/%node/%'] = array(
@@ -127,7 +139,7 @@ function filedepot_menu() {
  * Implementation of hook_theme().
  */
 function filedepot_theme() {
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-theme.php';
+  module_load_include('php','filedepot','lib-theme');
   return array(
   'filedepot_main_page' => array(
   'template' => 'theme/filedepot-mainpage',
@@ -373,10 +385,18 @@ function filedepot_user_access($perm) {
 
 
 function filedepot_access($op, $node) {
-  global $filedepot;
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  $filedepot = filedepot_filedepot();
+  module_load_include('php','filedepot','lib-common');
+
   $ret = FALSE;
-  $cid = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
+  if (!isset($node->nid)) {
+    return $ret;
+  }
+  $res = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d",$node->nid);
+  if (!$res) {
+    return $ret;
+  }
+  $cid = db_result($res);
   if ($cid > 0 ) {
     switch ($op) {
       case 'view':
@@ -437,7 +457,7 @@ function filedepot_node_info() {
  * Implementation of hook_form().
  */
 function filedepot_form(&$node, $form_state) {
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  module_load_include('php','filedepot','lib-common');
 
   $nodetype = node_get_types('type', $node);
   if ($node->type = 'filedepot_folder') {
@@ -565,7 +585,7 @@ function filedepot_view($node, $teaser=FALSE, $page=FALSE) {
  * Implementation of hook_insert().
  */
 function filedepot_insert($node) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
   if ($filedepot->createFolder($node)) {
     return TRUE;
   }
@@ -588,7 +608,7 @@ function filedepot_update($node) {
  * Implementation of hook_delete().
  */
 function filedepot_delete($node) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
   $filedepot->deleteFolder($node->nid);
 }
 
@@ -606,7 +626,8 @@ function filedepot_delete($node) {
  *         'moderator' to indicate file is not yet approved - moderator request to download file
  */
 function filedepot_download($node, $fid, $version, $mode='') {
-  global $conf, $user, $filedepot;
+  global $conf, $user;
+  $filedepot = filedepot_filedepot();
 
   $field = content_fields('field_filedepot_file', $node->type);
   $db_info = content_database_info($field);
@@ -780,9 +801,9 @@ function filedepot_download($node, $fid, $version, $mode='') {
  * Implements hook_nodeapi().
  */
 function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  global $conf, $user, $filedepot;
-
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  global $conf, $user;
+  $filedepot = filedepot_filedepot();
+  module_load_include('php','filedepot','lib-common');
 
   if ($op == 'insert' || $op == 'update') {
     if (is_object($node)) {
@@ -935,7 +956,7 @@ function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
  * Function called by the menu handler callback that is used only by the windows desktop client.
  */
 function filedepot_client_upload() {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
 
   switch ($_POST['op']) {
 
@@ -965,7 +986,7 @@ function filedepot_client_upload() {
 
 function template_preprocess_filedepot_main_page(&$variables) {
   global $base_url, $user;
-  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+  module_load_include('php','filedepot','lib-common');
 
   if (!isset($_GET['fid'])) $_GET['fid'] = 0;
   if (!isset($_GET['cid'])) $_GET['cid'] = 0;
@@ -1065,7 +1086,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
  */
 
 function theme_filedepot_files($node) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
 
   $layout_url = base_path() . drupal_get_path('module', 'filedepot');
   $retval = '';
@@ -1098,7 +1119,9 @@ function theme_filedepot_files($node) {
 
 
 function template_preprocess_filedepot_tagcloud(&$variables) {
-  global $user, $filedepot, $nexcloud;
+  global $user;
+  $filedepot = filedepot_filedepot();
+  $nexcloud =  filedepot_nexcloud();
 
   $roleids = implode(',', array_keys($user->roles));
   if ($filedepot->ogenabled) {
@@ -1140,8 +1163,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
 }
 
 function template_preprocess_filedepot_tagcloud_record(&$variables) {
-  global $nexcloud;
-
+  $nexcloud =  filedepot_nexcloud();
   $rec = $variables['rec'];
   // Using a Linear Interpolation equation to create a relative font size
   $ranking = $nexcloud->_fontmultiplier * ( 1.0 + ( 1.5 * $rec['metric'] - ($variables['maxm']/2) ) / $variables['maxm']);

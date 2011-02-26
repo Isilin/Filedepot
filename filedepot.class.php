@@ -301,7 +301,7 @@ class filedepot {
   * @return  mixed - comma separated list of categories, or array
   */
   function getAllowableCategories ($perm='view', $returnstring=TRUE) {
-    global $user, $filedepot;
+    global $user;
 
     $categories = array();
     $sql = "SELECT distinct catid FROM {filedepot_access} ";
@@ -674,7 +674,16 @@ class filedepot {
 
 
   public function deleteFile($fid) {
-    global $user, $nexcloud;
+    global $user;
+
+    // Additional testing for the nexcloud instance because this method is also called from filedepot_uninstall()
+    if (function_exists('filedepot_nexcloud')) {
+        $nexcloud =  filedepot_nexcloud();
+    } else {
+        module_load_include('php','filedepot','nexcloud.class');
+        $nexcloud = new filedepotTagCloud();
+    }
+
     if ($user->uid > 0 AND db_result(db_query("SELECT fid FROM {filedepot_files} WHERE fid=%d", $fid)) == $fid) {
       // Check if user is the owner or has category admin rights
       $query = db_query("SELECT cid,cckfid,title,version,submitter,size FROM {filedepot_files} WHERE fid=%d", $fid);
@@ -841,7 +850,8 @@ class filedepot {
 
 
   public function saveFile( $file, $validators = array() ) {
-    global $user, $nexcloud;
+    global $user;
+    $nexcloud =  filedepot_nexcloud();
 
     // Check for allowable file type.
     if (!$this->checkFilter($file->name, $file->type)) {
@@ -964,7 +974,8 @@ class filedepot {
 
 
   public function saveVersion( $file, $validators = array() ) {
-    global $conf, $user, $nexcloud;
+    global $conf, $user;
+    $nexcloud =  filedepot_nexcloud();
 
     // Check for allowable file type.
     if (!$this->checkFilter($file->name, $file->type)) {
@@ -1076,7 +1087,7 @@ class filedepot {
   }
 
   public function approveFileSubmission($id) {
-    global $nexcloud;
+    $nexcloud =  filedepot_nexcloud();
 
     $query = db_query("SELECT * FROM {filedepot_filesubmissions} WHERE id=%d", $id);
     $rec = db_fetch_object($query);

@@ -66,7 +66,8 @@ function filedepot_createtestrecords() {
 
 
 function filedepottest_createfolder($pid, $foldername='') {
-  global $user, $filedepot, $_foldersCreated;
+  global $user, $_foldersCreated;
+  $filedepot = filedepot_filedepot();
 
   $node = (object) array(
   'uid' => $user->uid,

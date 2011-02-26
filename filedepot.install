@@ -22,7 +22,10 @@ function filedepot_install() {
 function filedepot_uninstall() {
   global $filedepot, $base_path;
 
+  include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
+  $filedepot = filedepot::getInstance();
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
+
   $query = db_query("SELECT nid FROM {filedepot_categories} WHERE pid=0");
   while ($A = db_fetch_array($query)) {
     $filedepot->deleteFolder($A['nid']);

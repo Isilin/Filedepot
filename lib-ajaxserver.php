@@ -8,7 +8,8 @@
 
 
 function filedepotAjaxServer_getfilelisting() {
-  global $filedepot, $user;
+  global $user;
+  $filedepot = filedepot_filedepot();
 
   if (empty($filedepot->activeview)) {
     $filedepot->ajaxBackgroundMode = TRUE;
@@ -80,7 +81,8 @@ function filedepotAjaxServer_getfilelisting() {
 
 /* Generate Left Side Navigation code which is used to create the YUI menu's in the AJAX handler javascript */
 function filedepotAjaxServer_generateLeftSideNavigation($data='') {
-  global $user, $filedepot;
+  global $user;
+  $filedepot = filedepot_filedepot();
 
   if (empty($data))
     $data = array('retcode' => 200);
@@ -190,7 +192,7 @@ function filedepotAjaxServer_generateLeftSideNavigation($data='') {
 
 /* Recursive Function to display folder listing */
 function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowid=1) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
 
   $retval = '';
   if ($id > 0 AND !in_array($id, $filedepot->allowableViewFolders)) {
@@ -265,7 +267,7 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
 
 
 function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
 
   $filedepot->selectedTopLevelFolder = $cid;
   $files = array();
@@ -321,7 +323,7 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
 }
 
 function filedepot_displaySearchListing($query) {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
 
   $query = addslashes($query);
   $sql = 'SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,';
@@ -345,8 +347,8 @@ function filedepot_displaySearchListing($query) {
 }
 
 function filedepot_displayTagSearchListing($query) {
-  global $filedepot, $nexcloud;
-
+  $filedepot = filedepot_filedepot();
+  $nexcloud =  filedepot_nexcloud();
   $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
   $sql .= "file.description,category.name as foldername,category.pid,category.nid ";
   $sql .= "FROM {filedepot_files} file ";
@@ -375,7 +377,8 @@ function filedepot_displayTagSearchListing($query) {
 }
 
 function filedepot_getFileListingSQL($cid) {
-  global $filedepot, $user;
+  global $user;
+  $filedepot = filedepot_filedepot();
 
   $sql = '';
   // Check and see if this is a custom report
@@ -508,8 +511,10 @@ function filedepot_getFileListingSQL($cid) {
 
 
 function filedepotAjaxServer_loadFileDetails() {
-  global $user, $nexcloud, $filedepot;
+  global $user;
 
+  $filedepot = filedepot_filedepot();
+  $nexcloud =  filedepot_nexcloud();
   $reportmode = check_plain($_POST['reportmode']);
   $retval = array();
   $retval['editperm'] = FALSE;
@@ -749,7 +754,8 @@ function filedepotAjaxServer_getMoreActions($op) {
 }
 
 function filedepotAjaxServer_deleteCheckedFiles() {
-  global $filedepot, $user;
+  global $user;
+  $filedepot = filedepot_filedepot();
 
   $retval = array();
 
@@ -837,8 +843,7 @@ function filedepotAjaxServer_deleteCheckedFiles() {
 }
 
 function filedepotAjaxServer_deleteFile($fid) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $retval = array();
   $reportmode = check_plain($_POST['reportmode']);
   $listing_folder = intval($_POST['listingcid']);
@@ -908,8 +913,8 @@ function filedepotAjaxServer_deleteFile($fid) {
 
 
 function filedepotAjaxServer_updateFolder() {
-  global $user, $filedepot;
-
+  global $user;
+  $filedepot    = filedepot_filedepot();
   $cid          = intval($_POST['cid']);
   $catpid       = intval($_POST['catpid']);
   $folderorder  = intval($_POST['folderorder']);
@@ -976,8 +981,8 @@ function filedepotAjaxServer_updateFolder() {
 
 
 function filedepotAjaxServer_moveCheckedFiles() {
-  global $user, $filedepot;
-
+  global $user;
+  $filedepot = filedepot_filedepot();
   $message = '';
   $retval = array();
   $cid = intval($_POST['cid']);
@@ -1128,8 +1133,8 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
 
 
 function filedepotAjaxServer_broadcastAlert($fid, $comment) {
-  global $user, $filedepot;
-
+  global $user;
+  $filedepot = filedepot_filedepot();
   $retval = '';
   $target_users = array();
   if (variable_get('filedepot_default_allow_broadcasts', 1) == 1) {  // Site default set to allow broadcast enabled

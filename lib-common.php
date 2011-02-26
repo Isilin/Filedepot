@@ -23,8 +23,7 @@ function firelogmsg($message) {
  * @return       string                            Return an array of folder options
  */
 function filedepot_recursiveAccessArray($perms, $id=0, $level=1) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $options_tree = array();
   $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=%d ORDER BY cid", $id);
   while ($A = db_fetch_array($query)) {
@@ -82,8 +81,7 @@ function filedepot_recursiveAccessArray($perms, $id=0, $level=1) {
  * @return       string                            Return a formatted HTML Select listbox of categories
  */
 function filedepot_recursiveAccessOptions($perms, $selected='', $id='0', $level='1', $addRootOpt=TRUE) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $selectlist = '';
   if ($addRootOpt AND $level == 1 AND user_access('administer filedepot')) {
     $selectlist = '<option value="0">' . t('Top Level Folder') . '</option>' . LB;
@@ -207,8 +205,7 @@ function filedepot_getTopLevelParent($cid) {
  * @param        boolean    $override    Set to TRUE only if you don't want to test for permissions
  */
 function filedepot_getRecursiveCatIDs(&$list, $cid, $perms,$override=false) {
-  global $filedepot;
-
+  $filedepot = filedepot_filedepot();
   $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=%d ORDER BY cid", $cid);
   while ( $A = db_fetch_array($query)) {
     // Check and see if this category has any sub categories - where a category record has this cid as it's parent
@@ -267,7 +264,7 @@ function filedepot_formatFileSize($size) {
 }
 
 function filedepot_getSubmissionCnt() {
-  global $filedepot;
+  $filedepot = filedepot_filedepot();
   // Determine if this user has any submitted files that they can approve
   $query = db_query("SELECT cid from {filedepot_filesubmissions}");
   $submissions = 0;
@@ -312,11 +309,16 @@ function filedepot_getGroupOptions() {
  * Send out notifications to all users that have subscribed to this file or file category
  * Will check user preferences for notification if Messenger Plugin is installed
  * @param        string      $id        Key used to retrieve details depending on message type
- * @param        string      $type      Message type -> (1) New file notification, (2) Submission Approval, (3) Submission Deleted
+ * @param        string      $type      Message type ->
+ *                                       (1) FILEDEPOT_NOTIFY_NEWFILE,
+ *                                       (2) FILEDEPOT_NOTIFY_APPROVED,
+ *                                       (3) FILEDEPOT_NOTIFY_REJECT,
+ *                                       (4) FILEDEPOT_NOTIFY_ADMIN
  * @return       Boolean     Returns TRUE if atleast 1 message was sent out
  */
 function filedepot_sendNotification($id, $type=1) {
-  global $user, $filedepot;
+  global $user;
+  $filedepot = filedepot_filedepot();
 
   /* If notifications have been disabled via the module admin settings - return TRUE */
   if (variable_get('filedepot_notifications_enabled', 1) == 0) { 

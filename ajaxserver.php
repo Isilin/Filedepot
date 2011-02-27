@@ -5,6 +5,7 @@
  * ajaxserver.php
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
+
 function filedepot_dispatcher($action) {
   global $user;
 
@@ -401,18 +402,26 @@ function filedepot_dispatcher($action) {
           $upload_direct = $filedepot->checkPermission($cid, 'upload_dir');
           $upload_moderated = $filedepot->checkPermission($cid, 'upload');
           $upload_new_versions = $filedepot->checkPermission($cid, 'upload_ver');
+          if (!$upload_direct AND $upload_moderated) {  // Admin's have all perms so test for users with upload moderated approval only
+            $file->moderated = TRUE;
+          }
+          else {
+            $file->moderated = FALSE;
+          }
 
           // Is this a new file or new version to an existing file
           if (intval($_POST['fid']) > 0 AND $upload_new_versions)  {    // Uploading a new version for an existing file record
             $fid = intval($_POST['fid']);
             $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
-            $file->moderated = FALSE;
             $file->folder = $cid;
             $file->fid = $fid;
             $file->vernote = $vernote;
             $file->tags = $tags;
             $validators = array();
             $file->nid = db_result(db_query("SELECT nid FROM {filedepot_categories} WHERE cid=%d", $cid));
+            /* @TODO: saveVersion needs to be updated to handle moderated uploads.
+             * Presently a user with upload (moderated) and upload_version can upload new versions directly
+             */
             if ($filedepot->saveVersion($file, $validators)) {
               $data['message'] = '';
               $data['fid'] = $fid;
@@ -428,12 +437,6 @@ function filedepot_dispatcher($action) {
 
           }
           elseif ($upload_direct OR $upload_moderated) {
-            if (!$upload_direct AND $upload_moderated) {  // Admin's have all perms so test for users with upload moderated approval only
-              $file->moderated = TRUE;
-            }
-            else {
-              $file->moderated = FALSE;
-            }
             $file->title = $_POST['displayname'];
             $file->folder = intval($_POST['category']);
             $file->description = $_POST['description'];

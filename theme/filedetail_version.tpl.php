@@ -7,7 +7,7 @@
 
 <table width="100%" border="0" cellspacing="2" cellpadding="0">
     <tr class="pluginRow<?php print $cssid ?>">
-        <td class="aligntop" style="padding-left:10px;padding-top:10px;"><img src="<?php print $fileicon ?>">&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>" title="<?php print $LANG_download ?>"><strong><?php print $vname ?></strong></a>&nbsp;<span style="font-size:9pt;"><?php print $file_versionnum ?></span></td>
+        <td class="aligntop" style="padding-left:10px;padding-top:10px;"><img src="<?php print $fileicon ?>">&nbsp;<a href="<?php print url('filedepot_download/' . $nid . '/' . $fid . '/' . $file_version, array('absolute' => true)); ?>" TITLE="<?php print $LANG_download ?>"><strong><?php print $vname ?></strong></a>&nbsp;<span style="font-size:9pt;"><?php print $file_versionnum ?></span></td>
         <td width="15%" class="alignright" style="padding-top:10px;" nowrap><span style="font-size:8pt;"><?php print $ver_shortdate ?><br /><strong><?php print $LANG_size ?>:</strong>&nbsp;<?php print $ver_size ?></span></td>
     </tr>
     <tr class="pluginRow<?php print $cssid ?>">

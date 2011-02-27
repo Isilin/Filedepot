@@ -20,7 +20,7 @@ function filedepot_install() {
  * Implementation of hook_uninstall().
  */
 function filedepot_uninstall() {
-  global $filedepot, $base_path;
+  global $base_path;
 
   include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
   $filedepot = filedepot::getInstance();

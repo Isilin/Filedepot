@@ -161,7 +161,6 @@ class filedepot {
       self::$_instance = new self();
     }
     return self::$_instance;
-
   }
 
   /* Function to check if passed in file extension and mimetype are in the allowed list

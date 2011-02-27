@@ -12,6 +12,24 @@
  */
 function filedepot_install() {
   drupal_install_schema('filedepot');
+
+  /* Setup the default extension mapping so icons appear in the file listing */
+  $rawextensions  = 'jpg=jpg.gif, gif=gif.gif, bmp=bmp.gif, doc=doc.gif, docx=doc.gif, xls=xls.gif, xlsx=xls.gif,';
+  $rawextensions  .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif';
+  $extensionlines = preg_split( '/\r\n|\r|\n/', $rawextensions );
+  foreach ($extensionlines as $line) {
+    if (!empty($line)) {
+      $records = explode(',', $line);
+      foreach ($records as $mapping) {
+        $data = explode('=', $mapping);
+        $ext = trim($data[0]);
+        $icon = trim($data[1]);
+        $extensiondata[$ext] = $icon;
+      }
+    }
+  }
+  variable_set('filedepot_extension_data', serialize($extensiondata));
+
 }
 
 

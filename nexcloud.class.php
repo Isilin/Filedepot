@@ -386,7 +386,7 @@
         }
       }
       else {
-        watchdog('filedepot', 'Attempted to add tags for file (@item) but no role based folder permission defined', array('@item' => $itemid));
+        watchdog('filedepot', 'Attempted to add tags for file (@item) but no role or group based folder permission defined', array('@item' => $itemid));
         return FALSE;
       }
     }

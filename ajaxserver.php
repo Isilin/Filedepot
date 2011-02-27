@@ -485,8 +485,7 @@ function filedepot_dispatcher($action) {
 
     case 'updatefile':
       $fid = intval($_POST['id']);
-      $folder_id = intval($_POST['cid']);
-      $folder = intval($_POST['folder']);
+      $folder_id = intval($_POST['folder']);
       $version = intval($_POST['version']);
       $filetitle  = $_POST['filetitle'];
       $description  = $_POST['description'];
@@ -552,11 +551,11 @@ function filedepot_dispatcher($action) {
               $admin = FALSE;
             }
             if (!$nexcloud->update_tags($fid, $tags, $admin)) {
-              $data['tagerror'] = t('Problem adding or updating tags');
+              $data['tagerror'] = t('Tags not added - Group or Role assigned view perms required');
               $data['tags'] = '';
             }
           } else {
-            $data['tagerror'] = t('Tags not added - Group or Role assigned view perms required');
+            $data['tagerror'] = t('Problem adding or updating tags');
             $data['tags'] = '';
           }
         }

@@ -12,6 +12,24 @@
  */
 function filedepot_install() {
   drupal_install_schema('filedepot');
+
+  /* Setup the default extension mapping so icons appear in the file listing */
+  $rawextensions  = 'jpg=jpg.gif, gif=gif.gif, bmp=bmp.gif, doc=doc.gif, docx=doc.gif, xls=xls.gif, xlsx=xls.gif,';
+  $rawextensions  .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif';
+  $extensionlines = preg_split( '/\r\n|\r|\n/', $rawextensions );
+  foreach ($extensionlines as $line) {
+    if (!empty($line)) {
+      $records = explode(',', $line);
+      foreach ($records as $mapping) {
+        $data = explode('=', $mapping);
+        $ext = trim($data[0]);
+        $icon = trim($data[1]);
+        $extensiondata[$ext] = $icon;
+      }
+    }
+  }
+  variable_set('filedepot_extension_data', serialize($extensiondata));
+
 }
 
 
@@ -20,11 +38,15 @@ function filedepot_install() {
  * Implementation of hook_uninstall().
  */
 function filedepot_uninstall() {
-  global $filedepot, $base_path;
+  global $base_path;
+
+  include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
+  $filedepot = filedepot::getInstance();
+  include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
 
   $query = db_query("SELECT nid FROM {filedepot_categories} WHERE pid=0");
   while ($A = db_fetch_array($query)) {
-    node_delete($A['nid']);
+    $filedepot->deleteFolder($A['nid']);
   }
 
   $sitepath = dirname(realpath($_SERVER['SCRIPT_FILENAME']));
@@ -34,6 +56,10 @@ function filedepot_uninstall() {
   }
   if (@is_dir($filedepot->tmp_storage_path) === TRUE) {
     filedepot_delTree($filedepot->tmp_storage_path);
+  }
+
+  if (@is_dir($filedepot->root_storage_path) === TRUE) {
+    filedepot_delTree($filedepot->root_storage_path);
   }
 
   drupal_uninstall_schema('filedepot');
@@ -180,7 +206,6 @@ $schema['filedepot_files'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -361,7 +386,6 @@ $schema['filedepot_fileversions'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -566,7 +590,6 @@ $schema['filedepot_filesubmissions'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -713,7 +736,6 @@ $schema['filedepot_import_queue'] = array(
     'size' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
-      'size' => 'medium',
       'not null' => TRUE,
       'default' => 0,
     ),
@@ -939,8 +961,8 @@ $schema['nextag_items'] = array(
   'fields' => array(
     'itemid' => array(
       'description' => t('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '128',
+      'type' => 'int',
+      'size' => 'medium',
       'not null' => TRUE,
     ),
     'type' => array(
@@ -975,7 +997,7 @@ $schema['nextag_metrics'] = array(
       'length' => '32',
       'not null' => TRUE,
     ),
-    'uid' => array(
+    'groupid' => array(
       'description' => t('TODO: please describe this field!'),
       'type' => 'int',
       'size' => 'medium',
@@ -1010,3 +1032,74 @@ $schema['nextag_metrics'] = array(
 return $schema;
 
 }
+
+/**
+ * Implementation of hook_requirements().
+ *
+ * Check for PHP JSON extension and fail (or notify) if we cannot find it
+ */
+function filedepot_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+
+  $value = $t('Enabled');
+  $severity = REQUIREMENT_OK;
+  $description = NULL;
+
+  if (!function_exists('json_encode')) {
+    $value = $t('Not enabled');
+    $severity = REQUIREMENT_ERROR;
+    $description = $t('Your server does not have the PHP JSON extension enabled.');
+  }
+
+  $requirements['filedepot_php_json_extension'] = array(
+    'title' => $t('PHP JSON extension'),
+    'value' => $value,
+    'severity' => $severity,
+    'description' => $description
+      );
+
+  return $requirements;
+}
+
+/**
+ * Implementation of hook_update_N().
+ * RC3 - Change the size field to support a larger file size (bytes)
+ */
+function filedepot_update_6001() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("ALTER TABLE {filedepot_files} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
+      db_query("ALTER TABLE {filedepot_fileversions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
+      db_query("ALTER TABLE {filedepot_filesubmissions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
+      db_query("ALTER TABLE {filedepot_import_queue} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
+      break;
+
+    case 'pgsql':
+      db_change_column($ret, 'filedepot_files', 'size', 'size', 'int', array('not null' => TRUE));
+      db_change_column($ret, 'filedepot_fileversions', 'size', 'size', 'int', array('not null' => TRUE));
+      db_change_column($ret, 'filedepot_filesubmissions', 'size', 'size', 'int', array('not null' => TRUE));
+      db_change_column($ret, 'filedepot_import_queue', 'size', 'size', 'int', array('not null' => TRUE));
+      break;
+  }
+
+}
+
+/**
+ * Implementation of hook_update_N().
+ * RC4 - After adding support for OG - needed to change the tag class to allow perms/metrics assigned by groups
+ */
+function filedepot_update_6002() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      db_query("ALTER TABLE {nextag_metrics} CHANGE `uid` `groupid` MEDIUMINT( 9 ) NULL DEFAULT NULL");
+      break;
+    case 'pgsql':
+      db_change_column($ret, 'nextag_metrics', 'uid', 'groupid', 'int', array('not null' => FALSE));
+      break;
+    }
+}
+
+

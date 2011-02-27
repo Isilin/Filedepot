@@ -293,7 +293,7 @@ function delete_activefolder(frm) {
           Dom.get('activefolder_container').innerHTML = oResults.activefolder;
           renderLeftNavigation(oResults);
           renderFileListing(oResults);
-          YAHOO.filedepot.alternateRows.init('listing_record');  
+          YAHOO.filedepot.alternateRows.init('listing_record');
         } else {
           alert(NEXLANG_errormsg2);
         }
@@ -369,7 +369,7 @@ function checkMultiAction(selectoption) {
               }
             } else {
               if (oResults.errmsg != '') {
-                showAlert(oResults.errmsg);                
+                showAlert(oResults.errmsg);
               }
               renderFileListing(oResults);
               try {
@@ -443,7 +443,7 @@ function checkMultiAction(selectoption) {
         var oResults = eval('(' + json + ')');
         if (oResults.retcode == 200) {
           renderFileListing(oResults);
-          YAHOO.filedepot.alternateRows.init('listing_record');             
+          YAHOO.filedepot.alternateRows.init('listing_record');
           Dom.get('headerchkall').checked = false;
           Dom.get('multiaction').selectedIndex=0;
           Dom.get('multiaction').disabled = true;
@@ -472,7 +472,7 @@ function checkMultiAction(selectoption) {
         var oResults = eval('(' + json + ')');
         if (oResults.retcode == 200) {
           renderFileListing(oResults);
-          YAHOO.filedepot.alternateRows.init('listing_record');          
+          YAHOO.filedepot.alternateRows.init('listing_record');
           Dom.get('headerchkall').checked = false;
           Dom.get('multiaction').selectedIndex=0;
           Dom.get('multiaction').disabled = true;
@@ -587,8 +587,14 @@ function checkMultiAction(selectoption) {
 }
 
 function postSubmitMultiactionResetIfNeed(selectoption) {
-  if (selectoption == 'archive')
+  if (selectoption == 'archive') {
     timer = setTimeout('document.frmtoolbar.multiaction.selectedIndex=0', 3000);
+  } else if (selectoption == 'delete') {
+    if (document.frmtoolbar.reportmode.value == 'notifications') {
+      clearCheckedItems();
+    }
+  }
+
 }
 
 function moveSelectedFiles() {
@@ -603,6 +609,8 @@ function moveSelectedFiles() {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
+        if (document.frmtoolbar.reportmode.value == 'incoming')
+          document.frmtoolbar.reportmode.value = '';
         if (oResults.cid > 0) {
           makeAJAXGetFolderListing(oResults.cid);
         } else {
@@ -693,7 +701,9 @@ var makeAJAXLoadFileDetails = function(id) {
           YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);
           var download_url = siteurl + '/index.php?q=filedepot_download/' + oResults.nid + '/' + oResults.fid;
           if (reportmode == 'incoming') download_url += '/incoming';
-          Dom.get('menubar_downloadlink').href = download_url;                    
+          if (reportmode == 'approvals') download_url += '/0/moderator';
+
+          Dom.get('menubar_downloadlink').href = download_url;
           if (!Event.getListeners('menubar_downloadlink')) {   // Check first to see if listener already active
             Event.addListener("menubar_downloadlink", "click", hideFileDetailsPanelDelay);
           }
@@ -728,15 +738,9 @@ var makeAJAXLoadFileDetails = function(id) {
           }
         }
         if (!oResults.lockperm) {
-          if (oResults.locked) {
-            YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", true);                      
-          } else {
-            YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);                       
-          }
           YAHOO.container.menuBar.getItem(5).cfg.setProperty("disabled", true);
           YAHOO.util.Event.removeListener("lockfiledetailslink", "click");
         } else {
-          YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", false);
           YAHOO.container.menuBar.getItem(5).cfg.setProperty("disabled", false);
           if (oResults.locked) {
             Dom.get('lockfiledetailslink').innerHTML = 'UnLock';
@@ -785,6 +789,7 @@ var makeAJAXLoadFileDetails = function(id) {
         document.frmFileDetails.id.value = oResults.fid;
         document.frmFileDetails.version.value = oResults.version;
         document.frmFileDetails.filetitle.value = oResults.title;
+        document.frmFileDetails.cid.value = oResults.cid;
         Dom.get('filedetails_titlebar').innerHTML = oResults.title + '&nbsp;-&nbsp;' + NEXLANG_details;
         Dom.get('disp_owner').innerHTML = oResults.name;
         Dom.get('disp_date').innerHTML = oResults.date;
@@ -792,11 +797,11 @@ var makeAJAXLoadFileDetails = function(id) {
         document.frmFileDetails.description.value = Encoder.htmlDecode(oResults.description.replace('<br />','','g'));
         document.frmFileDetails.version_note.value = oResults.version_note.replace('<br />','','g');
         document.frmFileDetails.editfile_tags.value = oResults.tags.replace('<br />','','g');
-        Dom.get('folderoptions').innerHTML = oResults.folderoptions;             
+        Dom.get('folderoptions').innerHTML = oResults.folderoptions;
         if (reportmode == 'incoming') {
           document.frmFileDetails.cid.value = 'incoming';
           Dom.setStyle('tagswarning','display','none');
-          Dom.setStyle('tagsfield','display','none');                         
+          Dom.setStyle('tagsfield','display','none');
         } else {
           if (oResults.tagperms) {
             Dom.setStyle('tagsfield','display','block');
@@ -863,15 +868,17 @@ function makeAJAXUpdateFileDetails(formObject,fid) {
             Dom.get('listingTagsRec' + oResults.fid ).innerHTML = oResults.tags;
           }
           Dom.get('listingFilenameRec' + oResults.fid ).innerHTML = oResults.filename;
-          
+
           if (oResults.filemoved && reportmode == 'incoming') {
             renderLeftNavigation(oResults);
             Dom.get('filelisting_container').innerHTML = oResults.displayhtml;
             YAHOO.filedepot.alternateRows.init('listing_record');
-            clearCheckedItems();          
-            hideFileDetailsPanel();             
+            clearCheckedItems();
+            hideFileDetailsPanel();
           } else if (oResults.filemoved && oResults.cid > 0) {
             document.location = siteurl + '?q=filedepot&cid=' + oResults.cid;
+          } else if (oResults.errmsg.length > 0) {
+                showAlert(oResults.errmsg);
           } else {
             Dom.get('tagcloud_words').innerHTML = oResults.tagcloud;
           }
@@ -968,9 +975,9 @@ function makeAJAXUpdateFolderPerms(formObject) {
 function makeAJAXUpdateFolderDetails(formObject) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
-  var surl = ajax_post_handler_url + '/updatefolder';       
+  var surl = ajax_post_handler_url + '/updatefolder';
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1016,9 +1023,9 @@ function makeAJAXDeleteFile(fid) {
             renderLeftNavigation(oResults);
             Dom.get('filelisting_container').innerHTML = oResults.displayhtml;
             YAHOO.filedepot.alternateRows.init('listing_record');
-            clearCheckedItems();          
-            hideFileDetailsPanel();          
-          
+            clearCheckedItems();
+            hideFileDetailsPanel();
+
         } else {
           Dom.get('folder_' + oResults.cid + '_rec_' + oResults.fid).innerHTML = oResults.filemsg;
           YAHOO.container.menuBar.cfg.setProperty("visible",false);
@@ -1037,7 +1044,7 @@ function makeAJAXDeleteFile(fid) {
           } catch(e) {YAHOO.filedepot.alternateRows.init('listing_record');}
         }
       } else {
-        alert(NEXLANG_errormsg3); 
+        alert(NEXLANG_errormsg3);
       }
       updateAjaxStatus();
     },
@@ -1156,7 +1163,7 @@ function adminToggleNotification() {
           timer = setTimeout('Dom.setStyle("filedetails_statusmsg", "display", "none")', 3000);
           updateAjaxStatus();
         } else {
-          alert(NEXLANG_errormsg1); 
+          alert(NEXLANG_errormsg1);
         }
       },
       failure: function(o) {
@@ -1182,7 +1189,7 @@ function makeAJAXToggleFavorite(id) {
         var obj = Dom.get('favitem' + id);
         if (obj) obj.src = oResults.favimgsrc;
       } else {
-        alert(NEXLANG_errormsg1); 
+        alert(NEXLANG_errormsg1);
       }
       updateAjaxStatus();
     },
@@ -1200,7 +1207,7 @@ function makeAJAXToggleFavorite(id) {
 function makeAJAXGetFolderListing(cid) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   document.frmtoolbar.newcid.value = cid;
@@ -1213,15 +1220,15 @@ function makeAJAXGetFolderListing(cid) {
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
         Dom.get('activefolder_container').innerHTML = oResults.activefolder;
-        if (!Event.getListeners('newfilelink') && Dom.get('newfilelink')) {
+        if (show_upload && !Event.getListeners('newfilelink') && Dom.get('newfilelink')) {
           var oLinkNewFileButton = new YAHOO.widget.Button("newfilelink");
           Event.addListener("newfilelink", "click", showAddFilePanel);
         }
-        document.frmtoolbar.cid.value = oResults.cid;              
-        Dom.get('filelistingheader').innerHTML = oResults.header; 
-        Dom.setStyle('filelistingheader','display','');                  
+        document.frmtoolbar.cid.value = oResults.cid;
+        Dom.get('filelistingheader').innerHTML = oResults.header;
+        Dom.setStyle('filelistingheader','display','');
         //YAHOO.log('getFolderlisiting: initiate rendering filelisting:' + timeDiff.getDiff() + 'ms');
-        renderFileListing(oResults);                              
+        renderFileListing(oResults);
         Dom.setStyle('expandcollapsefolders','display','');
         //YAHOO.log('getFolderlisiting: initiate rendering leftside navigation:' + timeDiff.getDiff() + 'ms');
         YAHOO.filedepot.showLeftNavigation();
@@ -1229,21 +1236,21 @@ function makeAJAXGetFolderListing(cid) {
         updateAjaxStatus(NEXLANG_refreshmsg + timeDiff.getDiff() + 'ms');
         timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
         if (blockui)  {
-          setTimeout('$.unblockUI()',200);
+          setTimeout('jQuery.unblockUI()',200);
           blockui = false;
         }
         try {
           if (oResults.lastrenderedfiles) {
-            //YAHOO.log('showfiles: initiate getmorefiledata:' + timeDiff.getDiff() + 'ms');
+            //YAHOO.log('makeAJAXGetFolderListing: initiate getmorefiledata:' + timeDiff.getDiff() + 'ms');
             YAHOO.filedepot.getmorefiledata(oResults.lastrenderedfiles);
-            //YAHOO.log('showfiles: completed getmorefiledata:' + timeDiff.getDiff() + 'ms');
+            //YAHOO.log('makeAJAXGetFolderListing: completed getmorefiledata:' + timeDiff.getDiff() + 'ms');
           } else {
-            YAHOO.filedepot.alternateRows.init('listing_record'); 
+            YAHOO.filedepot.alternateRows.init('listing_record');
           }
         } catch(e) {}
 
       } else {
-        alert(NEXLANG_errormsg4); 
+        alert(NEXLANG_errormsg4);
       }
 
     },
@@ -1268,7 +1275,7 @@ function makeAJAXSetFolderOrder(cid,direction) {
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
         renderFileListing(oResults);
-        YAHOO.filedepot.alternateRows.init('listing_record');                 
+        YAHOO.filedepot.alternateRows.init('listing_record');
       } else {
         alert(NEXLANG_errormsg1);
       }
@@ -1320,7 +1327,7 @@ function makeAJAXSearchTags(searchtags,removetag) {
         updateAjaxStatus(NEXLANG_refreshmsg + timeDiff.getDiff() + 'ms');
 
       } else {
-        alert(NEXLANG_errormsg5); 
+        alert(NEXLANG_errormsg5);
         updateAjaxStatus();
       }
     },
@@ -1429,7 +1436,7 @@ function makeAJAXSearch(form) {
   clearAjaxActivity();
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime();    // Reset Timer
   Dom.setStyle('showactivetags','display','none');
@@ -1441,7 +1448,7 @@ function makeAJAXSearch(form) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
       var oResults = eval('(' + json + ')');
       if (blockui)  {
-        setTimeout('$.unblockUI()',200);
+        setTimeout('jQuery.unblockUI()',200);
         blockui = false;
       }
       if (oResults.retcode == 200) {
@@ -1451,7 +1458,7 @@ function makeAJAXSearch(form) {
         updateAjaxStatus(NEXLANG_refreshmsg + timeDiff.getDiff() + 'ms');
 
       } else {
-        alert(NEXLANG_errormsg5); 
+        alert(NEXLANG_errormsg5);
         updateAjaxStatus();
       }
 
@@ -1481,11 +1488,14 @@ function makeAJAXBroadcastNotification () {
         timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
       } else if (oResults.retcode == 204) {
         showAlert(NEXLANG_errormsg8);
-        YAHOO.container.broadcastDialog.hide();          
+        YAHOO.container.broadcastDialog.hide();
+      } else if (oResults.retcode == 205) {
+        showAlert(NEXLANG_errormsg9);
+        YAHOO.container.broadcastDialog.hide();
       } else {
         alert(NEXLANG_errormsg1);
         updateAjaxStatus();
-        YAHOO.container.broadcastDialog.hide();          
+        YAHOO.container.broadcastDialog.hide();
       }
     },
     failure: function(o) {
@@ -1562,7 +1572,7 @@ function onCategorySelect(elm) {
 
 function doAJAXEditVersionNote(fobj) {
   var surl = ajax_post_handler_url + '/updatenote';
-  var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value; 
+  var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value;
   var callback = {
     success:  function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1608,7 +1618,7 @@ function doAJAXDeleteVersion(fid,version) {
       YAHOO.log(NEXLANG_ajaxerror + o.status);
     },
     argument: {},
-    timeout:55000  
+    timeout:55000
   };
   updateAjaxStatus(NEXLANG_activity);
   YAHOO.util.Connect.asyncRequest('POST', surl , callback, postdata);
@@ -1692,7 +1702,7 @@ function doAJAXUpdateFolderNotificationSettings(formObject) {
       if (oResults.retcode == 200) {
         togglefolderoptions();
       } else {
-        alert(NEXLANG_errormsg1); 
+        alert(NEXLANG_errormsg1);
       }
       updateAjaxStatus();
     },
@@ -1719,7 +1729,7 @@ function doAJAXClearNotificationLog() {
         Dom.setStyle('notificationlog_report','display','none');
         Dom.setStyle('notificationlog_norecords','display','');
       } else {
-        alert(NEXLANG_errormsg1); 
+        alert(NEXLANG_errormsg1);
       }
       updateAjaxStatus();
     },
@@ -1779,7 +1789,7 @@ function onUploadResponse(o) {
       if (oResults.message != '') {
         showAlert(oResults.message);
       }
-      YAHOO.filedepot.refreshtagcloud();        
+      YAHOO.filedepot.refreshtagcloud();
       YAHOO.filedepot.showfiles(oResults.cid);
 
     } else if (YAHOO.container.filedetails.cfg.getProperty('visible')) {
@@ -1787,9 +1797,9 @@ function onUploadResponse(o) {
     }
   } else {
     try {
-      if (oResults.message != '') {
+      if (oResults.message !== undefined) {
         showAlert(oResults.message);
-      } else if (oResults.error != '') {
+      } else if (oResults.error !== undefined) {
         showAlert(oResults.error);
       }
     } catch (e) {}
@@ -1845,6 +1855,7 @@ function clearCheckedItems() {
   Dom.get('multiaction').disabled = true;
   Dom.replaceClass('multiaction','enabled_element','disabled_element');
   document.frmtoolbar.checkeditems.value='';
+  document.frmtoolbar.checkedfolders.value='';
   Dom.get('headerchkall').checked = false;
 
 }
@@ -1867,7 +1878,7 @@ function updateCheckedItems(obj,type) {
   }
   // Remove any leading comma
   field.value = field.value.replace(/^,*/g, '');
-  enable_multiaction(field.value);
+  enable_multiaction(field.value,document.frmtoolbar.checkedfolders.value);
 }
 
 function toggleCheckedItems(obj,files) {
@@ -2071,7 +2082,7 @@ function showAddFilePanel() {
   Dom.get('newfile_desc').value='';
   Dom.get('newfile_notes').value='';
   Dom.get('filedepot_notify').checked='';
-  document.frmNewFile.fid.value = 0;  
+  document.frmNewFile.fid.value = 0;
 
   // Use this ajax request to get the latest folder options
   var surl = ajax_post_handler_url + '/rendernewfilefolderoptions';
@@ -2113,7 +2124,7 @@ function showAddNewVersion() {
   YAHOO.container.newfiledialog.cfg.setProperty("visible",true);
   if (!Event.getListeners('btnNewFileCancel')) {   // Check first to see if listener already active
     Event.addListener("btnNewFileCancel", "click",hideNewFilePanel, YAHOO.container.newfiledialog, true);
-  }    
+  }
 }
 
 function showAddCategoryPanel() {
@@ -2162,7 +2173,7 @@ function renderLeftNavigation(oResults) {
   if((oResults.reports) && (oResults.reports.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.reports)) {
-      var reportlinks = new YAHOO.widget.TextNode("Reports", root, true);
+      var reportlinks = new YAHOO.widget.TextNode(NEXLANG_intelfolder1, root, true);
       reportlinks.labelStyle = "icon-files";
       for (var i=0; i<oResults.reports.length; i++) {
         eval('var menuobj = { label: "' + oResults.reports[i]['name'] + '", href:"' + oResults.reports[i]['link'] + '" }');
@@ -2175,7 +2186,7 @@ function renderLeftNavigation(oResults) {
   if((oResults.recentfolders) && (oResults.recentfolders.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.recentfolders)) {
-      var recentfolders = new YAHOO.widget.TextNode("Recent&nbsp;Folders", root, true);
+      var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
       recentfolders.labelStyle = "icon-allfolders";
       for (var i=0; i<oResults.recentfolders.length; i++) {
         eval('var menuobj = { label: "' + oResults.recentfolders[i]['name'] + '", href:"' + oResults.recentfolders[i]['link'] + '" }');
@@ -2189,7 +2200,7 @@ function renderLeftNavigation(oResults) {
   if((oResults.topfolders) && (oResults.topfolders.length)) {
     //Result is an array if more than one result, string otherwise
     if(YAHOO.lang.isArray(oResults.topfolders)) {
-      var topfolders = new YAHOO.widget.TextNode("Top&nbsp;Level&nbsp;Folders", root, true);
+      var topfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder3, root, true);
       topfolders.labelStyle = "icon-allfolders";
       for (var i=0; i<oResults.topfolders.length; i++) {
         eval('var menuobj = { label: "' + oResults.topfolders[i]['name'] + '", href:"' + oResults.topfolders[i]['link'] + '" }');
@@ -2233,6 +2244,13 @@ function renderFileListing(oResults) {
     Event.addListener(folderList[i], 'mouseout', hideFolderMoveActions, folderList[i]);
   }
   clearCheckedItems();
+  if(document.frmfilelisting.chkfile) {
+    if(document.frmfilelisting.chkfile.length == 'undefined' || document.frmfilelisting.chkfile.length == 1)     // No files in listing - disable the header checkall checkbox
+      Dom.get('headerchkall').disabled = true;
+  } else {
+    Dom.get('headerchkall').disabled = true;
+  }
+
 }
 
 YAHOO.filedepot.showLeftNavigation = function() {
@@ -2341,7 +2359,7 @@ YAHOO.filedepot.getmorefiledataRequest = function(cid,fid,foldernumber,level) {
 YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,pass2) {
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   //YAHOO.log('getmorefolderdata: start AJAX call:' + timeDiff.getDiff() + 'ms');
@@ -2368,7 +2386,7 @@ YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,p
       Dom.setStyle('filedepot_ajaxActivity','visibility','hidden');
       timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);
       if (blockui)  {
-        setTimeout('$.unblockUI()',200);
+        setTimeout('jQuery.unblockUI()',200);
         blockui = false;
       }
       YAHOO.filedepot.alternateRows.init('listing_record');
@@ -2384,25 +2402,6 @@ YAHOO.filedepot.getmorefolderdataRequest = function(cid,fid,foldernumber,level,p
 
 }
 
-YAHOO.filedepot.refreshtagcloud = function() {
-  var surl = ajax_post_handler_url + '/refreshtagcloud';
-  var callback = {
-    success: function(o) {
-      var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
-      var oResults = eval('(' + json + ')');
-      if (oResults.retcode == 200 && oResults.tagcloud) {
-        Dom.get('tagcloud_words').innerHTML = oResults.tagcloud;              
-      }
-    },
-    failure: function(o) {
-      YAHOO.log('AJAX error refreshing tagcloud : ' + o.status);
-    },
-    argument: {},
-    timeout:55000
-  }
-  YAHOO.util.Connect.asyncRequest('POST', surl, callback); 
-}
-
 
 /* Make the AJAX call to generate an updated file listing and leftside navigation */
 YAHOO.filedepot.showfiles = function(cid) {
@@ -2410,7 +2409,7 @@ YAHOO.filedepot.showfiles = function(cid) {
   clearAjaxActivity();
   if (!blockui)  {
     blockui=true;
-    $.blockUI();
+    jQuery.blockUI();
   }
   timeDiff.setStartTime(); // Reset the timer
   if (cid == undefined && document.frmtoolbar.cid.value > 0) {
@@ -2492,7 +2491,7 @@ YAHOO.filedepot.showfiles = function(cid) {
       Dom.setStyle('filedepot_ajaxActivity','visibility','hidden');
       timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 5000);
       if (blockui)  {
-        $.unblockUI();
+        jQuery.unblockUI();
         blockui = false;
         if (initialfid > 0) {
           setTimeout('makeAJAXLoadFileDetails(' + initialfid + ')',500);
@@ -2531,7 +2530,7 @@ YAHOO.filedepot.showfiles = function(cid) {
 
 
 YAHOO.filedepot.refreshFileDetails = function(fid) {
-  var reportmode = document.frmtoolbar.reportmode.value;  
+  var reportmode = document.frmtoolbar.reportmode.value;
   var surl = ajax_post_handler_url + '/refreshfiledetails';
   var postdata = '&id='+fid+'&reportmode='+reportmode;
   var callback = {
@@ -2560,7 +2559,7 @@ YAHOO.filedepot.alternateRows = {
   /**
   *    Our init function
   *    @params className String, the container class name
-  *    Adds the class oddrow to odd rows and class evenrow to even rows 
+  *    Adds the class oddrow to odd rows and class evenrow to even rows
   */
   init: function(className){
     // get all the tables with that particular class name
@@ -2606,8 +2605,8 @@ YAHOO.filedepot.alternateRows = {
           Dom.removeClass(recordList[i], 'evenrow');
           Dom.addClass(recordList[i], 'oddrow');
         }
-        rows++;                
-      }        
+        rows++;
+      }
 
     }
 
@@ -2622,7 +2621,7 @@ YAHOO.filedepot.refreshtagcloud = function() {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200 && oResults.tagcloud) {
-        Dom.get('tagcloud_words').innerHTML = oResults.tagcloud;              
+        Dom.get('tagcloud_words').innerHTML = oResults.tagcloud;
       }
     },
     failure: function(o) {
@@ -2631,7 +2630,7 @@ YAHOO.filedepot.refreshtagcloud = function() {
     argument: {},
     timeout:55000
   }
-  YAHOO.util.Connect.asyncRequest('POST', surl, callback); 
+  YAHOO.util.Connect.asyncRequest('POST', surl, callback);
 }
 
 YAHOO.filedepot.decorateFileListing = function() {
@@ -2651,7 +2650,7 @@ YAHOO.filedepot.decorateFileListing = function() {
   timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 5000);
 
   if (blockui)  {
-    setTimeout('$.unblockUI()',200);
+    setTimeout('jQuery.unblockUI()',200);
     blockui = false;
   }
 

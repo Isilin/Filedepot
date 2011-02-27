@@ -18,8 +18,6 @@
     public $_fontmultiplier = 160;  // Used as a multiplier in displaycloud() function - Increase to see a wider range of font sizes
     public $_maxclouditems = 200;
     public $_allusers = 1;          // Role Id that includes all users (including anonymous)
-    public $_sitemembers = 2;       // Role Id that includes only site members
-
 
     function __construct() {
       global $user;
@@ -28,7 +26,7 @@
 
       if ($user->uid > 0) {
         $this->_uid = $user->uid;
-      } 
+      }
       else {
         $this->_uid = 0;
       }
@@ -41,43 +39,57 @@
     private function filtertag($tag, $dbmode=FALSE) {
       if ($dbmode) {
         return drupal_strtolower(strip_tags($tag));
-      } 
+      }
       else {
         return drupal_strtolower(strip_tags($tag));
       }
     }
 
 
-    /* This function needs to defined in the module specific class to return the item perms
-    * Refer to example commented out which is for stories
-    * Values of 2 or 3 for perm_members or perm_anon indicate view and edit.
-    * We ony are concerned about view access and view access to an item determines how we create tag access record
-    * so that we only show tags with their relative metric depending on your access
+    /* This function can be over-loaded or extended in a module specific class to return the item perms
+    * We ony are concerned about view access
+    * We only show tags with their relative metric (popularity) depending on users access - so tags in restricted folders do not appear.
     * If item is restricted to a group - then we need the assigned group id returned
     *
-    * @param string $itemid  - id that identifies the plugin item, example sid for a story
-    * @return array          - Return needs to be an associative array with the 3 permission related values
-    *                          $A['group_id','perm_members','perm_anon');
+    * @param string $itemid    - id that identifies the plugin item, example fid for a file
+    * @param boolean $sitewide - if set TRUE, then the call to perms will check site wide vs just for the user
+    * @return array            - Return needs to be an associative array with the 3 permission related values
+    *                            $A['group_id','perm_members','perm_anon');
     */
-    function get_itemperms($fid) {
+    function get_itemperms($fid,$sitewide=FALSE) {
+      global $user;
+
       $perms = array();
       $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
       if ($cid > 0) {
-        $query = db_query("SELECT view from {filedepot_access} WHERE catid=%d AND permtype='role' and permid=%d", $cid, $this->_allusers);
-        $perms['perm_anon'] = db_fetch_array($query);
-        $query = db_query("SELECT view from {filedepot_access} WHERE catid=%d AND permtype='role' AND permid=%d", $cid, $this->_sitemembers);
-        $perms['perm_members'] = db_fetch_array($query);
-
-        $commongroups = array();
-        $commongroups[] = $this->_allusers;
-        $commongroups[] = $this->_sitemembers;
-        $commongroups = implode(',', $commongroups);
-        $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='role' AND view = 1 AND permid > 1 AND permid NOT IN (%s)";         
-        $query = db_query($sql, $cid, $commongroups);
-        $A = db_fetch_array($query);
-        $perms['roleid'] = $A['permid'];
+        if ($user->og_groups != NULL) {
+          $groupids = implode(',', array_keys($user->og_groups));
+          if (!empty($groupids) OR $sitewide === TRUE) {
+            $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='group' AND view = 1 AND permid > 0 ";
+            $sql .= "AND permid in ($groupids) ";
+            $query = db_query($sql, $cid);
+            if ($query) {
+              while ($A = db_fetch_array($query)) {
+                $perms['groups'][] = $A['permid'];
+              }
+            }
+          }
+        }
+        // Determine all the roles the active user has and test for view permission.
+        $roleids = implode(',', array_keys($user->roles));
+        if (!empty($roleids) OR $sitewide === TRUE) {
+          $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='role' AND view = 1 AND permid > 0 ";
+          if (!$sitewide) {
+            $sql .= "AND permid in ($roleids) ";
+          }
+          $query = db_query($sql, $cid);
+          if ($query) {
+            while ($A = db_fetch_array($query)) {
+              $perms['roles'][] = $A['permid'];
+            }
+          }
+        }
       }
-
       return $perms;
     }
 
@@ -101,17 +113,19 @@
             $tagids[] = $A['id'];
           }
           return $tagids;
-        } 
+        }
         else {
           return FALSE;
         }
-      } 
+      }
       else {
         return FALSE;
       }
     }
 
     /*
+    * New item being tagged or new tag being added to an item.
+    * The usage count for this tagword will be incremented by 1 - regardless of the number of roles or groups that have access to item.
     * @param string $itemid  - Item id, used to get the access permissions
     * @param array $tagids   - array of tag id's
     */
@@ -122,52 +136,41 @@
         // Test that a valid item record exist
         if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
           // Get item permissions to determine what rights to use for tag metrics record
-          $perms = $this->get_itemperms($itemid);
+          $perms = $this->get_itemperms($itemid,true);
 
           // Add any new tags
           foreach ($tagids as $id) {
             if (!empty($id)) {
-              if ($perms['perm_anon']) {
+              // For each role or group with view access to this item - create or update the access metric record count.
+              $haveGroupsToUpdate = count($perms['groups']) > 0;
+              $haveRolesToUpdate = count($perms['roles']) > 0;
+              if($haveGroupsToUpdate OR $haveRolesToUpdate) {
                 db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=%d", $id);
-                $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND roleid = %d";
-                if (db_result(db_query($sql, $id, $this->_type, $this->_allusers)) > 0) {
-                  $sql  = "UPDATE {nextag_metrics} set metric=metric+1, last_updated=%d "
-                  . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                  db_query($sql, time(), $id, $this->_type, $this->_allusers);
-                } 
-                else {
-                  $sql  = "INSERT INTO {nextag_metrics} (tagid,type,roleid,metric,last_updated) "
-                  . "VALUES (%d,'%s',%d,%d,%d)";
-                  db_query($sql, $id, $this->_type, $this->_allusers, 1, time());
+                // use an array to handle the logic of whether to process groups, roles, or both
+                // use the key to track the field to update and the value to track the values
+                $permAccessMetric = array();
+                if ($haveGroupsToUpdate) {
+                    $permAccessMetric['groupid'] = $perms['groups'];
                 }
-              } 
-              elseif ($perms['perm_members']) {
-                db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=%d", $id);
-                $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND roleid = %d";
-                if (db_result(db_query($sql, $id, $this->_type, $this->_sitemembers)) > 0) {                                                       
-                  $sql  = "UPDATE {nextag_metrics} set metric=metric+1, last_updated=%d "
-                  . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                  db_query($sql, time(), $id, $this->_type, $this->_sitemembers);                                
-                } 
-                else {
-                  $sql  = "INSERT INTO {nextag_metrics} (tagid,type,roleid,metric,last_updated) "
-                  . "VALUES (%d,'%s',%d,%d,%d)";
-                  db_query($sql, $id, $this->_type, $this->_sitemembers, 1, time());                               
-
+                if ($haveRolesToUpdate) {
+                    $permAccessMetric['roleid'] = $perms['roles'];
                 }
-              } 
-              elseif ($perms['roleid'] > 0) {
-                db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=%d", $id);
-                $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND roleid = %d";
-                if (db_result(db_query($sql, $id, $this->_type, $perms['roleid'])) > 0) {
-                  $sql  = "UPDATE {nextag_metrics} set metric=metric+1, last_updated=%d "
-                  . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                  db_query($sql, time(), $id, $this->_type, $perms['roleid']);                                                          
-                } 
-                else {
-                  $sql  = "INSERT INTO {nextag_metrics} (tagid,type,roleid,metric,last_updated) "
-                  . "VALUES (%d,'%s',%d,%d,%d)";
-                  db_query($sql, $id, $this->_type, $perms['roleid'], 1, time());   
+                foreach ($permAccessMetric as $permKey => $permValue) {
+                  foreach ($permValue as $permid) {
+                    if ($permid > 0) {
+                      $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND " . $permKey . " = %d";
+                      if (db_result(db_query($sql, $id, $this->_type, $permid)) > 0) {
+                        $sql  = "UPDATE {nextag_metrics} SET metric=metric+1, last_updated=%d "
+                                . "WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d";
+                        db_query($sql, time(), $id, $this->_type, $permid);
+                      }
+                      else {
+                        $sql  = "INSERT INTO {nextag_metrics} (tagid,type," . $permKey . ",metric,last_updated) "
+                                . "VALUES (%d,'%s',%d,%d,%d)";
+                        db_query($sql, $id, $this->_type, $permid, 1, time());
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -178,42 +181,48 @@
 
 
     /*
+    * Method is called when removing a tag for an item.
+    * Need to decrement it's metric and update related access records
     * @param string $itemid  - Item id, used to get the access permissions
     * @param array $tagids   - array of tag id's
     */
-    private function update_accessmetrics($itemid, $tagids) {
+    private function remove_accessmetrics($itemid, $tagids) {
 
       // Test that a valid array of tag id's is passed in
       if (is_array($tagids) AND count($tagids) > 0) {
         // Test that a valid item record exist
-        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {            
+        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
           // Get item permissions to determine what rights to use for tag metrics record
-          $perms = $this->get_itemperms($itemid);
+          $perms = $this->get_itemperms($itemid,true);
 
-          // Remove the unused tag related records for this item
+          // Remove if required unused tag related records for this item
           foreach ($tagids as $id) {
             if (!empty($id)) {
-              if ($perms['perm_anon']) {
-                // Delete the tag metric access record if metric = 1 else decrement the metric count
-                db_query("DELETE FROM {nextag_metrics} WHERE tagid=%d AND type='%s' AND roleid=%d AND metric=1", $id, $this->_type, $this->_allusers);
-                $sql  = "UPDATE {nextag_metrics} set metric=metric-1, last_updated=%d "
-                . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                db_query($sql, time(), $id, $this->_type, $this->_allusers);
-              } 
-              elseif ($perms['perm_members']) {
-                db_query("DELETE FROM {nextag_metrics} WHERE tagid=%d AND type='%s' AND roleid=%d AND metric=1", $id, $this->_type, $this->_sitemembers);
-                $sql  = "UPDATE {nextag_metrics} set metric=metric-1, last_updated=%d "
-                . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                db_query($sql, time(), $id, $this->_type, $this->_sitemembers);                          
-              } 
-              elseif ($perms['roleid'] >= 2) {
-                db_query("DELETE FROM {nextag_metrics} WHERE tagid=%d AND type='%s' AND roleid=%d AND metric=1", $id, $this->_type, $this->_sitemembers);
-                $sql  = "UPDATE {nextag_metrics} set metric=metric-1, last_updated=%d "
-                . "WHERE tagid=%d AND type='%s' and roleid=%d";
-                db_query($sql, time(), $id, $this->_type, $perms['roleid']);                            
+              // For each role or group with view access to this item - decrement and if need delete the access metric record count.
+              $haveGroupsToRemove = count($perms['groups']) > 0;
+              $haveRolesToRemove = count($perms['roles']) > 0;
+              if($haveGroupsToRemove OR $haveRolesToRemove) {
+                db_query("UPDATE {nextag_words} SET metric=metric-1 WHERE id=%d", $id);
+                db_query("DELETE FROM {nextag_words} WHERE id=%d and metric=1", $id);
+                // use an array to handle the logic of whether to process groups, roles, or both
+                // use the key to track the field to update and the value to track the values
+                $permAccessMetric = array();
+                if ($haveGroupsToRemove) {
+                    $permAccessMetric['groupid'] = $perms['groups'];
+                }
+                if ($haveRolesToRemove) {
+                    $permAccessMetric['roleid'] = $perms['roles'];
+                }
+                foreach ($permAccessMetric as $permKey => $permValue) {
+                  foreach ($permValue as $permid) {
+                    // Delete the tag metric access record if metric = 1 else decrement the metric count
+                    db_query("DELETE FROM {nextag_metrics} WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d AND metric=1", $id, $this->_type, $permid);
+                    $sql  = "UPDATE {nextag_metrics} SET metric=metric-1, last_updated=%d "
+                            . "WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d";
+                    db_query($sql, time(), $id, $this->_type, $permid);
+                  }
+                }
               }
-              db_query("DELETE FROM {nextag_words} WHERE id=%d and metric=1", $id);
-              db_query("UPDATE {nextag_words} SET metric=metric-1 WHERE id=%d", $id);
             }
           }
         }
@@ -221,32 +230,131 @@
     }
 
 
+    /*
+    * Used when item permissions are changed and we need to possibly remove or add some tag_metrics records
+    * Each file identified by tagid of type 'filedepot' will have a record per permission assigned
+    * So if the folder has 10 files with tags, 2 role permissions and a group permission - there will be 3 record per file
+    * @param string $itemid  - file id, used to get the access permissions
+    */
+    function update_accessmetrics($itemid, $tagids='') {
+
+      if (empty($tagids)) { // Retrieve the tags field and convert into an array
+        $tags = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
+        if (!empty($tags)) {
+          $tagids = explode(',',$tags);
+        }
+        else {
+          $tagids = array();
+        }
+      }
+
+      // Test that we now have a valid array of tag id's
+      if (is_array($tagids) AND count($tagids) > 0) {
+        // Test that a valid item record exist
+        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
+          // Get item permissions to determine what rights to use for tag metrics record
+          $perms = $this->get_itemperms($itemid,true);
+          // For each role or group with view access to this item - create or update the access metric record count.
+          $haveGroupsToUpdate = count($perms['groups']) > 0;
+          $haveRolesToUpdate = count($perms['roles']) > 0;
+
+          // For each tag word - we need to update (add new or remove any un-used tag metric associated with this permission and tagword
+          $metricRecords = array(); // Will contain the processed metric records
+          foreach ($tagids as $id) {
+            if (!empty($id)) {
+              if($haveGroupsToUpdate OR $haveRolesToUpdate) {
+
+                // An array to handle the logic of whether to process groups, roles, or both
+                // Use the key to track the field to update and the value to track the values
+                $permAccessMetric = array();
+                if ($haveGroupsToUpdate) {
+                    $permAccessMetric['groupid'] = $perms['groups'];
+                }
+                if ($haveRolesToUpdate) {
+                    $permAccessMetric['roleid'] = $perms['roles'];
+                }
+                foreach ($permAccessMetric as $permKey => $permValue) {
+                  foreach ($permValue as $permid) {
+                    if ($permid > 0) {
+                      $result = db_query("SELECT id FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND %s = %d", $id, $this->_type, $permKey, $permid);
+                      $numrecs = 0;
+                      if ($result) {
+                        while ($rec = db_fetch_object($result)) {
+                          $numrecs++;
+                          if (!in_array($rec->id,$metricRecords)) $metricRecords[] = $rec->id;
+                        }
+                      }
+                      if ($numrecs == 0) {
+                        $sql  = "INSERT INTO {nextag_metrics} (tagid,type," . $permKey . ",metric,last_updated) "
+                                . "VALUES (%d,'%s',%d,%d,%d)";
+                        db_query($sql, $id, $this->_type, $permid, 1, time());
+                        $metricRecords[] = db_last_insert_id('nextag_metrics','id');
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            /* Now we should delete any metric records that are not in the processed $metricRecords array
+             * They would be records for access permissions that were removed
+             */
+            if (count($metricRecords) > 0) {
+              $recids = implode(',',$metricRecords);
+              db_query("DELETE FROM {nextag_metrics} WHERE tagid = %d and id NOT IN (%s)",$id,$recids);
+            } else {
+              db_query("DELETE FROM {nextag_metrics} WHERE tagid = %d ",$id);
+            }
+
+            // Delete any tagword records that are no longer used
+            $result = db_query("SELECT id FROM {nextag_words} WHERE metric = 0");
+            if ($result) {
+              // Let's do one more test and make sure no items are using this tagword
+              while ($A = db_fetch_array($result)) {
+                /* REGEX - search for id that is the first id or has a leading comma
+                 *  must then have a trailing , or be the end of the field
+                 */
+                $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
+                $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
+                if (db_result(db_query($sql)) == 0) {
+                  db_query("DELETE FROM {nextag_words} WHERE id=%s",$A['id']);
+                }
+              }
+
+            }
+          }
+
+        }
+
+      }
+    }
 
     /* Update tag metrics for an existing item.
     * Should work for all modules - adding tags or updating tags
-    * @param string $itemid    - Example Story ID (sid) relates to itemid in the tagitems table
-    * @param string $tagwords  - Single tagword or comma separated list of tagwords.
-    *                            Tagwords can be unfilterd if passed in.
-    *                            The set_newtags function will filter and prepare tags for DB insertion
+    * @param string $itemid       - Example file ID (fid) relates to itemid in the tagitems table
+    * @param string $tagwords     - Single tagword or comma separated list of tagwords.
+    *                               Tagwords can be unfilterd if passed in.
+    *                               The set_newtags function will filter and prepare tags for DB insertion
+    * @param boolean $sitewide    - if set TRUE, then the call to perms will check site wide vs just for the user
     */
-    public function update_tags($itemid, $tagwords='') {
+    public function update_tags($itemid, $tagwords='', $sitewide=FALSE) {
 
       if (!empty($tagwords)) {
         $this->set_newtags($tagwords);
       }
 
-      $perms = $this->get_itemperms($itemid);
-      if ($perms['perm_anon'] OR $perms['perm_members'] OR $perms['roleid'] > 0) {
+      $perms = $this->get_itemperms($itemid,$sitewide);
+      if (count($perms['groups']) > 0 OR count($perms['roles']) > 0) {
         if (!empty($this->_newtags)) {
           // If item record does not yet exist - create it.
-          if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) == 0) {                  
+          if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) == 0) {
             db_query("INSERT INTO {nextag_items} (itemid,type) VALUES (%d,'%s')", $itemid, $this->_type);
           }
           // Need to build list of tagid's for these tag words and if tagword does not yet exist then add it
           $tagwords = explode(',', $this->_newtags);
           $tags = array();
           foreach ($tagwords as $word) {
-            $word = strip_tags($word);
+            $word = trim(strip_tags($word));
             $id = db_result(db_query("SELECT id FROM {nextag_words} WHERE tagword='%s'", $word));
             if (empty($id)) {
               db_query("INSERT INTO {nextag_words} (tagword,metric,last_updated) VALUES ('%s',0,%d)", $word, time());
@@ -262,7 +370,7 @@
           $unusedTags = array_diff($currentTags, $tags);
           $newTags = array_diff($tags, $currentTags);
 
-          $this->update_accessmetrics($itemid, $unusedTags);
+          $this->remove_accessmetrics($itemid, $unusedTags);
           $this->add_accessmetrics($itemid, $newTags);
 
           $tagids = implode(',', $tags);
@@ -271,14 +379,14 @@
           }
           return TRUE;
 
-        } 
+        }
         else {
           $this->clear_tags($itemid);
           return TRUE;
         }
-      } 
+      }
       else {
-        watchdog('filedepot', 'Attempted to add tags for file (@item) but no role based folder permission defined', array('@item' => $itemid));
+        watchdog('filedepot', 'Attempted to add tags for file (@item) but no role or group based folder permission defined', array('@item' => $itemid));
         return FALSE;
       }
     }
@@ -292,8 +400,8 @@
       // Retrieve the current assigned tags - these are the tags to update
       $currentTags = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
       $currentTags = explode(',', $currentTags);
-      $this->update_accessmetrics($itemid, $currentTags);
-      db_query("UPDATE {nextag_items} SET tags = '' WHERE itemid = %d", $itemid);
+      $this->remove_accessmetrics($itemid, $currentTags);
+      db_query("DELETE FROM {nextag_items} WHERE itemid = %d", $itemid);
     }
 
 
@@ -308,7 +416,7 @@
     public function get_newtags($dbmode=TRUE) {
       if ($dbmode) {
         return $this->filtertag($this->_newtags, TRUE);
-      } 
+      }
       else {
         return $this->_newtags;
       }
@@ -322,7 +430,9 @@
         while ($A = db_fetch_array($query)) {
           $tagwords[] = $A['tagword'];
         }
-        $tags = implode(',', $tagwords);
+        if (isset($tagwords) AND count($tagwords) > 0) {
+          $tags = implode(',', $tagwords);
+        }
       }
       return $tags;
     }
@@ -350,7 +460,7 @@
     /* Return an array of item id's matching tag query */
     public function search($query) {
 
-      $query = addslashes($query);        
+      $query = addslashes($query);
       $itemids = array();
       // Get a list of Tag ID's for the tag words in the query
       $sql = "SELECT id,tagword FROM {nextag_words} ";
@@ -362,13 +472,13 @@
           $tag = addslashes($tag);
           if ($i > 1) {
             $sql .= "OR tagword = '$tag' ";
-          } 
+          }
           else {
             $sql .= "tagword = '$tag' ";
           }
           $i++;
         }
-      } 
+      }
       else {
         $sql .= "WHERE tagword = '$query' ";
       }
@@ -383,7 +493,7 @@
         //         must then have a trailing , or be the end of the field
         if ($i > 1) {
           $sql .= "AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
-        } 
+        }
         else {
           $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
         }
@@ -397,11 +507,11 @@
         }
         if (count($itemids) > 0) {
           return $itemids;
-        } 
+        }
         else {
           return FALSE;
         }
-      } 
+      }
       else {
         return FALSE;
       }
@@ -415,6 +525,17 @@
     function __construct() {
       parent::__construct();
       $this->_type = 'filedepot';
+    }
+
+    /* For each file in this folder with tagwords - update the metrics per access permission */
+    function update_accessmetrics($cid) {
+      $sql  = "SELECT a.itemid FROM {nextag_items} a ";
+      $sql .= "LEFT JOIN {filedepot_files} b on b.fid = a.itemid ";
+      $sql .= "WHERE b.cid = %d";
+      $result = db_query($sql,$cid);
+      while ($A = db_fetch_array($result)) {
+        parent::update_accessmetrics($A['itemid']);
+      }
     }
 
   }

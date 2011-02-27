@@ -3,7 +3,7 @@
   * @file
   * activefolder_nonadmin.tpl.php
   */
-?>  
+?>
 
 <div class="folderlink"><a id="folderoptions_link" href="#" TITLE="Click to view folder description and notification options"><?php print $active_folder_name ?></a></div>
 <div id="folder_options_container" class="clearboth" style="padding:5px 50px 5px 60px;display:none;">
@@ -23,7 +23,7 @@
             <tr>
                 <td colspan="2" class="aligncenter" style="padding:5px;">
                     <input type="submit" value="Save Settings" onClick="doAJAXUpdateFolderNotificationSettings(this.form);return false;">
-                    <span style="padding-left:10px;"><input type="button" value="Close" onClick="togglefolderoptions();"></span>
+                    <span style="padding-left:10px;"><input type="button" class="form-submit" value="<?php print t('Close'); ?>" onClick="togglefolderoptions();"></span>
                 </td>
             </tr>
         </table>

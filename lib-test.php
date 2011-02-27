@@ -27,12 +27,12 @@ function filedepot_createtestrecords() {
   if (empty($_validfolders) OR count($_validfolders) == 0) {
     $_validfolders[] = filedepottest_createfolder(0, 'Load Testing');
   }
-  
+
   $folders_created = array();
   if ($_numfolders2create > 0) {
     for ($i = 1; $i <= $_numfolders2create; $i++) {
       $parent_folders = implode(',', $_validfolders);
-      $pid = db_result(db_query_range("SELECT cid from {filedepot_categories} WHERE cid in ($parent_folders) ORDER BY RAND()", array(), 0, 1));      
+      $pid = db_result(db_query_range("SELECT cid from {filedepot_categories} WHERE cid in ($parent_folders) ORDER BY RAND()", array(), 0, 1));
       $cnt = db_result(db_query("SELECT count(cid) FROM {filedepot_categories} WHERE cid=%d", $pid));
       if ($cnt != 1) {
         watchdog('filedepot', "create_testrecords abort, cid: @cid does not exist", array('@cid' => $pid));
@@ -59,14 +59,15 @@ function filedepot_createtestrecords() {
     $_foldersCreated[$cid]++;
   }
 
-  drupal_set_message(t('Completed adding !numfiles new files', array('!numfiles' => $filenum)), 'status');  
+  drupal_set_message(t('Completed adding !numfiles new files', array('!numfiles' => $filenum)), 'status');
   drupal_goto();
 
 }
 
 
 function filedepottest_createfolder($pid, $foldername='') {
-  global $user, $filedepot, $_foldersCreated;
+  global $user, $_foldersCreated;
+  $filedepot = filedepot_filedepot();
 
   $node = (object) array(
   'uid' => $user->uid,
@@ -108,7 +109,7 @@ function filedepottest_selectRandomFolder($tries=0) {
     $tries++;
     $cid = filedepottest_selectRandomFolder($tries);
     if ($cid == 0) {
-      drupal_set_message('error', 'create_testrecords: abort. Max attempts to find a folder with less then @maxrecordsperfolder exceeded.', 
+      drupal_set_message('error', 'create_testrecords: abort. Max attempts to find a folder with less then @maxrecordsperfolder exceeded.',
           array('@maxrecordsperfolder' => $_maxrecordsperfolder));
       die;
     }

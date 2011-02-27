@@ -17,9 +17,9 @@
       </span>
     </div>
   </div>
-  <div class="floatright" style="padding-right:20px;">
+  <div class="floatright" style="padding-right: <?php print $rightpadding ?>px;">
     <div class="floatright"><?php print $LANG_action ?></div>
-    <div class="floatright" style="padding-right:30px;"><?php print $LANG_date ?></div>
+    <div class="floatright" style="padding-right:45px;"><?php print $LANG_date ?></div>
     <div class="floatright" style="display: <?php print $show_folder ?>;padding-right:20px"><?php print $LANG_folder ?></div>
   </div>
 </div>

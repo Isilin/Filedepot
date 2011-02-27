@@ -72,13 +72,13 @@ $.blockUI.version = 2.20; // 2nd generation blocking at no extra cost!
 // override these in your code to change the default behavior and style
 $.blockUI.defaults = {
     // message displayed when blocking (use null for no message)
-    message:  '<h1>Please wait...</h1>',
+    message:  '<h1>' + NEXLANG_pleasewait + '</h1>',
 
     // styles for the message when blocking; if you wish to disable
     // these and use an external stylesheet then do this in your code:
     // $.blockUI.defaults.css = {};
     css: {
-        padding:        0,
+        padding:        '15px',
         margin:         0,
         width:          '30%',
         top:            '40%',

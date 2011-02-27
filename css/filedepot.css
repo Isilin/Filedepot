@@ -1,11 +1,41 @@
 /* $Id: */
- 
-#filedepotmodule table { margin: 0px !important; border: 0px !important}
-#filedepotmodule tbody { border-top:0px; }
-#filedepot_sidecol table td { border:0px; padding:0px !important; margin: 0px !important }
 
-#sidebar-left { display: none; }
-#sidebar-right { display: none; }
+body.layout-left-main .outer { margin-left:0px !important; }
+
+/* Filedepot CSS */
+
+#filedepot {
+  border:1px solid #DADADA;
+  margin:0px 0px 5px 0px;
+  padding:0px;
+  visibility:hidden;
+  padding-bottom:43px;
+  height:450px;   /* This controls the height of the main display */
+  width:100%;
+}
+
+#filedepot_sidecol {
+  float:left;
+  width:210px;
+  background-color: #EFEFEF;
+  border-right:1px solid #ccc;
+  padding-top:10px;
+  padding-left:3px;
+  margin-right:4px;
+  overflow:hidden;
+}
+
+#filedepot_centercol {
+  float:left;
+  width:100%;
+  margin-top:0px;
+  margin-right:0px;
+  padding:0px;
+}
+
+#filedepotmodule table { margin: 0px !important; border: 0px !important}
+#filedepotmodule tbody { border-top: 0px; }
+#filedepotmodule form  { margin:0px !important }
 
 /* general alignment classes **************************************************/
 .alignleft {
@@ -199,8 +229,6 @@
 }
 
 
-/* Filedepot CSS */
-
 
 /* YUI Uploader styles that were not working for IE when I had them inline on page.thtml
    Also needed to add the !important as there must be some other YUI styles that had an effect
@@ -253,6 +281,15 @@
     width:100%;
 }
 
+#reportheadercontainer {
+  background-color:#F2F2F2;
+  float:left;
+  width:100%;
+  height:26px;
+  padding-bottom:5px;
+  padding-top:5px;
+  margin:0px;
+}
 
 #filelistingheader .filedepotheading {
     font-size:12pt;
@@ -261,7 +298,7 @@
     clear:both;
     display:inline-block;
     width:100%;
-    padding:5px;
+    padding:0px;
 }
 
 #filelistingheader .filedepotheading a {
@@ -278,7 +315,7 @@
     display:inline-block;
     width:100%;
     padding-top:5px;
-    padding-left:5px;
+    padding-left:0px;
 }
 
 #filelisting_container .oddrow {
@@ -296,6 +333,21 @@
     padding-bottom:5px !important;
     font-size:9pt;
     color:#666;
+}
+
+#filelisting_container div.twoactions {
+  padding-right:40px;
+  white-space:nowrap
+}
+
+#filelisting_container div.oneaction {
+  padding-right:60px;
+  white-space:nowrap
+}
+
+#filelisting_container div.noactions {
+  padding-right:65px;
+  white-space:nowrap
 }
 
 #filelisting_container .loading {
@@ -324,8 +376,6 @@ a.morefolderdata:hover {
     padding-left:5px;
 }
 
-
-
 #filelisting_container .subfolder_container {
     width:100%;
 }
@@ -334,6 +384,10 @@ a.morefolderdata:hover {
     clear:both;
     display:inline-block;
     width:100%;
+}
+
+.yui-panel {
+  background-color: #FFFFFF;
 }
 
 .yui-skin-sam .yui-ac-container {
@@ -389,7 +443,41 @@ a.morefolderdata:hover {
 .filedepottoolbar {
   background-color: #013763;
   height:25px;
-  padding-top:5px;
+  padding-top:0px;
+}
+
+.filedepottoolbar_searchbox {
+  width:300px;
+  position:relative;
+  float:right;
+  top:5px;
+}
+
+.filedepottoolbar_searchform {
+  float:right;
+  width:80%;
+  position:relative;
+  top:-2px;
+}
+
+
+.tagsearchboxcontainer {
+    float:right;
+    padding-top:9px;
+}
+
+.filedepottoolbar_searchbox form {
+  background-color: #013763;
+  margin:5px 0px 0px 10px;
+}
+
+.filedepottoolbar_searchbox table {
+  background-color: #013763;
+  line-height:0px;
+}
+.filedepottoolbar_searchbox table td {
+  padding:0px;
+  border:0px;
 }
 
 .filedepottoolbar .toolbaricons {
@@ -398,7 +486,6 @@ a.morefolderdata:hover {
   display:inline-block;
   float:left;
 }
-
 
 .filedepottoolbar .newfoldercmd {
   background-position: 0px 50%;
@@ -456,10 +543,7 @@ a.cancelbutton:hover {
     color: #000;
 }
 
-.tagsearchboxcontainer {
-    float:right;
-    padding-top:9px;
-}
+
 #tagsearchbox {
     min-width:120px;
     height:20px;
@@ -494,8 +578,17 @@ a.cancelbutton:hover {
     margin-top:7px;
 }
 
-#activefolder_container {
+#activefolder_area {
+  float:left;
+  padding:0px;
+}
+
+#activefolder_container, #folder_options_container {
   background-color:#F2F2F2;
+}
+
+#activefolder {
+  padding:3px;
 }
 
 #activefolder a {
@@ -513,8 +606,27 @@ a.cancelbutton:hover {
     border-top: 1px solid #666;
     border-left: 1px solid #666;
 }
+
+#edit_activefolder {
+  display:none;
+  background-color:#F7F7F7;
+  padding:5px;
+  margin-bottom:10px;
+}
+
 #edit_activefolder td { padding:3px; }
 #folderperms td { padding:2px; }
+
+.filedepot_perms_leftoption {
+  margin-right:5px;
+  width:130px;
+  float:left;
+}
+
+.filedepot_perms_rightoption {
+  width:165px;
+  float:left;
+}
 
 #frmFileDetails input { font-size:9pt; }
 #frmFileDetails label { font-weight:normal; font-size:9pt; }
@@ -553,9 +665,10 @@ a.cancelbutton:hover {
     background-image: none;
     background-color: #E1E7F2;
     width:10px;
+    height:99% !important;  /* Looks better in FF this way */
 }
 
-.yui-skin-sam .yui-layout-unit .yui-resize-handle-r .yui-layout-resize-knob {
+ .yui-layout-unit .yui-resize-handle-r .yui-layout-resize-knob {
     left:3px;
 }
 
@@ -565,10 +678,10 @@ a.cancelbutton:hover {
     top:1.5em;
     margin:0px;
     padding:0px;
-    width:100%;   
+    width:100%;
 }
 
-/* YUI File details panel - close button was appearing as a un-styled link 
+/* YUI File details panel - close button was appearing as a un-styled link
    after force loading the container and menu.css at the top of this file
 */
 .yui-skin-sam .container-close {
@@ -581,6 +694,11 @@ a.cancelbutton:hover {
   width:25px !important;
 }
 
+.yui-skin-sam .yuimenubaritemlabel { border: 0px !important; font-size:85%;}
+
 #yui-gen3 .yui-layout-bd { background-color:#FFF  }
 
 .yuimenubar li { background-image: none; }
+
+.yui-skin-sam .yui-button button { min-height:1.7em !important; }
+

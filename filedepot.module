@@ -85,6 +85,15 @@ function filedepot_menu() {
   'type' => MENU_NORMAL_ITEM,
   );
 
+  $items['filedepot/folder/%'] = array(
+  'title' => 'Filedepot',
+  'page callback' => 'filedepot_main',
+  'page arguments' => array(2) ,
+  'access callback' => 'user_access',
+  'access arguments' => array('access filedepot'),   //**TODO -- change this to some kind of access argument later
+  'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['admin/settings/filedepot'] = array(
   'title' => 'Filedepot Settings',
   'description' => 'Administrate Filedepot Configuration Settings',
@@ -140,10 +149,10 @@ function filedepot_menu() {
  */
 function filedepot_theme() {
   module_load_include('php','filedepot','lib-theme');
-  return array(
+  $theme_hooks =  array(
   'filedepot_main_page' => array(
   'template' => 'theme/filedepot-mainpage',
-  'arguments' => array('layout_url' => base_path() . drupal_get_path('module', 'filedepot'))
+  'arguments' => array('cid' => NULL,'layout_url' => base_path() . drupal_get_path('module', 'filedepot'))
   ),
   'filedepot_header'  => array(
   'template'  => 'theme/filelistingheader',
@@ -344,6 +353,11 @@ function filedepot_theme() {
   )
 
   );
+
+  // Now add the views related template files
+  $theme_hooks = array_merge($theme_hooks, filedepot_add_views_templates());
+  return $theme_hooks;
+
 }
 
 
@@ -425,13 +439,12 @@ function filedepot_access($op, $node) {
 /**
  * Implementation of hook_main().
  */
-function filedepot_main() {
-
+function filedepot_main($id=0) {
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');
   drupal_add_js($modulepath . '/js/filedepotlanguage.js');
   drupal_set_breadcrumb('');
-  return theme('filedepot_main_page');
+  return theme('filedepot_main_page',$id);
 
 }
 
@@ -948,8 +961,54 @@ function filedepot_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   elseif ($op == 'delete') {  // Called when folder node is deleted
     $filedepot->deleteFolder($node->nid);
   }
-
 }
+
+
+/**
+ * Implementation of hook_views_api().
+*/
+function filedepot_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'filedepot') . '/views',
+  );
+}
+
+function filedepot_add_views_templates() {
+  $templates_path = drupal_get_path('module', 'filedepot') . '/views';
+  $templates = array();
+
+  $views_templates_types = views_theme();
+
+  $files = file_scan_directory($templates_path, '^views.*\.tpl\.php$');
+
+  foreach ($files as $file) {
+
+    $template_name = str_replace('.tpl.php', '', $file->basename);
+
+    $template_info = explode('--', $template_name);
+
+    $views_hook = str_replace('-', '_', $template_info[0]);
+
+    $file_path = str_replace('/'. $file->basename, '', $file->filename);
+
+    $templates[str_replace('-', '_', $template_name)] = array(
+      'arguments' => $views_templates_types[$views_hook]['arguments'],
+      'path' => $file_path,
+      'template' => $template_name,
+      'original hook' => $views_hook,
+      'preprocess functions' => array(
+        'template_preprocess',
+        'template_preprocess_'. $views_hook,
+      ),
+    );
+
+  }
+
+  return $templates;
+}
+
+
 
 
 /**
@@ -986,15 +1045,22 @@ function filedepot_client_upload() {
 
 function template_preprocess_filedepot_main_page(&$variables) {
   global $base_url, $user;
+
   module_load_include('php','filedepot','lib-common');
 
+  if (isset($variables['cid'])) {
+    $folderid = $variables['cid'];
+  } elseif (!isset($_GET['cid'])) {
+    $folderid = $_GET['cid'];
+  } elseif (!isset($_GET['cid'])) {
+    $folderid = 0;
+  }
   if (!isset($_GET['fid'])) $_GET['fid'] = 0;
-  if (!isset($_GET['cid'])) $_GET['cid'] = 0;
 
   $variables['yui_base_url'] = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $variables['title']                 = '';
   $variables['initialfid']            = intval($_GET['fid']);
-  $variables['initialcid']            = intval($_GET['cid']);
+  $variables['initialcid']            = intval($folderid);
   $variables['initialop']             = '';
   $variables['initialparm']           = '';
   $variables['site_url']              = $base_url;
@@ -1205,3 +1271,4 @@ function filedepot_og($op, $gid, $uid, $args) {
       }
     }
 }
+

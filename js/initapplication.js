@@ -59,14 +59,6 @@ var init_filedepot = function() {
 
   var oSearchButton = new YAHOO.widget.Button("searchbutton");
 
-  try {
-    if (show_newfolder) {
-      Dom.setStyle('newfolderlink','display','');
-      var oLinkButton1 = new YAHOO.widget.Button("newfolderlink");
-      Event.addListener("newfolderlink", "click", showAddCategoryPanel, YAHOO.container.newfolderdialog, true);
-    }
-  } catch(e) {}
-
   // User may not have upload rights
   try {
     YAHOO.widget.Uploader.SWFURL = actionurl_dir + "/js/yui/uploader/assets/uploader.swf";
@@ -100,7 +92,7 @@ var init_filedepot = function() {
     fixedcenter : true,
     visible : false,
     zindex: 2000,
-    modal: true,
+    modal: useModalDialogs,
     effect:{effect:YAHOO.widget.ContainerEffect.FADE, duration: .5},
     constraintoviewport : true
   } );
@@ -117,7 +109,7 @@ var init_filedepot = function() {
     fixedcenter : true,
     visible : false,
     zindex: 2000,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
   YAHOO.container.folderperms.render();
@@ -129,7 +121,7 @@ var init_filedepot = function() {
   { width : "450px",
     visible : false,
     fixedcenter : true,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
 
@@ -141,7 +133,7 @@ var init_filedepot = function() {
   { width : "520px",
     visible : false,
     fixedcenter : true,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
 
@@ -153,7 +145,7 @@ var init_filedepot = function() {
   { width : "450px",
     visible : false,
     fixedcenter : true,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
 
@@ -165,7 +157,7 @@ var init_filedepot = function() {
   { width : "450px",
     visible : false,
     fixedcenter : true,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
 
@@ -177,7 +169,7 @@ var init_filedepot = function() {
   { width : "450px",
     visible : false,
     fixedcenter : true,
-    modal: true,
+    modal: useModalDialogs,
     constraintoviewport : true
   } );
 

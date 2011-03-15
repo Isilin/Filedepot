@@ -24,6 +24,7 @@ All the needed style sheets should be loaded automatically by the loader.
   var pagewidth = 0;               // Integer value: Use 0 for 100% width with auto-resizing of layout, or a fixed width in pixels
                                    // Height of main display is set by the height of #filedepot div - default set in CSS
   var numGetFileThreads = 5;       // Max number of concurrent AJAX threads to spawn in the background to retrieve & render record details for subfolders
+  var useModalDialogs = true;      // Default of true is preferred but there is an IE7 bug that makes them un-useable so in this case set to false
 
   // Do not modify any variables below
   var filedepotfolders = '';

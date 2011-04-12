@@ -4,6 +4,9 @@
  * Common or main libray of javascript functions for the drupal filedepot module
  */
 
+ YAHOO.namespace("filedepot");
+ YAHOO.namespace("container");
+
 function closeAlert() {
   Dom.setStyle('cancelalert', 'display', 'none'); // Hide the cancel icon
   // Note: Key to this working is having the div's overflow:auto set
@@ -12,12 +15,14 @@ function closeAlert() {
   timer = setTimeout("Dom.setStyle('filedepot_alert', 'display', 'none')", 1000);
 }
 
-function showAlert(message) {
+function showAlert(message,autoclose) {
   Dom.get('filedepot_alert_content').innerHTML = message;
   Dom.setStyle('filedepot_alert', 'display', '');
   Dom.setStyle('cancelalert', 'display', ''); // Show the cancel icon
-  var myAnim = new YAHOO.util.Anim('filedepot_alert', { height: { to: 30 }},1, YAHOO.util.Easing.easeOut);
-  myAnim.animate();
+  if (autoclose == undefined) {
+    var myAnim = new YAHOO.util.Anim('filedepot_alert', { height: { to: 30 }},1, YAHOO.util.Easing.easeOut);
+    myAnim.animate();
+  }
 }
 
 function updateAjaxStatus(message) {
@@ -2245,7 +2250,7 @@ function renderFileListing(oResults) {
   }
   clearCheckedItems();
   if(document.frmfilelisting.chkfile) {
-    if(document.frmfilelisting.chkfile.length == 'undefined' || document.frmfilelisting.chkfile.length == 1)     // No files in listing - disable the header checkall checkbox
+    if(document.frmfilelisting.chkfile.length == undefined || document.frmfilelisting.chkfile.length == 1)     // No files in listing - disable the header checkall checkbox
       Dom.get('headerchkall').disabled = true;
   } else {
     Dom.get('headerchkall').disabled = true;

@@ -458,7 +458,7 @@ function filedepot_dispatcher($action) {
             else {
               $errors = drupal_get_messages('error');
               if (!empty($errors['error'][0])) {
-                $data['message'] = str_replace('\\','/',$errors['error'][0]);
+                $data['message'] = strip_tags(str_replace('\\','/',$errors['error'][0]));
               }
               else {
                 $data['error'] = t('Error uploading File');

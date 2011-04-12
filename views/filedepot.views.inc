@@ -150,7 +150,7 @@ function filedepot_views_pre_execute(&$view) {
       module_load_include('php','filedepot','lib-common');
       $array_folders = array();
       $array_folders[] = $folder_id;
-      filedepot_getRecursiveCatIDs($array_folders, $folder_id, 'view');
+      $filedepot->getRecursiveCatIDs($array_folders, $folder_id, 'view');
       if (!empty($array_folders) AND count($array_folders) > 0) {
         $folderlist = implode(',',$array_folders);
         if (strpos($view->build_info['query'],'WHERE') > 0) {

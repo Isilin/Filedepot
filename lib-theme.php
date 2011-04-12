@@ -105,7 +105,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   // Folder Stats
   $list = array();
   array_push($list, $filedepot->cid);
-  filedepot_getRecursiveCatIDs($list, $filedepot->cid, 'view');
+  $filedepot->getRecursiveCatIDs($list, $filedepot->cid, 'view');
   $variables['folder_count'] = count($list);
   $numfiles = 0;
   $totalsize = 0;

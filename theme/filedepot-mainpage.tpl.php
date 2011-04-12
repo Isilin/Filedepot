@@ -10,15 +10,9 @@
   if (!isset($search_query)) $search_query = 0;
 ?>
 
-<!-- Need to load these style sheets as the file details YUI panel was not being styled
-Not sure why this panel is the only one that was not being styled correctly but loading these 2 style sheets fixes the issue
-All the needed style sheets should be loaded automatically by the loader.
--->
-
-
 <!-- On-Demand loading the Module Javascript using YUI Loader -->
 
-<script type="text/javascript" src="<?php print $yui_base_url ?>yuiloader/yuiloader.js"></script>
+
 <script type="text/javascript">
   var useYuiLoader = true;         // Set to false if you have manually loaded all the needed YUI libraries else they will dynamically be loaded
   var pagewidth = 0;               // Integer value: Use 0 for 100% width with auto-resizing of layout, or a fixed width in pixels
@@ -39,8 +33,7 @@ All the needed style sheets should be loaded automatically by the loader.
   var ajax_post_handler_url = '<?php print $ajax_server_url ?>';
   var actionurl_dir = '<?php print $actionurl_dir ?>';
   var imgset = '<?php print $layout_url ?>/css/images';
-  YAHOO.namespace("filedepot");
-  YAHOO.namespace("container");
+  var yui_uploader_url = '<?php print $yui_uploader_url; ?>';
   var ajaxactive = false;
   var clear_ajaxactivity = false;
   var blockui = false;
@@ -55,12 +48,6 @@ All the needed style sheets should be loaded automatically by the loader.
 <script type="text/javascript">
   var YUIBaseURL  = "<?php print $yui_base_url ?>";
 </script>
-
-<script type="text/javascript" src="<?php print $filedepot_javascript_url ?>nexpro.js"></script>
-<script type="text/javascript" src="<?php print $filedepot_javascript_url ?>plugins.js"></script>
-<script type="text/javascript" src="<?php print $filedepot_javascript_url ?>initapplication.js"></script>
-<script type="text/javascript" src="<?php print $filedepot_javascript_url ?>common.js"></script>
-<script type="text/javascript" src="<?php print $filedepot_javascript_url ?>encoder.js"></script>
 
 <script type="text/javascript">
    jQuery.blockUI();
@@ -168,6 +155,7 @@ All the needed style sheets should be loaded automatically by the loader.
 
     <div id="filedepot_sidecol">
       <!-- Leftside Folder Navigation generated onload by page javascript -->
+
       <div id="filedepotNavTreeDiv"></div>
       <div class="clearboth"></div>
     </div>

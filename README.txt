@@ -23,6 +23,7 @@ The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine
 Dependencies
 ------------
  * Content, FileField
+ * libraries
 
  Organic Groups is not required but if you install the modules 'og' and 'og_access',
  then you will be able to manage folder access via organic groups.
@@ -42,18 +43,29 @@ Install
 
 1) Copy the filedepot folder to the modules folder in your installation.
 
-2) Enable the module using Administer -> Site building -> Modules
+2) The filedepot module now requires the libraries module be installed.
+   We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
+
+   You will now need to create a sites/all/libraries folder if you don't already have the libraies module installed.
+   PLEASE rename the files as noted below
+   
+   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraies folder.
+   > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
+   > http://yuilibrary.com/support/2.8.2/dropin_patches/uploader-2.7.0.zip  - SAVE FILE as: yui_uploader.swf
+   > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js
+
+3) Enable the module using Administer -> Site building -> Modules
    (/admin/build/modules).
 
    The module will create a new content type called 'filedepot folder'
 
-3) Review the module settings using Administer -> Site configuration -> Filedepot Settings
+4) Review the module settings using Administer -> Site configuration -> Filedepot Settings
    Save your settings and at a minium, reset to defaults and save settings.
 
-4) Access the module and run create some initial folders and upload files
+5) Access the module and run create some initial folders and upload files
    {siteurl}/index.php?q=filedepot
 
-5) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
+6) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.
 
 Notes:

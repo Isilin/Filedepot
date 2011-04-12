@@ -321,10 +321,42 @@ class filedepot {
   }
 
 
-  public function updatePerms($id, $accessrights, $users='', $groups='', $roles='') {
-    if ($users != '' AND !is_array($users)) {
-      $users = array($users);
+  /* Function to return and array of subcategories - used to generate a list of folders
+   * under the OG Root Group assigned folder.
+   *
+   *  Recursive function calls itself building the list
+   *
+   * @param        array      $list        Array of categories
+   * @param        string     $cid         Category to lookup
+   * @param        string     $perms       Permissions to check if user has access to catgegory
+   * @param        boolean    $override    Set to TRUE only if you don't want to test for permissions
+   */
+  public function getRecursiveCatIDs(&$list, $cid, $perms, $override=false) {
+    $filedepot = filedepot_filedepot();
+    $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=%d ORDER BY cid", $cid);
+    while ( $A = db_fetch_array($query)) {
+      // Check and see if this category has any sub categories - where a category record has this cid as it's parent
+      if (db_result(db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=%d", $A['cid'])) > 0) {
+        if ($override === TRUE OR $this->checkPermission($A['cid'], $perms)) {
+          array_push($list, $A['cid']);
+          $this->getRecursiveCatIDs($list, $A['cid'], $perms, $override);
+        }
+      }
+      else {
+        if ($override === TRUE OR $this->checkPermission($A['cid'], $perms)) {
+          array_push($list, $A['cid']);
+        }
+      }
     }
+    return $list;
+  }
+
+
+  public function updatePerms($id, $accessrights, $users='', $groups='', $roles='') {
+
+    if ($users != ''  AND !is_array($users))  $users  = array($users);
+    if ($groups != '' AND !is_array($groups)) $groups = array($groups);
+    if ($roles != ''  AND !is_array($roles))  $roles  = array($roles);
 
     if (!empty($accessrights)) {
       if (in_array('view', $accessrights)) {
@@ -600,7 +632,7 @@ class filedepot {
       array_push($list, $deleteFolderId);
 
       // Passing in permission check over-ride as noted above to filedepot_getRecursiveCatIDs()
-      $list = filedepot_getRecursiveCatIDs ($list, $deleteFolderId, 'admin',TRUE);
+      $list = $this->getRecursiveCatIDs ($list, $deleteFolderId, 'admin',TRUE);
       foreach ($list as $cid) {
         $query = db_query("SELECT fid FROM {filedepot_files} WHERE cid=%d", $cid);
         while ($A = db_fetch_array($query))  {
@@ -866,7 +898,7 @@ class filedepot {
       */
 
       /* Attachment will be saved in the temporary directory with the PHPTMP filename
-      * Drupal files table recorc is created. The node_save API will move and rename the file
+      * Drupal files table record is created. The node_save API will move and rename the file
       */
 
       $nodefile = field_file_save_file($file->tmp_name, array(), $this->tmp_storage_path);

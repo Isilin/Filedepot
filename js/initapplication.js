@@ -12,6 +12,7 @@ var init_filedepot = function() {
   window.filedepotdetail = YAHOO.util.Cookie.get("filedepotdetail");
   window.filedepotfolders = YAHOO.util.Cookie.get("filedepotfolders");
 
+
   var el = document.getElementById('filedepot');
   if (pagewidth == 0) {
     layoutPageWidth = Dom.get('filedepotmodule').offsetWidth;   //Width of the outer element

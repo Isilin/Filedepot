@@ -355,7 +355,9 @@ function filedepot_theme() {
   );
 
   // Now add the views related template files
-  $theme_hooks = array_merge($theme_hooks, filedepot_add_views_templates());
+  if (module_exists('views')) {
+    $theme_hooks = array_merge($theme_hooks, filedepot_add_views_templates());
+  }
   return $theme_hooks;
 
 }
@@ -440,9 +442,17 @@ function filedepot_access($op, $node) {
  * Implementation of hook_main().
  */
 function filedepot_main($id=0) {
+  $yui_base_url = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');
+  drupal_set_html_head('<script type="text/javascript" src="'. $yui_base_url.'yuiloader/yuiloader.js"></script>');
   drupal_add_js($modulepath . '/js/filedepotlanguage.js');
+  drupal_add_js($modulepath . '/js/nexpro.js');
+  drupal_add_js($modulepath . '/js/initapplication.js');
+  drupal_add_js($modulepath . '/js/common.js');
+  drupal_add_js(libraries_get_path('jquery.blockui.js'));
+  drupal_add_js(libraries_get_path('html_encoder.js'));
+
   drupal_set_breadcrumb('');
   return theme('filedepot_main_page',$id);
 
@@ -810,6 +820,7 @@ function filedepot_download($node, $fid, $version, $mode='') {
 
 }
 
+
 /**
  * Implements hook_nodeapi().
  */
@@ -1068,7 +1079,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['actionurl_dir']         = base_path() . drupal_get_path('module', 'filedepot');
   $variables['LANG_searchprompt']     = t('Keyword Search');
   $variables['filedepot_javascript_url']= base_path() . drupal_get_path('module', 'filedepot') . '/js/';
-
+  $variables['yui_uploader_url'] = libraries_get_path('yui_uploader.swf');
   $variables['LANG_addfolder'] = t('Add a new folder');
   $variables['LANG_moveselected'] = t('Move Selected File');
   $variables['LANG_selectdestination'] = t('Select the destination folder');

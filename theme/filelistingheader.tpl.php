@@ -3,7 +3,8 @@
   * @file
   * filelistingheader.tpl.php
   */
-?>  
+?>
+
 
 <div class="filedepotheading" style="display: <?php print $show_mainheader ?>">
   <div class="floatleft"><input id="headerchkall" type="checkbox" value="all" onclick="toggleCheckedItems(this);"></div>
@@ -34,3 +35,4 @@
     <div class="floatright" style="display:<?php print $show_ownername ?>;padding-right:15px"><?php print $LANG_owner ?></div>
   </div>
 </div>
+

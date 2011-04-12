@@ -1,10 +1,9 @@
 name = Filedepot
-version = 6.x-1.1.1
+version = 6.x-1.2
 description = Filedepot File Management System
 core = 6.x
 php = 5.x;
 dependencies[] = filefield
 dependencies[] = libraries
 package = File management
-
 

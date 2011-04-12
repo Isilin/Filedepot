@@ -62,7 +62,7 @@ var init_filedepot = function() {
 
   // User may not have upload rights
   try {
-    YAHOO.widget.Uploader.SWFURL = actionurl_dir + "/js/yui/uploader/assets/uploader.swf";
+    YAHOO.widget.Uploader.SWFURL = yui_uploader_url;
     uploader = new YAHOO.widget.Uploader( "uploaderUI", imgset + '/UploadButton_61x22.png' );
     uploader.addListener('contentReady', handleContentReady);
     uploader.addListener('fileSelect',onFileSelect)

@@ -4,7 +4,9 @@
   * activefolder_admin.tpl.php
   */
 ?>
+
 <div id="activefolder"><a href="#" onclick="edit_activefolder();" TITLE="<?php print $LANG_click_adminmsg ?>"><?php print $active_folder_name ?></a></div>
+
 <div id="edit_activefolder">
   <form name="frm_activefolder" method="post" action="<?php print $action_url ?>">
     <input type="hidden" name="op" value="updatefolder">

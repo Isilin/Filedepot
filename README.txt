@@ -1,3 +1,6 @@
+7.x-1.x RELEASE NOTE:
+The current 7.x branch is highly unstable.  DO not use this branch.
+
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
  - Documents can be saved outside the Drupal public directory to protect corporate documents for safe access and distribution.
@@ -48,7 +51,7 @@ Install
 
    You will now need to create a sites/all/libraries folder if you don't already have the libraies module installed.
    PLEASE rename the files as noted below
-   
+
    The following three javascript and support files then need to be retrieved and saved to the sites/all/libraies folder.
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
    > http://yuilibrary.com/support/2.8.2/dropin_patches/uploader-2.7.0.zip  - SAVE FILE as: yui_uploader.swf

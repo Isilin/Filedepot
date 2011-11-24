@@ -6,6 +6,8 @@
  * Test code that will only be used to create test folders and files for load testing
  */
 
+
+
 /* Defines that are only used for testing - creating test folders and files for load testing */
 /* Execute test feature to create data via {site_url}/index.php?q=filedepot_createtestrecords */
 
@@ -32,8 +34,8 @@ function filedepot_createtestrecords() {
   if ($_numfolders2create > 0) {
     for ($i = 1; $i <= $_numfolders2create; $i++) {
       $parent_folders = implode(',', $_validfolders);
-      $pid = db_result(db_query_range("SELECT cid from {filedepot_categories} WHERE cid in ($parent_folders) ORDER BY RAND()", array(), 0, 1));
-      $cnt = db_result(db_query("SELECT count(cid) FROM {filedepot_categories} WHERE cid=%d", $pid));
+      $pid = db_query_range("SELECT cid from {filedepot_categories} WHERE cid in ($parent_folders) ORDER BY RAND()", 0, 1, array())->fetchField();
+      $cnt = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE cid=:cid", array('pid' => $pid))->fetchField();
       if ($cnt != 1) {
         watchdog('filedepot', "create_testrecords abort, cid: @cid does not exist", array('@cid' => $pid));
         echo "create_testrecords abort, cid: {$pid} does not exist";
@@ -51,11 +53,11 @@ function filedepot_createtestrecords() {
     // Select a random folder with less then max number of files
     $cid = filedepottest_selectRandomFolder();
     $sql  = "INSERT INTO {filedepot_files} (cid,fname,title,version,description,mimetype,extension,submitter,status,date) ";
-    $sql .= "VALUES (%d,'testfile.pdf','TestFile-%s','1','Phantom file created for stress testing','application/octet-stream','pdf',2,1,%d)";
-    db_query($sql, $cid, $filenum, time());
-    $lastrec = db_result(db_query_range("SELECT fid FROM {filedepot_files} ORDER BY fid DESC", array(), 0, 1));
-    $sql = "INSERT INTO {filedepot_fileversions} (fid,fname,version,notes,date,uid,status) VALUES (%d,'%s','1','',%d,2,'1')";
-    db_query($sql, $lastrec, 'testfile.pdf', time());
+    $sql .= "VALUES (:cid,'testfile.pdf',:filenum,'1','Phantom file created for stress testing','application/octet-stream','pdf',2,1,:time)";
+    db_query($sql, array('cid' => $cid, 'filenum' => 'TestFile-'.$filenum, 'time' => time()));
+    $lastrec = db_query_range("SELECT fid FROM {filedepot_files} ORDER BY fid DESC", 0, 1, array())->fetchField();
+    $sql = "INSERT INTO {filedepot_fileversions} (fid,fname,version,notes,date,uid,status) VALUES (:rec,:test,'1','',:time,2,'1')";
+    db_query($sql, array('rec' => $lastrec, 'test' => 'testfile.pdf', 'time' => time()));
     $_foldersCreated[$cid]++;
   }
 
@@ -84,11 +86,11 @@ function filedepottest_createfolder($pid, $foldername='') {
   $newcid = $filedepot->cid;
   $_foldersCreated[$newcid] = 0;   // Track the number of files created in this folder
   if (empty($foldername)) $foldername = "folder({$newcid}) - pid$pid";
-  db_query("UPDATE {filedepot_categories} SET name = '%s' where cid=%d", $foldername, $newcid);
+  db_query("UPDATE {filedepot_categories} SET name = :folder where cid=:cid", array('folder' => $foldername, 'cid' => $newcid));
   $filedepot->updatePerms($newcid, $filedepot->defOwnerRights, $user->uid);
   if (isset($filedepot->defRoleRights) AND count($filedepot->defRoleRights) > 0) {
     foreach ($filedepot->defRoleRights as $role => $perms) {
-      $rid = db_result(db_query("SELECT rid FROM {role} WHERE name='%s'", $role));
+      $rid = db_query("SELECT rid FROM {role} WHERE name=:role", array('role' => $role))->fetchField();
       if ($rid and $rid > 0) {
         $filedepot->updatePerms($newcid, $perms, '', array($rid));
       }
@@ -102,7 +104,7 @@ function filedepottest_selectRandomFolder($tries=0) {
 
   if ($tries > 100) return 0; // only try 100 times and then abort
 
-  $cid = db_result(db_query_range("SELECT cid from {filedepot_categories} WHERE pid in ($parent_folders) ORDER BY RAND()", array(), 0, 1));
+  $cid = db_query_range("SELECT cid from {filedepot_categories} WHERE pid in ($parent_folders) ORDER BY RAND()", 0, 1, array())->fetchField();
 
   if ($cid > 0 AND $_foldersCreated[$cid] >= $_maxrecordsperfolder) {
     watchdog('filedepot', "Max records @maxrecords for folder: @cid", array('@maxrecords' => $_maxrecordsperfolder, '@cid' => $cid));

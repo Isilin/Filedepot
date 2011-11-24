@@ -6,6 +6,8 @@
   * Tag Cloud class for the fildepot module
   */
 
+
+
   class nexcloud {
 
     public $_tagwords;
@@ -22,7 +24,7 @@
     function __construct() {
       global $user;
 
-      if (db_result(db_query("SELECT COUNT(id) FROM {nextag_words}")) < 30) $this->_fontmultiplier = 100;
+      if (db_query("SELECT COUNT(id) FROM {nextag_words}")->fetchField() < 30) $this->_fontmultiplier = 100;
 
       if ($user->uid > 0) {
         $this->_uid = $user->uid;
@@ -60,16 +62,16 @@
       global $user;
 
       $perms = array();
-      $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
+      $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid))->fetchField();
       if ($cid > 0) {
         if ($user->og_groups != NULL) {
           $groupids = implode(',', array_keys($user->og_groups));
           if (!empty($groupids) OR $sitewide === TRUE) {
-            $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='group' AND view = 1 AND permid > 0 ";
+            $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='group' AND view = 1 AND permid > 0 ";
             $sql .= "AND permid in ($groupids) ";
-            $query = db_query($sql, $cid);
+            $query = db_query($sql, array('cid' => $cid));
             if ($query) {
-              while ($A = db_fetch_array($query)) {
+              while ($A = $query->fetchAssoc()) {
                 $perms['groups'][] = $A['permid'];
               }
             }
@@ -78,13 +80,13 @@
         // Determine all the roles the active user has and test for view permission.
         $roleids = implode(',', array_keys($user->roles));
         if (!empty($roleids) OR $sitewide === TRUE) {
-          $sql = "SELECT permid from {filedepot_access} WHERE catid=%d AND permtype='role' AND view = 1 AND permid > 0 ";
+          $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='role' AND view = 1 AND permid > 0 ";
           if (!$sitewide) {
             $sql .= "AND permid in ($roleids) ";
           }
-          $query = db_query($sql, $cid);
+          $query = db_query($sql, array('cid' => $cid));
           if ($query) {
-            while ($A = db_fetch_array($query)) {
+            while ($A = $query->fetchAssoc()) {
               $perms['roles'][] = $A['permid'];
             }
           }
@@ -109,7 +111,7 @@
         if (!empty($tagwords)) {
           $query = db_query("SELECT id FROM {nextag_words} where tagword in ($tagwords)");
           $tagids = array();
-          while ($A = db_fetch_array($query)) {
+          while ($A = $query->fetchAssoc()) {
             $tagids[] = $A['id'];
           }
           return $tagids;
@@ -134,7 +136,7 @@
       // Test that a valid array of tag id's is passed in
       if (is_array($tagids) AND count($tagids) > 0) {
         // Test that a valid item record exist
-        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
+        if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:iid", array('type' => $this->_type, 'iid' => $itemid))->fetchField() > 0) {
           // Get item permissions to determine what rights to use for tag metrics record
           $perms = $this->get_itemperms($itemid,true);
 
@@ -145,7 +147,7 @@
               $haveGroupsToUpdate = count($perms['groups']) > 0;
               $haveRolesToUpdate = count($perms['roles']) > 0;
               if($haveGroupsToUpdate OR $haveRolesToUpdate) {
-                db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=%d", $id);
+                db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=:id", array('id' => $id));
                 // use an array to handle the logic of whether to process groups, roles, or both
                 // use the key to track the field to update and the value to track the values
                 $permAccessMetric = array();
@@ -158,16 +160,16 @@
                 foreach ($permAccessMetric as $permKey => $permValue) {
                   foreach ($permValue as $permid) {
                     if ($permid > 0) {
-                      $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND " . $permKey . " = %d";
-                      if (db_result(db_query($sql, $id, $this->_type, $permid)) > 0) {
-                        $sql  = "UPDATE {nextag_metrics} SET metric=metric+1, last_updated=%d "
-                                . "WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d";
-                        db_query($sql, time(), $id, $this->_type, $permid);
+                      $sql = "SELECT count(tagid) FROM {nextag_metrics} WHERE tagid = :tid AND type = :type AND " . $permKey . " = :permkey";
+                      if (db_query($sql, array('tid' => $id, 'type' => $this->_type, 'permkey' => $permid))->fetchField() > 0) {
+                        $sql  = "UPDATE {nextag_metrics} SET metric=metric+1, last_updated=:updated "
+                                . "WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey";
+                        db_query($sql, array('updated' => time(), 'tid' => $id, 'type' => $this->_type, 'permkey' => $permid));
                       }
                       else {
                         $sql  = "INSERT INTO {nextag_metrics} (tagid,type," . $permKey . ",metric,last_updated) "
-                                . "VALUES (%d,'%s',%d,%d,%d)";
-                        db_query($sql, $id, $this->_type, $permid, 1, time());
+                                . "VALUES (:id,:type,:permkey,:alias,:time)";
+                        db_query($sql, array('id' => $id, 'type' => $this->_type, 'permkey' => $permid, 'alias' => 1, 'time' => time()));
                       }
                     }
                   }
@@ -191,7 +193,7 @@
       // Test that a valid array of tag id's is passed in
       if (is_array($tagids) AND count($tagids) > 0) {
         // Test that a valid item record exist
-        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
+        if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField() > 0) {
           // Get item permissions to determine what rights to use for tag metrics record
           $perms = $this->get_itemperms($itemid,true);
 
@@ -202,8 +204,8 @@
               $haveGroupsToRemove = count($perms['groups']) > 0;
               $haveRolesToRemove = count($perms['roles']) > 0;
               if($haveGroupsToRemove OR $haveRolesToRemove) {
-                db_query("UPDATE {nextag_words} SET metric=metric-1 WHERE id=%d", $id);
-                db_query("DELETE FROM {nextag_words} WHERE id=%d and metric=1", $id);
+                db_query("UPDATE {nextag_words} SET metric=metric-1 WHERE id=:id", array('id' => $id));
+                db_query("DELETE FROM {nextag_words} WHERE id=:id and metric=1", array('id' => $id));
                 // use an array to handle the logic of whether to process groups, roles, or both
                 // use the key to track the field to update and the value to track the values
                 $permAccessMetric = array();
@@ -216,10 +218,10 @@
                 foreach ($permAccessMetric as $permKey => $permValue) {
                   foreach ($permValue as $permid) {
                     // Delete the tag metric access record if metric = 1 else decrement the metric count
-                    db_query("DELETE FROM {nextag_metrics} WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d AND metric=1", $id, $this->_type, $permid);
-                    $sql  = "UPDATE {nextag_metrics} SET metric=metric-1, last_updated=%d "
-                            . "WHERE tagid=%d AND type='%s' AND " . $permKey . "=%d";
-                    db_query($sql, time(), $id, $this->_type, $permid);
+                    db_query("DELETE FROM {nextag_metrics} WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey AND metric=1", array('id' => $id, 'type' => $this->_type, 'permkey' => $permid));
+                    $sql  = "UPDATE {nextag_metrics} SET metric=metric-1, last_updated=:time "
+                            . "WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey";
+                    db_query($sql, array('time' => time(), 'id' => $id, 'type' => $this->_type, 'permkey' => $permid));
                   }
                 }
               }
@@ -239,7 +241,7 @@
     function update_accessmetrics($itemid, $tagids='') {
 
       if (empty($tagids)) { // Retrieve the tags field and convert into an array
-        $tags = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
+        $tags = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField();
         if (!empty($tags)) {
           $tagids = explode(',',$tags);
         }
@@ -251,7 +253,7 @@
       // Test that we now have a valid array of tag id's
       if (is_array($tagids) AND count($tagids) > 0) {
         // Test that a valid item record exist
-        if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) > 0) {
+        if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField() > 0) {
           // Get item permissions to determine what rights to use for tag metrics record
           $perms = $this->get_itemperms($itemid,true);
           // For each role or group with view access to this item - create or update the access metric record count.
@@ -276,18 +278,18 @@
                 foreach ($permAccessMetric as $permKey => $permValue) {
                   foreach ($permValue as $permid) {
                     if ($permid > 0) {
-                      $result = db_query("SELECT id FROM {nextag_metrics} WHERE tagid = %d AND type = '%s' AND %s = %d", $id, $this->_type, $permKey, $permid);
+                      $result = db_query("SELECT id FROM {nextag_metrics} WHERE tagid = :tid AND type = :type AND :permkey = :permid", array('tid' => $id, 'type' => $this->_type, 'permkey' => $permKey, 'permid' => $permid));
                       $numrecs = 0;
                       if ($result) {
-                        while ($rec = db_fetch_object($result)) {
+                        foreach ($result as $rec) {
                           $numrecs++;
                           if (!in_array($rec->id,$metricRecords)) $metricRecords[] = $rec->id;
                         }
                       }
                       if ($numrecs == 0) {
                         $sql  = "INSERT INTO {nextag_metrics} (tagid,type," . $permKey . ",metric,last_updated) "
-                                . "VALUES (%d,'%s',%d,%d,%d)";
-                        db_query($sql, $id, $this->_type, $permid, 1, time());
+                                . "VALUES (:id,:type,:permid,:alias,:time)";
+                        db_query($sql, array('id' => $id, 'type' => $this->_type, 'permid' => $permid, 'alias' => 1, 'time' => time()));
                         $metricRecords[] = db_last_insert_id('nextag_metrics','id');
                       }
                     }
@@ -301,23 +303,24 @@
              */
             if (count($metricRecords) > 0) {
               $recids = implode(',',$metricRecords);
-              db_query("DELETE FROM {nextag_metrics} WHERE tagid = %d and id NOT IN (%s)",$id,$recids);
+              db_query("DELETE FROM {nextag_metrics} WHERE tagid = :tid and id NOT IN (:rec)",array('tid' => $id,'rec' => $recids));
             } else {
-              db_query("DELETE FROM {nextag_metrics} WHERE tagid = %d ",$id);
+              db_query("DELETE FROM {nextag_metrics} WHERE tagid = :tid ",array('tid' => $id));
             }
 
             // Delete any tagword records that are no longer used
             $result = db_query("SELECT id FROM {nextag_words} WHERE metric = 0");
             if ($result) {
               // Let's do one more test and make sure no items are using this tagword
-              while ($A = db_fetch_array($result)) {
+              while ($A = $result->fetchAssoc()) {
                 /* REGEX - search for id that is the first id or has a leading comma
                  *  must then have a trailing , or be the end of the field
                  */
                 $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
                 $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
-                if (db_result(db_query($sql)) == 0) {
-                  db_query("DELETE FROM {nextag_words} WHERE id=%s",$A['id']);
+                if (db_query($sql)->fetchField() == 0) {
+                  //TODO: FIX THIS, THIS STRING MIGHT MESS UP
+                  db_query("DELETE FROM {nextag_words} WHERE id=",$A['id']);
                 }
               }
 
@@ -347,24 +350,24 @@
       if (count($perms['groups']) > 0 OR count($perms['roles']) > 0) {
         if (!empty($this->_newtags)) {
           // If item record does not yet exist - create it.
-          if (db_result(db_query("SELECT count(itemid) FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid)) == 0) {
-            db_query("INSERT INTO {nextag_items} (itemid,type) VALUES (%d,'%s')", $itemid, $this->_type);
+          if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField() == 0) {
+            db_query("INSERT INTO {nextag_items} (itemid,type) VALUES (:item,:type)", array('item' => $itemid, 'type' => $this->_type));
           }
           // Need to build list of tagid's for these tag words and if tagword does not yet exist then add it
           $tagwords = explode(',', $this->_newtags);
           $tags = array();
           foreach ($tagwords as $word) {
             $word = trim(strip_tags($word));
-            $id = db_result(db_query("SELECT id FROM {nextag_words} WHERE tagword='%s'", $word));
+            $id = db_query("SELECT id FROM {nextag_words} WHERE tagword=:word", array('word' => $word))->fetchField();
             if (empty($id)) {
-              db_query("INSERT INTO {nextag_words} (tagword,metric,last_updated) VALUES ('%s',0,%d)", $word, time());
-              $id = db_result(db_query("SELECT id FROM {nextag_words} WHERE tagword='%s'", $word));
+              db_query("INSERT INTO {nextag_words} (tagword,metric,last_updated) VALUES (:word,0,:time)", array('word' => $word, 'time' => time()));
+              $id = db_query("SELECT id FROM {nextag_words} WHERE tagword=:word", array('word' => $word))->fetchField();
             }
             $tags[] = $id;
           }
 
           // Retrieve the current assigned tags to compare against new tags
-          $currentTags = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
+          $currentTags = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField();
           $currentTags = explode(',', $currentTags);
 
           $unusedTags = array_diff($currentTags, $tags);
@@ -375,7 +378,7 @@
 
           $tagids = implode(',', $tags);
           if ($currentTags != $tags) {
-            db_query("UPDATE {nextag_items} SET tags = '%s' WHERE itemid=%d", $tagids, $itemid);
+            db_query("UPDATE {nextag_items} SET tags = :tid WHERE itemid=:item", array('tid' => $tagids, 'item' => $itemid));
           }
           return TRUE;
 
@@ -398,10 +401,10 @@
     */
     public function clear_tags($itemid) {
       // Retrieve the current assigned tags - these are the tags to update
-      $currentTags = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
+      $currentTags = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField();
       $currentTags = explode(',', $currentTags);
       $this->remove_accessmetrics($itemid, $currentTags);
-      db_query("DELETE FROM {nextag_items} WHERE itemid = %d", $itemid);
+      db_query("DELETE FROM {nextag_items} WHERE itemid = :item", array('item' => $itemid));
     }
 
 
@@ -424,10 +427,10 @@
 
     public function get_itemtags($itemid) {
       $tags = '';
-      $tagids = db_result(db_query("SELECT tags FROM {nextag_items} WHERE type='%s' AND itemid=%d", $this->_type, $itemid));
+      $tagids = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array('type' => $this->_type, 'item' => $itemid))->fetchField();
       if (!empty($tagids)) {
         $query = db_query("SELECT tagword FROM {nextag_words} WHERE id IN ($tagids)");
-        while ($A = db_fetch_array($query)) {
+        while ($A = $query->fetchAssoc()) {
           $tagwords[] = $A['tagword'];
         }
         if (isset($tagwords) AND count($tagwords) > 0) {
@@ -451,7 +454,7 @@
       $lookup = addslashes(array_pop($tags));
       $sql = "SELECT tagword FROM {nextag_words} WHERE tagword REGEXP '^$lookup' ORDER BY metric DESC";
       $q = db_query($sql);
-      while ($A = db_fetch_array($q)) {
+      while ($A = $q->fetchAssoc()) {
         $matches[] = $A['tagword'];
       }
       return $matches;
@@ -487,7 +490,7 @@
       $tagids = array();
       $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
       $i = 1;
-      while ($A = db_fetch_array($query)) {
+      while ($A = $query->fetchAssoc()) {
         $tagids[] = $A['id'];
         // REGEX - search for id that is the first id or has a leading comma
         //         must then have a trailing , or be the end of the field
@@ -502,7 +505,7 @@
       if (count($tagids) > 0) {
         $this->_activetags = implode(',', $tagids);
         $query = db_query($sql);
-        while ($A = db_fetch_array($query)) {
+        while ($A = $query->fetchAssoc()) {
           $itemids[] = $A['itemid'];
         }
         if (count($itemids) > 0) {
@@ -528,13 +531,13 @@
     }
 
     /* For each file in this folder with tagwords - update the metrics per access permission */
-    function update_accessmetrics($cid) {
+    function update_accessmetrics($cid, $tagids='') {
       $sql  = "SELECT a.itemid FROM {nextag_items} a ";
       $sql .= "LEFT JOIN {filedepot_files} b on b.fid = a.itemid ";
       $sql .= "WHERE b.cid = %d";
-      $result = db_query($sql,$cid);
-      while ($A = db_fetch_array($result)) {
-        parent::update_accessmetrics($A['itemid']);
+      $result = db_query($sql,array('cid' => $cid));
+      while ($A = $result->fetchAssoc()) {
+        parent::update_accessmetrics($A['itemid'], $tagids='');
       }
     }
 

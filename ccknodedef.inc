@@ -1,56 +1,50 @@
 <?php
 
-/**
- * @file
- * ccknodedef.inc
- * CCK Import logic that is only called after install once - when creating the first folder (node)
- * Need to extend the Content Type definition as defined by filedepot__node_info() to
- * include the CCK filefield file. Not able to do so in the HOOK_node_info
- * and not able to do so in the install routine as the filedepot module has not yet defined the content_type.
- */
-  
-function _filedepot_cck_export() {
 
-$content['type']  = array(
-  'name' => 'Filedepot Folder',
-  'type' => 'filedepot_folder',
-  'description' => 'Folder for storing documents',
-  'title_label' => 'Folder Name',
-  'body_label' => 'Folder Description',
-  'min_word_count' => 0,
-  'help' => '',
-  'node_options' => 
-  array(
-    'status' => TRUE,
-    'promote' => TRUE,
-    'sticky' => FALSE,
-    'revision' => FALSE,
-  ),
-  'old_type' => 'filedepot_folder',
-  'orig_type' => 'filedepot_folder',
-  'module' => 'filedepot',
-  'custom' => FALSE,
-  'modified' => FALSE,
-  'locked' => FALSE,
-  'reset' => 'Reset to defaults',
-  'comment' => 2,
-  'comment_default_mode' => 4,
-  'comment_default_order' => 1,
-  'comment_default_per_page' => 50,
-  'comment_controls' => 3,
-  'comment_anonymous' => 0,
-  'comment_subject_field' => 1,
-  'comment_preview' => 1,
-  'comment_form_location' => 0,
-);
-$content['fields']  = array(
-  0 => 
-  array(
+
+function filedepot_drupal_7_entities() {
+  $content = array();
+  $content['type'] = array(
+    'name' => 'Filedepot Folder',
+    'type' => 'filedepot_folder',
+    'field_name' => 'field_filedepot_folder',
+    'description' => 'Folder for storing documents',
+    'title_label' => 'Folder Name',
+    'body_label' => 'Folder Description',
+    'bundle' => 'filedepot_folder',
+    'min_word_count' => 0,
+    'help' => '',
+    'node_options' =>
+    array(
+      'status' => TRUE,
+      'promote' => TRUE,
+      'sticky' => FALSE,
+      'revision' => FALSE,
+    ),
+    'old_type' => 'filedepot_folder',
+    'orig_type' => 'filedepot_folder',
+    'module' => 'filedepot',
+    'custom' => FALSE,
+    'modified' => FALSE,
+    'locked' => FALSE,
+    'reset' => 'Reset to defaults',
+    'comment' => 2,
+    'comment_default_mode' => 4,
+    'comment_default_order' => 1,
+    'comment_default_per_page' => 50,
+    'comment_controls' => 3,
+    'comment_anonymous' => 0,
+    'comment_subject_field' => 1,
+    'comment_preview' => 1,
+    'comment_form_location' => 0,
+  );
+  $content['filedepot_field'] = array(
     'label' => 'Folder File',
     'field_name' => 'field_filedepot_file',
     'type' => 'filefield',
     'widget_type' => 'filefield_widget',
     'change' => 'Change basic information',
+    'bundle' => 'filedepot_folder',
     'weight' => '31',
     'file_extensions' => '',
     'progress_indicator' => 'bar',
@@ -66,84 +60,74 @@ $content['fields']  = array(
     'op' => 'Save field settings',
     'module' => 'filefield',
     'widget_module' => 'filefield',
-    'columns' => 
+    'columns' =>
     array(
-      'fid' => 
+      'fid' =>
       array(
         'type' => 'int',
         'not null' => FALSE,
         'views' => TRUE,
       ),
-      'list' => 
+      'list' =>
       array(
         'type' => 'int',
         'size' => 'tiny',
         'not null' => FALSE,
         'views' => TRUE,
       ),
-      'data' => 
+      'data' =>
       array(
         'type' => 'text',
         'serialize' => TRUE,
         'views' => TRUE,
       ),
     ),
-    'display_settings' => 
+    'display_settings' =>
     array(
-      'label' => 
+      'label' =>
       array(
         'format' => 'above',
         'exclude' => 0,
       ),
-      'teaser' => 
+      'teaser' =>
       array(
         'format' => 'default',
         'exclude' => 0,
       ),
-      'full' => 
+      'full' =>
       array(
         'format' => 'default',
         'exclude' => 0,
       ),
-      4 => 
+      4 =>
       array(
         'format' => 'default',
         'exclude' => 0,
       ),
     ),
-  ),
-);
-$content['extra']  = array(
-  'title' => '-5',
-  'body_field' => '0',
-  'revision_information' => '20',
-  'comment_settings' => '30',
-  'menu' => '-2',
-);
+  );
+  $content['extra']  = array(
+    'title' => '-5',
+    'body_field' => '0',
+    'field_name' => 'field_filedepot_extra',
+    'bundle' => 'filedepot_folder',
+    'revision_information' => '20',
+    'comment_settings' => '30',
+    'menu' => '-2',
+  );
 
-
-return $content;
-
+  return $content;
 }
 
 
 function filedepot_install_cck_filefield() {
-
-  // CCK content_copy.module may not be enabled, so make sure it is included
-  require_once './' . drupal_get_path('module', 'content') .  '/modules/content_copy/content_copy.module';
-
-  /* get the CCK node types to be created. This is where you load the 
-  * file containing your function from above, if necessary, and then call
-  * that function.
-  */
-  $content = _filedepot_cck_export();
-  $form_state['values']['type_name'] = 'filedepot_folder';
-  $form_state['values']['macro'] = '$content = ' . var_export($content, TRUE) . ';';
-  // form provided by content_copy.module 
-  drupal_execute('content_copy_import_form', $form_state);
-  content_clear_type_cache();
+  
+  $content = filedepot_drupal_7_entities();
+//  $type = node_type_set_defaults($content['type']);
+//  node_type_save($type);
+//  field_create_field($content['filedepot_field']);
+//  field_create_field($content['extra']);
 
   watchdog('filedepot', 'Completed adding CCK filefield to the Folder Content Type');
-
 }
 

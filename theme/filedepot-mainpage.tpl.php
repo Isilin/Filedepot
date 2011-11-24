@@ -12,7 +12,6 @@
 
 <!-- On-Demand loading the Module Javascript using YUI Loader -->
 
-
 <script type="text/javascript">
   var useYuiLoader = true;         // Set to false if you have manually loaded all the needed YUI libraries else they will dynamically be loaded
   var pagewidth = 0;               // Integer value: Use 0 for 100% width with auto-resizing of layout, or a fixed width in pixels

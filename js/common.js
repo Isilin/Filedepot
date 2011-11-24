@@ -1749,6 +1749,7 @@ function doAJAXClearNotificationLog() {
 };
 
 function upload() {
+  debugger;
   if (fileID != null) {
     if (document.getElementById("filedepot_notify").checked) {
       var notify = 1;

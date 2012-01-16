@@ -76,6 +76,15 @@ class filedepot {
     $this->tmp_storage_path  =  drupal_realpath('public://') . '/filedepot/';
     $this->tmp_incoming_path  = drupal_realpath('public://') . '/filedepot/incoming/';
     $this->root_storage_path = variable_get('filedepot_storage_path', str_replace('\\', '/', getcwd()) . '/filedepot_private/');
+
+    $this->root_storage_path = 'private://filedepot/';
+
+    /* @TODO: Need to add logic that will only be executed once to test
+     * that the private filesystem has been setup and the filedepot folders
+     * for the repository have been created - we can get the $private path.
+    */
+    $private = variable_get('file_private_path','');
+
     $this->recordCountPass1 = variable_get('filedepot_pass1_recordcount', 2);
     $this->recordCountPass2 = variable_get('filedepot_pass2_recordcount', 10);
 
@@ -541,12 +550,13 @@ class filedepot {
       return FALSE;
     }
 
-//    if (variable_get('filedepot_content_type_initialized', FALSE) === FALSE) {
-      require_once './' . drupal_get_path('module', 'filedepot') .  '/ccknodedef.inc';
-      filedepot_install_cck_filefield();
-
-      variable_set('filedepot_content_type_initialized',TRUE);
-//    }
+    //if (variable_get('filedepot_content_type_initialized', FALSE) === FALSE) {
+    //  require_once './' . drupal_get_path('module', 'filedepot') .  '/setup_content_type.inc';
+    //  filedepot_setup_folder_content_type();
+    //  variable_set('filedepot_content_type_initialized',TRUE);
+    //} else {
+    //  watchdog('filedepot','Content type initialized');
+    //}
 
     if (@is_dir($this->tmp_storage_path) === FALSE) {
       @mkdir($this->tmp_storage_path, FILEDEPOT_CHMOD_DIRS);
@@ -566,7 +576,7 @@ class filedepot {
       array(
         'pfolder' => $node->parentfolder,
         'title' => $node->title,
-        'folder' => $node->folderdesc,
+        'folder' => $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'],
         'maxorder' => $maxorder,
         'nid' => $node->nid,
         'vid' => $node->vid));
@@ -581,7 +591,7 @@ class filedepot {
       $this->cid = $cid;
       $catpid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
         array('cid' => $cid))->fetchField();
-      if ($node->inherit == 1 AND $catpid > 0) {
+      if (isset($node->inherit) AND $node->inherit == 1 AND $catpid > 0) {
         // Retrieve parent User access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin FROM {filedepot_access} "
         . "WHERE permtype='user' AND permid > 0 AND catid=:cid";
@@ -710,10 +720,7 @@ class filedepot {
   }
 
 
-  public function deleteFolder($nid) {
-    $deleteFolderId = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
-      array('nid' => $nid))->fetchField();
-
+  public function deleteFolder($filedepot_folder_id) {
     /* Test for valid folder and admin permission one more time
      * We are going to override the permission test in the function filedepot_getRecursiveCatIDs()
      * and return all subfolders in case hidden folders exist for this user.
@@ -721,33 +728,46 @@ class filedepot {
      * and any subfolders.
      */
 
-    if ($deleteFolderId > 0 AND $this->checkPermission($deleteFolderId, 'admin')) {
+    if ($filedepot_folder_id > 0 AND $this->checkPermission($filedepot_folder_id, 'admin')) {
       // Need to delete all files in the folder
       /* Build an array of all linked categories under this category the user has admin access to */
       $list = array();
-      array_push($list, $deleteFolderId);
+      array_push($list, $filedepot_folder_id);
 
       // Passing in permission check over-ride as noted above to filedepot_getRecursiveCatIDs()
-      $list = $this->getRecursiveCatIDs ($list, $deleteFolderId, 'admin',TRUE);
+      $list = $this->getRecursiveCatIDs ($list, $filedepot_folder_id, 'admin',TRUE);
       foreach ($list as $cid) {
-        $query = db_query("SELECT fid FROM {filedepot_files} WHERE cid=:cid", array('cid'=>$cid));
+        //watchdog('filedepot', "deleteFolder - processing cid: $cid");
+
+        // Drupal will remove the file attachments automatically when folder node is deleted even if file usage is > 1
+        $query = db_query("SELECT drupal_fid FROM {filedepot_files} WHERE cid=:cid", array(':cid' => $cid));
         while ($A = $query->fetchAssoc())  {
-          $this->deleteFile($A['fid']);
+          $file = file_load($A['drupal_fid']);
+          file_usage_delete($file,'filedepot');
+          //file_delete($file);
         }
-        $deleteNodeId = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array('cid'=>$cid))->fetchField();
-        db_query("DELETE FROM {filedepot_categories} WHERE cid=:cid", array('cid'=>$cid));
-        db_query("DELETE FROM {filedepot_access} WHERE catid=:cid", array('cid'=>$cid));
-        db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid", array('cid'=>$cid));
-        db_query("DELETE FROM {filedepot_notifications} WHERE cid=:cid", array('cid'=>$cid));
-        db_query("DELETE FROM {filedepot_filesubmissions} WHERE cid=:cid", array('cid'=>$cid));
-        db_query("DELETE FROM {node} WHERE nid=:nid", array('nid'=>$deleteNodeId));
-        $catdir = $this->root_storage_path . $cid;
-        if (file_exists($catdir)) {
-          @unlink($this->root_storage_path . "$cid/.htaccess");
-          @unlink($this->root_storage_path . "$cid/submissions/.htaccess");
-          @rmdir("{$catdir}/submissions");
-          @rmdir($catdir);
+
+        $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
+          array(':cid' => $cid))->fetchField();
+        db_query("DELETE FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid));
+        db_query("DELETE FROM {filedepot_access} WHERE catid=:cid", array('cid' => $cid));
+        db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid", array('cid' => $cid));
+        db_query("DELETE FROM {filedepot_notifications} WHERE cid=:cid", array('cid' => $cid));
+        db_query("DELETE FROM {filedepot_filesubmissions} WHERE cid=:cid", array('cid' => $cid));
+
+        // Call the drupal node delete now for the subfolder node
+        //watchdog('filedepot',"Calling node_delete for node id: {$subfolder_nid}");
+        node_delete($subfolder_nid);
+
+        // Remove the physical directory
+        $uri = $this->root_storage_path . $cid;
+        if (file_exists($uri)) {
+          $ret = @drupal_rmdir("{$uri}/.htaccess");
+          $ret = @drupal_rmdir("{$uri}/submissions/.htaccess");
+          $ret = @drupal_rmdir("{$uri}/submissions");
+          $ret = @drupal_rmdir($uri);
         }
+
       }
       return TRUE;
     }
@@ -769,107 +789,38 @@ class filedepot {
   }
 
 
-  public function deleteNodeCCKField($cid,$cckfid) {
 
-    // Need to update Drupal and have it remove the files record and CCK related table record (if any the folder (node) has any attachments)
-    $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array('cid'=>$cid));
-    $node = node_load($nid);
-    if (is_array($node->field_filedepot_file) AND count($node->field_filedepot_file) > 0) {
-      foreach ($node->field_filedepot_file as $id => $file) {
-        if ($file['fid'] == $cckfid) {
-          /* Was having an issue doing a multi-delete which appeared to be cache related.
-          * After the file was deleted the next delete when the node was loaded would still contain the un-deleted file reference
-          * And the nodeapi hook would then treat it as a missing filedepot record - like a new file was added from the drupal UI
-          * and add the file back - but not all the cck data was there anymore.
-          * Test: Add three files to a folder, delete 2 and then add 1 more new file
-          * Doing single deletes worked using the method to unset files array data for the attachment (file)
-          * to remove and then calling the node_save. I have opted for now to delete the cck data directly.
-          * Need to investigate the cache clear options
-          * cache_clear('content_type_info') or content_clear_type_cache()
-          *
-          */
-          //unset($node->field_filedepot_file[$id]);
-          //node_save($node);
-          db_query("DELETE FROM {files} WHERE fid = :fid", array('fid'=>$cckfid));  // Remove  the record from the drupal files table
-          db_query("DELETE FROM {content_field_filedepot_file} WHERE vid = :vid AND field_filedepot_file_fid = :fid",
-            array('vid' => $nid, 'fid' => $cckfid));
-          // Adding this function to clear CCK cache appears to have fixed the delete issue.
-          content_clear_type_cache();
-        }
-      }
-    }
-  }
-
-
+  /* Delete the file and any versions */
   public function deleteFile($fid) {
-    global $user;
+    $query = db_query("SELECT cid,drupal_fid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid));
+    list ($cid,$dfid) = array_values($query->fetchAssoc());
+    if ($this->checkPermission($cid, 'admin')) {
+      $file = file_load($dfid);
 
-    // Additional testing for the nexcloud instance because this method is also called from filedepot_uninstall()
-    if (function_exists('filedepot_nexcloud')) {
-        $nexcloud =  filedepot_nexcloud();
+      // Drupal is not updating the node when the file (attachment) is deleted
+      // Need to cycle thru the attachments and remove it then save the node
+      $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
+        array('cid' => $cid))->fetchField();
+      $foldernode = node_load($nid);
+      foreach ($foldernode->filedepot_folder_file[LANGUAGE_NONE] as $delta => $attachment) {
+        if ($attachment['fid'] == $dfid) {
+          unset($foldernode->filedepot_folder_file[LANGUAGE_NONE][$delta]);
+          node_save($foldernode);
+          break;
+        }
+      }
+      file_usage_delete($file,'filedepot');
+      file_delete($file);
+      return TRUE;
     } else {
-        module_load_include('php','filedepot','nexcloud.class');
-        $nexcloud = new filedepotTagCloud();
-    }
-
-    if ($user->uid > 0 AND db_query("SELECT fid FROM {filedepot_files} WHERE fid=:fid", array('fid'=>$fid))->fetchField() == $fid) {
-      // Check if user is the owner or has category admin rights
-      $query = db_query("SELECT cid,cckfid,title,version,submitter,size FROM {filedepot_files} WHERE fid=:fid", array('fid'=>$fid));
-      list ($cid, $cckfid, $title, $version, $submitter, $fsize) = array_values($query->fetchAssoc());
-      if ($submitter == $user->uid OR $this->checkPermission($cid, 'admin')) {
-
-        // Need to check there are no other repository entries in this category for the same filename
-        $fname = db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version",
-          array('fid' => $fid, 'version' => $version))->fetchField();
-        if (db_query("SELECT COUNT(fid) from {filedepot_files} WHERE cid=:cid AND fname=:fname", array(
-          'cid' => $cid, 'fname' => $fname))->fetchField() == 1) {
-          $ret = @unlink($this->root_storage_path . "$cid/$fname");
-          if (!$ret) {
-            watchdog('filedepot', 'Attempted to unlink file but failed - path: @path',
-            array('@path' => "{$this->root_storage_path}$cid/$fname"));
-          }
-          else {
-            watchdog('filedepot', 'Successfully deleted file: @file',
-            array('@file' => "{$this->root_storage_path}$cid/$fname"));
-          }
-        }
-        elseif (db_query("SELECT fid from {filedepot_files} WHERE cid=:cid AND fname=:fname", array(
-          'cid' => $cid, 'fname' => $fname))->fetchField() > 1) {
-          watchdog('filedepot', 'Delete physical file skipped - more then 1 record in folder @folder for file: @file',
-          array('@folder' => $cid, '@file' => $fname));
-        }
-        else {
-          watchdog('filedepot', 'Delete file failed - no matching record, cid: @cid, file: @file',
-          array('@cid' => $cid, '@file' => $fname));
-        }
-        $nexcloud->clear_tags($fid);  // Clear all tags and update metrics for this item
-        db_query("DELETE FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
-        db_query("DELETE FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
-        db_query("DELETE FROM {filedepot_notifications} WHERE fid=:fid", array('fid' => $fid));
-
-        // Remove the CCK records for this attachment (file)
-        $this->deleteNodeCCKField($cid,$cckfid);
-
-        return TRUE;
-      }
-      else {
-        watchdog('filedepot', 'Unable to delete file. User: @user, file: @fid and Folder: @folder',
-        array('@user' => $user->uid, '@fid' => $fid, '@folder' => $cid));
-        $GLOBALS['alertMsg'] = 'No permission to remove selected file(s)';
-        return FALSE;
-      }
-
-    }
-    else {
       return FALSE;
     }
   }
 
-
   public function deleteSubmission($id) {
-    $query = db_query("SELECT cid,cckfid,tempname,fname,notify FROM {filedepot_filesubmissions} WHERE id=:id",
+    $query = db_query("SELECT cid,drupal_fid,tempname,fname,notify FROM {filedepot_filesubmissions} WHERE id=:id",
       array('id' => $id));
-    list ($cid, $cckfid, $tempname, $fname, $notify) = array_values($query->fetchAssoc());
+    list ($cid, $drupal_fid, $tempname, $fname, $notify) = array_values($query->fetchAssoc());
     if (!empty($tempname) AND file_exists("{$this->root_storage_path}{$cid}/submissions/$tempname")) {
       @unlink("{$this->root_storage_path}{$cid}/submissions/$tempname");
 
@@ -878,8 +829,6 @@ class filedepot {
 
       db_query("DELETE FROM {filedepot_filesubmissions} WHERE id=:id",
         array('id' => $id));
-      // Remove the CCK records for this attachment (file)
-      $this->deleteNodeCCKField($cid, $cckfid);
       return TRUE;
     }
     else {
@@ -892,11 +841,13 @@ class filedepot {
 
     $filemoved = FALSE;
     if ($newcid > 0) {
-      $query = db_query("SELECT fname,cid,cckfid,version,submitter FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
-      list ($fname, $orginalCid, $cckfid, $curVersion, $submitter) = array_values($query->fetchAssoc());
+      $query = db_query("SELECT fname,cid,drupal_fid,version,submitter FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
+      list ($fname, $orginalCid, $dfid, $curVersion, $submitter) = array_values($query->fetchAssoc());
       if ($submitter == $user->uid OR $this->checkPermission($newcid, 'admin')) {
         if ($newcid !== intval($orginalCid)) {
           // Check if there is more then 1 reference to this file in this category
+
+          /*
           if (db_query("SELECT fid from {filedepot_files} WHERE cid=:cid AND fname=:fname", array(
             'cid' => $originalCid,
             'fname' => $fname))->fetchField() > 1) {
@@ -909,85 +860,52 @@ class filedepot {
             array('@folder' => $orginalCid, '@name' => $fname));
             $dupfile_inuse = FALSE;
           }
+          */
 
           /* Need to move the file */
           $query2 = db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
           while ($A = $query2->fetchAssoc()) {
             $fname = stripslashes($A['fname']);
             $sourcefile = $this->root_storage_path . "{$orginalCid}/{$fname}";
-            if (!is_dir($sourcefile) AND file_exists($sourcefile) )  {
-              watchdog('filedepot', 'Checking if file @file exists - TRUE', array('@file' => $sourcefile));
-              $targetfile = $this->root_storage_path . "{$newcid}/{$fname}";
-              // If there is more then 1 reference to this file in this category
-              if ($dupfile_inuse) {
-                @copy($sourcefile, $targetfile);
-              }
-              else {
-                if (file_exists($targetfile)) {
-                  @unlink($sourcefile);
-                }
-                else {
-                  @rename($sourcefile, $targetfile);
-                }
-              }
-              // Test that file has actually been moved now
-              if (!is_dir($targetfile) AND file_exists($targetfile) )  {
-                $filemoved = TRUE;
-                db_query("UPDATE {files} SET filepath=:filepath WHERE fid=:fid",
-                  array(
-                    'filepath' => $targetfile,
-                    'fid' => $cckfid));
-              }
-            }
-            else {
-              watchdog('filedepot', 'Checking if file @file exists - FALSE', array('@file' => $sourcefile), WATCHDOG_ERROR);
-            }
-          }
-          if ($filemoved) {    // At least one file moved - so now update record
-            db_query("UPDATE {filedepot_files} SET cid=:cid WHERE fid=:fid", array(
-              'cid' => $newcid,
-              'fid' => $fid));
 
-            /* We are moving attachments between nodes and although we have updated the filedepot records,
-               the native drupal cck module table still has the file linked to the original node (folder)
-               Trying to manually rebuild the node and do a node_save did not work
-               Have had to resort to manually updating the cck table
-               */
+            $private_destination = "private://filedepot/{$newcid}/";
 
-            $q1 = db_query("SELECT nid,vid FROM {filedepot_categories} WHERE cid=:cid",
-              array(
-                'cid' => $newcid));
-            $newrec = $q1->fetchAssoc();
-            // Get the current file (attachment) offset for the target folder node
-            $q2 = db_query("SELECT delta FROM {content_field_filedepot_file} WHERE nid=:nid AND vid=:vid ORDER BY delta DESC LIMIT 1",
-              array(
-                'nid' => $newrec['nid'],
-                'vid' => $newrec['vid']));
-            $delta = $q2->fetchField();
-            if ($delta !== FALSE) {
-              $delta++;
-            }
-            else {
-              $delta = 0;
-            }
-            // Retrieve the current record data -- we will need to change the nid and update the delta (offset) so it will be correct for the new folder
-            $q3 = db_query("SELECT * FROM {content_field_filedepot_file} WHERE field_filedepot_file_fid=:fid", array('fid' => $cckfid));
-            $sfile = $q3->fetchObject();
-            db_query("DELETE FROM {content_field_filedepot_file} WHERE field_filedepot_file_fid=:fid", array('fid' => $cckfid));
-            // Insert new record for the moved file - for the target node
-            $sql = "INSERT INTO {content_field_filedepot_file} "
-                 . "(vid, nid, delta, field_filedepot_file_fid, field_filedepot_file_list, field_filedepot_file_data) "
-                 . "VALUES (:vid, :nid, :delta, :fid, 1, :data)";
-            db_query($sql, array(
-              'vid' => $newrec['vid'],
-              'nid' => $newrec['nid'],
-              'delta' => $delta,
-              'fid' => $sfile->field_filedepot_file_fid,
-              'data' => $sfile->field_filedepot_file_data));
+            // Best to call file_prepare_directory() - even if you believe directory exists
+            file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
+
+            $file = file_load($dfid);
+            $private_uri = $private_destination . $file->filename;
+            $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+            list($scheme, $target) = explode('://', $file->uri, 2);
+            $moved_filename = str_replace("filedepot/{$newcid}/",'',$target);
+            if ($moved_filename != $fname) {
+               db_update('filedepot_fileversions')
+                          ->fields(array('fname' => $moved_filename))
+                          ->condition('fid', $fid)
+                          ->execute();
+           }
+
+            // Check the new file name as it will be renamed if a duplicate exists in this directory
+
+
+            // Update folder node - add the file as an attachment
+            /* @TODO D7: Going to have to revisit this when file has versions.
+             * Multiple versions do not appear in the native interface
+             * I only want to attach the most recent version to the native folderr.
+            */
+            // Doing node_save changes the file status to permanent in the file_managed table
+            $folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",  array( ':cid' => $newcid))->fetchField();
+            $node = node_load($folder_nid);
+            $node->filedepot_folder_file[LANGUAGE_NONE][] = (array)$file;//the name of the field that requires the files
+            node_save($node);
+            // Need to clear the cache as the node will still have the original file name
+            field_cache_clear();
+            db_update('filedepot_files')
+                        ->fields(array('cid' => $newcid))
+                        ->condition('fid', $fid)
+                        ->execute();
           }
-        }
-        else {
-          $filemoved = TRUE;  // No move requested but no errors or warnings so return true
+          $filemoved = TRUE;
         }
       }
       else {
@@ -1049,7 +967,7 @@ class filedepot {
         $nodefileObj = new stdClass();
         $nodefileObj->fid = $nodefile['fid'];   // file_set_status API expects an object but just needs fid
         file_set_status($nodefileObj, 1);
-        $node->field_filedepot_file[] = $nodefile;
+        $node->filedepot_folder_file[] = $nodefile;
         node_save($node);
 
         // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
@@ -1198,9 +1116,9 @@ class filedepot {
           'fid' => $file->fid));
         list($cid, $fname, $curVersion, $cckfid) = array_values($query->fetchAssoc());
 
-        $field = content_fields('field_filedepot_file', 'filedepot_folder');
+        $field = content_fields('filedepot_folder_file', 'filedepot_folder');
         $db_info = content_database_info($field);
-        db_query("UPDATE " . $db_info['table'] . " SET field_filedepot_file_fid = :fid WHERE field_filedepot_file_fid = :old_fid",
+        db_query("UPDATE " . $db_info['table'] . " SET filedepot_folder_file_fid = :fid WHERE filedepot_folder_file_fid = :old_fid",
           array(
             'fid' => $nodefile['fid'],
             'old_fid' => $cckfid));
@@ -1552,7 +1470,7 @@ class filedepot {
           $nodefileObj = new stdClass();
           $nodefileObj->fid = $file->cckfid;   // file_set_status API expects an object but just needs fid
           file_set_status($nodefileObj, 1);
-          $node->field_filedepot_file[] = $nodefile;
+          $node->filedepot_folder_file[] = $nodefile;
           node_save($node);
 
           // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
@@ -1625,3 +1543,4 @@ class filedepot {
   }
 
 }
+

@@ -17,12 +17,14 @@ body.layout-left-main .outer { margin-left:0px !important; }
 #filedepot_sidecol {
   float:left;
   width:210px;
-  background-color: #EFEFEF;
-  border-right:1px solid #ccc;
   padding-top:10px;
   padding-left:3px;
   margin-right:4px;
   overflow:hidden;
+}
+
+#filedepotNavTreeDiv table tr {
+  background-color: transparent;
 }
 
 #filedepot_centercol {
@@ -31,6 +33,7 @@ body.layout-left-main .outer { margin-left:0px !important; }
   margin-top:0px;
   margin-right:0px;
   padding:0px;
+  background-color: #FFFFFF;
 }
 
 #filedepotmodule table { margin: 0px !important; border: 0px !important}
@@ -642,7 +645,7 @@ a.cancelbutton:hover {
 .deletebuttonborder {
     margin:0px;
     padding:5px 0px 5px 3px;
-    border:1px solid red;
+    border:0px solid red;
 }
 
 .yui-skin-sam .yui-layout .yui-layout-unit div.yui-layout-bd {
@@ -701,4 +704,19 @@ a.cancelbutton:hover {
 .yuimenubar li { background-image: none; }
 
 .yui-skin-sam .yui-button button { min-height:1.7em !important; }
+
+
+
+
+#filedepot_newfolder_link {
+  padding-left:20px;
+  padding-right:10px;
+}
+
+#filedepot_newfile_link a {
+  color: #FFF;
+}
+#filedepot_newfolder_link a {
+  color: #FFF;
+}
 

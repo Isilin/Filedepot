@@ -60,23 +60,6 @@ var init_filedepot = function() {
 
   var oSearchButton = new YAHOO.widget.Button("searchbutton");
 
-  // User may not have upload rights
-  try {
-    YAHOO.widget.Uploader.SWFURL = yui_uploader_url;
-    uploader = new YAHOO.widget.Uploader( "uploaderUI", imgset + '/UploadButton_61x22.png' );
-    uploader.addListener('contentReady', handleContentReady);
-    uploader.addListener('fileSelect',onFileSelect)
-    uploader.addListener('uploadProgress',onUploadProgress);
-    uploader.addListener('uploadComplete',onUploadComplete);
-    uploader.addListener('uploadCompleteData',onUploadResponse);
-    document.getElementById('btnNewFileSubmit').disabled=true;
-    if (show_upload) Dom.setStyle('newfilelink','display','');
-  } catch(e) {
-    //alert(e.message);
-    alert('failed to load uploader');
-  }
-
-
   <!-- File Tags Panel -->
   YAHOO.container.tagspanel = new YAHOO.widget.Panel("tagspanel",
   { width:"320px",
@@ -129,7 +112,7 @@ var init_filedepot = function() {
   YAHOO.container.newfolderdialog.render();
 
   // Setup the New File Dialog
-  if (show_upload) Dom.setStyle('newfiledialog', 'display', 'block');
+  Dom.setStyle('newfiledialog', 'display', 'block');
   YAHOO.container.newfiledialog = new YAHOO.widget.Panel("newfiledialog",
   { width : "520px",
     visible : false,
@@ -326,137 +309,6 @@ var init_filedepot = function() {
 
   // Browser may have cached selected items and checked checkbox'es but verify and reset if need
   enable_multiaction(document.frmtoolbar.checkeditems.value);
-
-
-  /* Auto-Complete feature for tags field on the New File form */
-  YAHOO.filedepot.newFileAutoComplete = function() {
-    // Use an XHRDataSource
-    var oDS = new YAHOO.util.XHRDataSource(ajax_post_handler_url);
-    // Set the responseType
-    oDS.responseType = YAHOO.util.XHRDataSource.TYPE_TEXT;
-
-    oDS.responseSchema = {
-      recordDelim: "\n",
-      fieldDelim: "\t"
-    };
-
-    // Enable caching
-    oDS.maxCacheEntries = 5;
-
-    try {
-      var tstore = document.frmNewFile.tagstore;
-    } catch(e) {}
-
-    // Instantiate the AutoComplete
-    var oAC = new YAHOO.widget.AutoComplete("newfile_tags", "newfile_autocomplete", oDS);
-    oAC.queryQuestionMark = false;
-    oAC.autoHighlight = true;
-    oAC.generateRequest = function(sQuery) {
-      return "/autocompletetag&query=" + sQuery;
-    };
-
-    // Following two methods added to handle multiple tags
-    // Allowing you to query still on new tags when there are already tags in the input text box
-    // Needed to handle allowing you to delete or clearing tags in the text box as well
-    oAC.doBeforeExpandContainer = function( elTextbox ) {
-      var tags = elTextbox.value.replace(/^\s+|\s+$/g, '');
-      if (tags.length > 1) {
-        var atags = tags.split(',');
-        var stags = '';
-        for (var i = 0; i < atags.length-1; i++) {
-          stags = stags + ',' + atags[i];
-        }
-        // After trimming and re-building tags string in case user has removed or cleared
-        // Save the tag(s) to be used after user selectes a new tag
-        tstore.value = stags;
-      }
-      return true;
-    };
-
-    // OnSelect of tag, add it to the existing saved tags
-    var itemSelectHandler = function(sType, aArgs) {
-      tstore.value = tstore.value + ',' +  aArgs[2];
-      tstore.value = tstore.value.replace(/^,*/g, '');
-      Dom.get('newfile_tags').value = tstore.value;
-    };
-
-    //subscribe your handler to the event, assuming
-    //you have an AutoComplete instance oAC:
-    try {
-      oAC.itemSelectEvent.subscribe(itemSelectHandler);
-    } catch(e) {}
-
-    return {
-      oDS: oDS,
-      oAC: oAC
-    };
-  }();
-
-
-  /* Auto-Complete feature for tags field on the Edit File form */
-  YAHOO.filedepot.editFileAutoComplete = function() {
-    // Use an XHRDataSource
-    var oDS = new YAHOO.util.XHRDataSource(ajax_post_handler_url);
-    // Set the responseType
-    oDS.responseType = YAHOO.util.XHRDataSource.TYPE_TEXT;
-
-    oDS.responseSchema = {
-      recordDelim: "\n",
-      fieldDelim: "\t"
-    };
-
-    // Enable caching
-    oDS.maxCacheEntries = 5;
-
-    try {
-      var tstore = document.frmFileDetails.tagstore;
-    } catch(e) {}
-
-    // Instantiate the AutoComplete
-    var oAC = new YAHOO.widget.AutoComplete("editfile_tags", "editfile_autocomplete", oDS);
-    oAC.queryQuestionMark = false;
-    oAC.autoHighlight = true;
-    oAC.generateRequest = function(sQuery) {
-      return "/autocompletetag&query=" + sQuery;
-    };
-
-    // Following two methods added to handle multiple tags
-    // Allowing you to query still on new tags when there are already tags in the input text box
-    // Needed to handle allowing you to delete or clearing tags in the text box as well
-    oAC.doBeforeExpandContainer = function( elTextbox ) {
-      var tags = elTextbox.value.replace(/^\s+|\s+$/g, '');
-      if (tags.length > 1) {
-        var atags = tags.split(',');
-        var stags = '';
-        for (var i = 0; i < atags.length-1; i++) {
-          stags = stags + ',' + atags[i];
-        }
-        // After trimming and re-building tags string in case user has removed or cleared
-        // Save the tag(s) to be used after user selectes a new tag
-        tstore.value = stags;
-      }
-      return true;
-    };
-
-    // OnSelect of tag, add it to the existing saved tags
-    var itemSelectHandler = function(sType, aArgs) {
-      tstore.value = tstore.value + ',' +  aArgs[2];
-      tstore.value = tstore.value.replace(/^,*/g, '');
-      Dom.get('editfile_tags').value = tstore.value;
-    };
-
-    //subscribe your handler to the event, assuming
-    //you have an AutoComplete instance oAC:
-    try {
-      oAC.itemSelectEvent.subscribe(itemSelectHandler);
-    } catch(e) {}
-
-    return {
-      oDS: oDS,
-      oAC: oAC
-    };
-  }();
-
 
 
 };

@@ -54,10 +54,6 @@ function clearAjaxActivity() {
 }
 
 
-function hideNewFilePanel() {
-  uploaderInit();
-  YAHOO.container.newfiledialog.hide();
-}
 
 function hideFileDetailsPanel() {
   Dom.get('displayfiledetails').innerHTML = '';
@@ -1518,51 +1514,6 @@ function makeAJAXBroadcastNotification () {
 
 
 
-/* START - Functions to handle the New File Upload */
-function handleContentReady () {
-  // Allows the uploader to send log messages to trace, as well as to YAHOO.log
-  uploader.setAllowLogging(false);
-
-  // Restrict selection to a single file (that's what it is by default,
-  // just demonstrating how).
-  uploader.setAllowMultipleFiles(false);
-
-  // New set of file filters.
-  var ff = new Array({description:"All Files", extensions:"*.*"},
-  {description:"Images", extensions:"*.jpg;*.png;*.gif"},
-  {description:"Videos", extensions:"*.avi;*.mov;*.mpg"});
-  // Apply new set of file filters to the uploader.
-  uploader.setFileFilters(ff);
-
-  document.getElementById("fileName").innerHTML = '';
-  uploader.enable();
-  Dom.setStyle('btnClearUpload','visibility','hidden');
-}
-
-
-function onFileSelect(event) {
-  for (var item in event.fileList) {
-    if(YAHOO.lang.hasOwnProperty(event.fileList, item)) {
-      fileID = event.fileList[item].id;
-    }
-  }
-  if (fileID != null) {
-    document.getElementById('btnNewFileSubmit').disabled=false;
-    if (document.frmNewFile.op.value == 'savefile') {
-      var elm = document.getElementById('newfile_category');
-      if (elm.options[elm.selectedIndex].value == 0)
-        document.getElementById('btnNewFileSubmit').disabled=true;
-    }
-    Dom.setStyle('btnClearUpload','visibility','visible');
-    uploader.disable();
-    var filename = document.getElementById("fileName");
-    filename.innerHTML = event.fileList[fileID].name;
-    Dom.get('newfile_displayname').value = filename.innerHTML;
-    var progressbar = document.getElementById("progressBar");
-    progressbar.innerHTML = "";
-    document.getElementById('newfile_displayname').focus();
-  }
-}
 
 function onCategorySelect(elm) {
   if (document.frmNewFile.op.value == 'savefile') {
@@ -1748,80 +1699,6 @@ function doAJAXClearNotificationLog() {
   YAHOO.util.Connect.asyncRequest('GET', surl, callback);
 };
 
-function upload() {
-  debugger;
-  if (fileID != null) {
-    if (document.getElementById("filedepot_notify").checked) {
-      var notify = 1;
-    } else {
-      var notify = 0;
-    }
-    timeDiff.setStartTime();
-    uploader.upload(fileID, ajax_post_handler_url + '/savefile',
-    "POST",{
-      fid: document.getElementById("newfile_fid").value,
-      category: document.getElementById("newfile_category").value,
-      displayname: document.getElementById("newfile_displayname").value,
-      tags: document.getElementById("newfile_tags").value,
-      description: document.getElementById("newfile_desc").value,
-      versionnote: document.getElementById("newfile_notes").value,
-      notify: notify,
-      cookie_session: document.getElementById("cookie_session").value
-    });
-    fileID = null;
-  }
-}
-
-function onUploadProgress(event) {
-  prog = Math.round(220*(event["bytesLoaded"]/event["bytesTotal"]));
-  progbar = '<div class="uploaderprogress" style="background-color:#f00; width: ' + prog + 'px" ></div>';
-  var progressbar = document.getElementById("progressBar");
-  progressbar.innerHTML = progbar;
-}
-
-
-function onUploadComplete(event) {
-  uploaderInit();
-  YAHOO.container.newfiledialog.hide();
-}
-
-function onUploadResponse(o) {
-  var category = document.getElementById("newfile_category").value;
-  var json = o.data.substring(o.data.indexOf('{'), o.data.lastIndexOf('}') + 1);
-  var oResults = eval('(' + json + ')');
-  if (oResults.retcode == 200) {
-    YAHOO.log('upload Response: ' + oResults.retcode);
-    if (oResults.op == 'savefile') {
-      if (oResults.message != '') {
-        showAlert(oResults.message);
-      }
-      YAHOO.filedepot.refreshtagcloud();
-      YAHOO.filedepot.showfiles(oResults.cid);
-
-    } else if (YAHOO.container.filedetails.cfg.getProperty('visible')) {
-      YAHOO.filedepot.refreshFileDetails(oResults.fid);
-    }
-  } else {
-    try {
-      if (oResults.message !== undefined) {
-        showAlert(oResults.message);
-      } else if (oResults.error !== undefined) {
-        showAlert(oResults.error);
-      }
-    } catch (e) {}
-  }
-}
-
-function uploaderInit() {
-  uploader.clearFileList();
-  Dom.setStyle('btnClearUpload','visibility','hidden');
-  uploader.enable();
-  document.getElementById("fileName").innerHTML = '';
-  progbar = '<div class="uploaderprogress"></div>';
-  document.getElementById("progressBar").innerHTML = progbar;
-  document.getElementById('btnNewFileSubmit').disabled=true;
-  fileID = null;
-}
 
 // Tests if any active files have been selected - if not disable the "More Actions' select element
 function enable_multiaction(selected_files,selected_folders) {
@@ -2118,19 +1995,21 @@ function showAddNewVersion() {
   /* Clear form and then show it */
   //Dom.get('newfile_category').options[0].selected=true;
   Dom.get('newfiledialog_heading').innerHTML = NEXLANG_newversion;
-  document.frmNewFile.fid.value = document.frmFileDetails.id.value;
+  //document.frmNewFile.fid.value = document.frmFileDetails.id.value;
 
-  Dom.setStyle('newfiledialog_folderrow', 'display', 'none');
-  Dom.setStyle('newfiledialog_filedesc', 'display', 'none');
-  Dom.setStyle('newfiledialog_filename', 'display', 'none');
-  Dom.get('newfile_op').value='saveversion';
-  Dom.get('newfile_tags').value='';
-  Dom.get('newfile_notes').value='';
-  Dom.get('filedepot_notify').checked='';
+  Dom.get('filedepot-newversion-form').filedepot_fid.value = document.frmFileDetails.id.value;
+
+  //Dom.setStyle('newfiledialog_folderrow', 'display', 'none');
+  //Dom.setStyle('newfiledialog_filedesc', 'display', 'none');
+  //Dom.setStyle('newfiledialog_filename', 'display', 'none');
+  //Dom.get('newfile_op').value='saveversion';
+  //Dom.get('newfile_tags').value='';
+  //Dom.get('newfile_notes').value='';
+  //Dom.get('filedepot_notify').checked='';
   YAHOO.container.newfiledialog.cfg.setProperty("visible",true);
-  if (!Event.getListeners('btnNewFileCancel')) {   // Check first to see if listener already active
-    Event.addListener("btnNewFileCancel", "click",hideNewFilePanel, YAHOO.container.newfiledialog, true);
-  }
+  //if (!Event.getListeners('btnNewFileCancel')) {   // Check first to see if listener already active
+    //Event.addListener("btnNewFileCancel", "click",hideNewFilePanel, YAHOO.container.newfiledialog, true);
+  //}
 }
 
 function showAddCategoryPanel() {

@@ -20,8 +20,8 @@ function filedepotAjaxServer_getfilelisting() {
     $filedepot->ajaxBackgroundMode = FALSE;
   }
 
-  if (db_query("SELECT COUNT(*) FROM {filedepot_categories} WHERE cid=:cid", 
-    array( 'cid' => $filedepot->cid))->fetchField() == 0) {
+  if (db_query("SELECT COUNT(*) FROM {filedepot_categories} WHERE cid=:cid",
+    array( ':cid' => $filedepot->cid))->fetchField() == 0) {
     $filedepot->cid = 0;
   }
 
@@ -37,27 +37,29 @@ function filedepotAjaxServer_getfilelisting() {
   elseif ($filedepot->cid > 0 AND $filedepot->checkPermission($filedepot->cid, 'view')) {
     $data['retcode'] = 200;
     $data['cid'] = $filedepot->cid;
-    $foldercount = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE cid=:cid", 
-      array('cid' => $filedepot->cid))->fetchField();
+    $foldercount = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE cid=:cid",
+      array(':cid' => $filedepot->cid))->fetchField();
     if (user_is_logged_in() AND $filedepot->cid > 0 AND $foldercount == 1) {
-      $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", 
-        array('cid' => $filedepot->cid))->fetchField();
+      $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
+        array(':cid' => $filedepot->cid))->fetchField();
       if ($pid > 0) {
-        $count1 = db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=:uid", 
-          array('uid' => $user->uid))->fetchField();
+        $count1 = db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=:uid",
+          array(':uid' => $user->uid))->fetchField();
         if ($count1 > 4) {
-          db_query_range("DELETE FROM {filedepot_recentfolders} WHERE uid=:uid ORDER BY id ASC", 0, $count1 - 4,
-            array( 'uid' => $user->uid));
+          // Note DELETE not allowed in db_query_range - PDO issue with Postgres support
+          $oldest = db_query_range("SELECT id FROM {filedepot_recentfolders} WHERE uid=:uid ORDER BY id ASC", 0, 1,
+            array( ':uid' => $user->uid))->fetchField();
+          db_query("DELETE FROM {filedepot_recentfolders} WHERE id=:id ", array(':id' => $oldest));
         }
-        $count2 = db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid", 
+        $count2 = db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid",
           array(
-            'uid' => $user->uid, 
-            'cid' => $filedepot->cid))->fetchField();
+            ':uid' => $user->uid,
+            ':cid' => $filedepot->cid))->fetchField();
         if ($count2 == 0) {
-          db_query("INSERT INTO {filedepot_recentfolders} (uid,cid) VALUES (:uid,:cid)", 
+          db_query("INSERT INTO {filedepot_recentfolders} (uid,cid) VALUES (:uid,:cid)",
             array(
-              'uid' => $user->uid, 
-              'cid' => $filedepot->cid));
+              ':uid' => $user->uid,
+              ':cid' => $filedepot->cid));
         }
       }
     }
@@ -154,8 +156,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data='') {
       $res = db_query("SELECT COUNT(id) as incoming FROM {filedepot_import_queue}"); ;
     }
     else {
-      $res = db_query("SELECT COUNT(id) as incoming FROM {filedepot_import_queue} WHERE uid=:uid", 
-        array('uid' => $user->uid));
+      $res = db_query("SELECT COUNT(id) as incoming FROM {filedepot_import_queue} WHERE uid=:uid",
+        array(':uid' => $user->uid));
     }
     $A = $res->fetchAssoc();
 
@@ -173,7 +175,7 @@ function filedepotAjaxServer_generateLeftSideNavigation($data='') {
   if (user_is_logged_in()) {
     $sql  = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
     $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid WHERE uid=:uid ORDER BY id";
-    $res = db_query($sql, array('uid' => $user->uid));
+    $res = db_query($sql, array(':uid' => $user->uid));
     while ($A = $res->fetchAssoc()) {
       $data['recentfolders'][] = array(
       'name' => filter_xss($A['name']),
@@ -214,14 +216,14 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
   }
 
   if (empty($folderprefix)) {
-    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid", 
-      array('cid' => $id));
+    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
+      array(':cid' => $id));
     $rec = $q1->fetchObject();
     if ($rec->pid != 0) {
       $folderprefix = $rec->folderorder / 10;
       while ($rec->pid != 0) {
-        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid", 
-          array( 'cid' => $rec->pid));
+        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
+          array( ':cid' => $rec->pid));
         $rec = $q2->fetchObject();
         if ($rec->pid == 0) break;
         $folderprefix = $rec->folderorder / 10 . '.' . $folderprefix;
@@ -251,11 +253,11 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
       }
       $sql .= "ORDER BY folderorder";
     }
-    $qfolders = db_query($sql, array('pid' => $id));
+    $qfolders = db_query($sql, array(':pid' => $id));
     $output = '';
     $i = $rowid;
-    $maxfolderorder = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ORDER BY folderorder DESC", 
-      0, 1, array('pid' => $id))->fetchField();
+    $maxfolderorder = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ORDER BY folderorder DESC",
+      0, 1, array(':pid' => $id))->fetchField();
     while ($A = $qfolders->fetchAssoc()) {
       if (empty($folderprefix)) {
         $formatted_foldernumber = $i;
@@ -264,15 +266,15 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
         $formatted_foldernumber = "{$folderprefix}.{$i}";
       }
       $subfolderlisting = nexdocsrv_generateFileListing($A['cid'], $level, $formatted_foldernumber);
-      $subfolder_count = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE pid=:pid", 
-        array('pid' => $A['cid']))->fetchField();
+      $subfolder_count = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE pid=:pid",
+        array(':pid' => $A['cid']))->fetchField();
       if ($subfolder_count > 0) {
         // Show any sub-subfolders - calling this function again recursively
         $subfolderlisting .= filedepot_displayFolderListing($A['cid'], $level, $formatted_foldernumber, $rowid);
       }
       $retval .= theme('filedepot_folderlisting', array(
           'folderrec' => $A,
-          'folderprefix' => $formatted_foldernumber, 
+          'folderprefix' => $formatted_foldernumber,
           'level' => $level,
           'subfoldercontent' => $subfolderlisting,
           'maxorder' => $maxfolderorder
@@ -299,14 +301,14 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
   $output = '';
   $break = FALSE;
   if (empty($folderprefix)) {
-    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid", 
-      array('cid' => $cid));
+    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
+      array(':cid' => $cid));
     $rec = $q1->fetchObject();
     if ($rec->pid != 0) {
       $folderprefix = $rec->folderorder / 10;
       while ($rec->pid != 0) {
-        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid", 
-          array('cid' => $rec->pid));
+        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
+          array(':cid' => $rec->pid));
         $rec2 = $q2->fetchObject();
         if ($rec2->pid == 0) break;
         $folderprefix = $rec2->folderorder / 10 . '.' . $folderprefix;
@@ -344,7 +346,7 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
         break;
       }
       else {
-        $output .= theme('filedepot_filelisting', 
+        $output .= theme('filedepot_filelisting',
                 array(
             'listingrec' => $A,
             'foldernumber' => $folderprefix,
@@ -564,8 +566,8 @@ function filedepotAjaxServer_loadFileDetails() {
   $validfile = FALSE;
   if ($reportmode == 'approvals') {
     $id = intval($_POST['id']);
-    if (db_query("SELECT count(*) FROM {filedepot_filesubmissions} WHERE id=:id", 
-      array('id' => $id))->fetchField() == 1) {
+    if (db_query("SELECT count(*) FROM {filedepot_filesubmissions} WHERE id=:id",
+      array(':id' => $id))->fetchField() == 1) {
       $validfile = TRUE;
       $sql = "SELECT file.id as fid,file.cid,file.title,file.fname,file.date,file.size,file.version,file.submitter,file.tags,u.name, ";
       $sql .= "file.status,file.description,category.pid,category.name as folder,category.nid,file.version_note,tags ";
@@ -573,7 +575,7 @@ function filedepotAjaxServer_loadFileDetails() {
       $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
       $sql .= "LEFT JOIN {users} u ON u.uid=file.submitter ";
       $sql .= "WHERE file.id=:id ";
-      $rec = db_query($sql, array('id' => $id))->fetchAssoc();
+      $rec = db_query($sql, array(':id' => $id))->fetchAssoc();
       $retval = array_merge($retval, $rec);
       $retval['displayhtml'] = theme('filedepot_filedetail', array( 'fid' => $id, 'reportmode' => $reportmode));
       $retval['locked'] = FALSE;
@@ -583,13 +585,13 @@ function filedepotAjaxServer_loadFileDetails() {
   }
   elseif ($reportmode == 'incoming') {
     $id = intval($_POST['id']);
-    if (db_result(db_query("SELECT count(*) FROM {filedepot_import_queue} WHERE id=:id", array('id' => $id))) == 1) {
+    if (db_result(db_query("SELECT count(*) FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id))) == 1) {
       $validfile = TRUE;
       $sql = "SELECT file.id as fid,file.orig_filename as title,file.description,file.version_note,u.name ";
       $sql .= "FROM {filedepot_import_queue} file ";
       $sql .= "LEFT JOIN {users} u ON u.uid=file.uid ";
       $sql .= "WHERE file.id=:id ";
-      $rec = db_query($sql, array('id' => $id))->fetchAssoc();
+      $rec = db_query($sql, array(':id' => $id))->fetchAssoc();
       $retval = array_merge($retval, $rec);
       if (empty($retval['version_note'])) $retval['version_note'] = '';
       $retval['displayhtml'] = theme('filedepot_filedetail', array( 'fid' => $id, 'reportmode' => $reportmode));
@@ -603,9 +605,9 @@ function filedepotAjaxServer_loadFileDetails() {
   else {
     // Check that record exists
     $fid = intval($_POST['id']);
-    $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid))->fetchField();
-    if ($filedepot->checkPermission($cid, 'view') AND db_query("SELECT count(*) FROM {filedepot_files} WHERE fid=:fid", 
-      array('fid' => $fid))->fetchField() == 1) {
+    $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
+    if ($filedepot->checkPermission($cid, 'view') AND db_query("SELECT count(*) FROM {filedepot_files} WHERE fid=:fid",
+      array(':fid' => $fid))->fetchField() == 1) {
       $validfile = TRUE;
 
       $sql = "SELECT file.fid,file.cid,file.title,file.description,file.fname,file.date,file.size,file.version,file.submitter,u.name, ";
@@ -615,7 +617,7 @@ function filedepotAjaxServer_loadFileDetails() {
       $sql .= "LEFT JOIN {filedepot_fileversions} v ON v.fid=file.fid ";
       $sql .= "LEFT JOIN {users} u ON u.uid=file.submitter ";
       $sql .= "WHERE file.fid=:fid ORDER BY v.version DESC";
-      $rec = db_query($sql, array('fid' => $fid))->fetchAssoc();
+      $rec = db_query($sql, array(':fid' => $fid))->fetchAssoc();
       $retval = array_merge($retval, $rec);
 
       $retval['tags'] = $nexcloud->get_itemtags($fid);
@@ -633,8 +635,8 @@ function filedepotAjaxServer_loadFileDetails() {
       $direct = FALSE;
       $ignorefilechanges = FALSE;
       // Check if user has an ignore file changes record or a subscribe to changes record for this file
-      $query = db_query("SELECT fid,ignore_filechanges FROM {filedepot_notifications} WHERE fid=:fid and uid=:uid", 
-        array('fid' => $fid, 'uid' => $user->uid));
+      $query = db_query("SELECT fid,ignore_filechanges FROM {filedepot_notifications} WHERE fid=:fid and uid=:uid",
+        array(':fid' => $fid, ':uid' => $user->uid));
       $A = $query->fetchAssoc();
       if ($A['ignore_filechanges'] == 1) {
         $ignorefilechanges = TRUE;
@@ -643,8 +645,8 @@ function filedepotAjaxServer_loadFileDetails() {
         $direct = TRUE;
       }
       // Check and see if user has indirectly subscribed to file by subscribing to folder
-      $sql = "SELECT count(*) FROM {filedepot_notifications} WHERE cid_changes=1 AND cid=%d AND uid=%d";
-      $indirect = db_query($sql, $rec['cid'], $user->uid)->fetchField();
+      $sql = "SELECT count(*) FROM {filedepot_notifications} WHERE cid_changes=1 AND cid=:cid AND uid=:uid";
+      $indirect = db_query($sql, array(':cid' => $rec['cid'], ':uid' => $user->uid))->fetchField();
       if (($direct or $indirect) AND !$ignorefilechanges) {
         $retval['subscribed'] = TRUE;
       }
@@ -809,19 +811,19 @@ function filedepotAjaxServer_deleteCheckedFiles() {
     $folders = explode(',', $folderitems);
     foreach ($folders as $id) {
       if ($reportmode == 'notifications') {
-        if ($id > 0 AND db_query("SELECT uid FROM {filedepot_notifications} WHERE id=:id", 
-          array('id' => $id))->fetchField() > 0) {
-          db_query("DELETE FROM {filedepot_notifications} WHERE id=:id", 
-            array('id' => $id));
+        if ($id > 0 AND db_query("SELECT uid FROM {filedepot_notifications} WHERE id=:id",
+          array(':id' => $id))->fetchField() > 0) {
+          db_query("DELETE FROM {filedepot_notifications} WHERE id=:id",
+            array(':id' => $id));
         }
       }
       elseif ($id > 0 AND $_POST['multiaction'] == 'delete' AND $filedepot->checkPermission($id, 'admin')) {
-        $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", 
-          array('cid' => $id))->fetchField();
+        $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
+          array(':cid' => $id))->fetchField();
         if ($filedepot->deleteFolder($nid)) {
           // Remove any recent folder records for this category
-          db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid", 
-            array('cid' => $id));
+          db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid",
+            array(':cid' => $id));
         }
         else {
           $delerror = TRUE;
@@ -832,30 +834,30 @@ function filedepotAjaxServer_deleteCheckedFiles() {
 
   if ($reportmode == 'incoming') {
     foreach ($files as $id) {
-      if (db_query("SELECT COUNT(*) FROM {filedepot_import_queue} WHERE id=:id", 
-        array('id' => $id))->fetchField() == 1) {
-        $query = db_query("SELECT cckfid,filepath,uid FROM {filedepot_import_queue} WHERE id=:id", 
-          array('id' => $id));
+      if (db_query("SELECT COUNT(*) FROM {filedepot_import_queue} WHERE id=:id",
+        array(':id' => $id))->fetchField() == 1) {
+        $query = db_query("SELECT drupal_fid,filepath,uid FROM {filedepot_import_queue} WHERE id=:id",
+          array(':id' => $id));
         $file = $query->fetchObject();
         if ($file->uid == $user->uid OR user_access('administer filedepot', $user)) {
           if (!empty($file->filepath) AND file_exists($file->filepath)) {
             @unlink($file->filepath);
           }
-          db_query("DELETE FROM {files} WHERE fid=:cckfid", 
-            array('cckfid' => $file->cckfid));
-          db_query("DELETE FROM {filedepot_import_queue} WHERE id=:id", 
-            array('id' => $id));
+          db_query("DELETE FROM {files} WHERE fid=:fid",
+            array('fid' => $file->drupal_fid));
+          db_query("DELETE FROM {filedepot_import_queue} WHERE id=:id",
+            array(':id' => $id));
         }
       }
     }
   }
   elseif ($reportmode == 'notifications') {
     foreach ($files as $id) {
-      $uid = db_query("SELECT uid FROM {filedepot_notifications} WHERE id=:id", 
-        array('id' => $id))->fetchField();
+      $uid = db_query("SELECT uid FROM {filedepot_notifications} WHERE id=:id",
+        array(':id' => $id))->fetchField();
       if ($id > 0 AND  $uid == $user->uid) {
-        db_query("DELETE FROM {filedepot_notifications} WHERE id=:id", 
-          array('id' => $id));
+        db_query("DELETE FROM {filedepot_notifications} WHERE id=:id",
+          array(':id' => $id));
       }
     }
   }
@@ -901,16 +903,16 @@ function filedepotAjaxServer_deleteFile($fid) {
 
   $retval['fid'] = $fid;
   if ($reportmode == 'approvals') {
-    $retval['cid'] = db_query("SELECT cid FROM {filedepot_filesubmissions} WHERE id=:fid", 
-      array('fid' => $fid))->fetchField();
+    $retval['cid'] = db_query("SELECT cid FROM {filedepot_filesubmissions} WHERE id=:fid",
+      array(':fid' => $fid))->fetchField();
   }
   elseif ($reportmode == 'incoming') {
-    $cckfid = db_query("SELECT cckfid FROM {filedepot_import_queue} WHERE id=:fid", 
-      array('fid' => $fid))->fetchField();
+    $drupal_fid = db_query("SELECT drupal_fid FROM {filedepot_import_queue} WHERE id=:fid",
+      array(':fid' => $fid))->fetchField();
   }
   else {
-    $retval['cid'] = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", 
-      array('fid' => $fid))->fetchField();
+    $retval['cid'] = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid",
+      array(':fid' => $fid))->fetchField();
   }
   $message = '';
   if ($reportmode == 'approvals' AND $filedepot->checkPermission($retval['cid'], 'approval')) {
@@ -927,13 +929,13 @@ function filedepotAjaxServer_deleteFile($fid) {
   }
   elseif ($reportmode == 'incoming') {
     if ( $cckfid > 0) {
-      $filepath = db_query("SELECT filepath FROM {files} WHERE fid=:fid", 
-        array('fid' => $cckfid))->fetchField();
+      $filepath = db_query("SELECT filepath FROM {files} WHERE fid=:fid",
+        array(':fid' => $drupal_fid))->fetchField();
       if (!empty($filepath) AND file_exists($filepath)) {
         @unlink($filepath);
       }
-      db_query("DELETE FROM {files} WHERE fid=:fid", array('fid' => $cckfid));
-      db_query("DELETE FROM {filedepot_import_queue} WHERE id=:fid", array('fid' => $fid));
+      db_query("DELETE FROM {files} WHERE fid=:fid", array(':fid' => $drupal_fid));
+      db_query("DELETE FROM {filedepot_import_queue} WHERE id=:fid", array(':fid' => $fid));
       $retval['retcode'] = 200;
       $filedepot->activeview = 'incoming';
       $retval['displayhtml'] = filedepot_displayFolderListing();
@@ -981,31 +983,31 @@ function filedepotAjaxServer_updateFolder() {
   if ($cid > 0 AND $filedepot->checkPermission($cid, 'admin')) {
     $retval['retcode'] =  200;
     $retval['cid'] = $cid;
-    db_query("UPDATE {filedepot_categories} SET name=:catname, description=:desc WHERE cid=:cid", 
+    db_query("UPDATE {filedepot_categories} SET name=:catname, description=:desc WHERE cid=:cid",
       array(
-        'catname' => $catname, 
-        'desc' => $catdesc, 
-        'cid' => $cid));
-    $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", 
-      array('cid' => $cid))->fetchField();
-    db_query("UPDATE {node} SET title=:catname WHERE nid=:name", 
-      array('catname' => $catname, 'nid' => $nid));
-    db_query("UPDATE {node_revisions} SET title=:catname WHERE nid=:nid",  
-      array('catname' => $catname, 'nid' => $nid));
-    if (db_query("SELECT folderorder FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField() != $folderorder) {
-      db_query("UPDATE {filedepot_categories} SET folderorder=:folder WHERE cid=:cid", 
-        array('folder' => $folderorder, 'cid' => $cid));
+        ':catname' => $catname,
+        ':desc' => $catdesc,
+        ':cid' => $cid));
+    $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
+      array(':cid' => $cid))->fetchField();
+    db_query("UPDATE {node} SET title=:catname WHERE nid=:nid",
+      array(':catname' => $catname, ':nid' => $nid));
+    db_query("UPDATE {node_revision} SET title=:catname WHERE nid=:nid",
+      array(':catname' => $catname, ':nid' => $nid));
+    if (db_query("SELECT folderorder FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField() != $folderorder) {
+      db_query("UPDATE {filedepot_categories} SET folderorder=:folder WHERE cid=:cid",
+        array(':folder' => $folderorder, ':cid' => $cid));
       /* Re-order any folders that may have just been moved */
-      $query = db_query("SELECT cid,folderorder from {filedepot_categories} WHERE pid=:pid ORDER BY folderorder", 
-        array('pid' => $catpid));
+      $query = db_query("SELECT cid,folderorder from {filedepot_categories} WHERE pid=:pid ORDER BY folderorder",
+        array(':pid' => $catpid));
       $folderorder = 10;
       $stepnumber = 10;
       while ( $A = $query->fetchAssoc()) {
         if ($A['folderorder'] != $folderorder) {
-          db_query("UPDATE {filedepot_categories} SET folderorder=:folder WHERE cid=:cid", 
+          db_query("UPDATE {filedepot_categories} SET folderorder=:folder WHERE cid=:cid",
             array(
-              'folder' => $folderorder, 
-              'cid' => $A['cid']));
+              ':folder' => $folderorder,
+              ':cid' => $A['cid']));
         }
         $folderorder += $stepnumber;
       }
@@ -1013,50 +1015,50 @@ function filedepotAjaxServer_updateFolder() {
 
     // Update the personal folder notifications for user
     if ($filechanged == 1 OR $fileadded == 1) {
-      if (db_query("SELECT count(*) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", 
-        array( 
-          'cid' => $cid, 
-          'uid' => $user->uid))->fetchField() == 0) {
+      if (db_query("SELECT count(*) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid",
+        array(
+          ':cid' => $cid,
+          ':uid' => $user->uid))->fetchField() == 0) {
         $sql  = "INSERT INTO {filedepot_notifications} (cid,cid_newfiles,cid_changes,uid,date) ";
         $sql .= "VALUES (:cid,:added,:changed,:uid,:time)";
-        db_query($sql, 
+        db_query($sql,
           array(
-            'cid' => $cid, 
-            'added' => $fileadded, 
-            'changed' => $filechanged, 
-            'uid' => $user->uid, 
-            'time' => time()));
+            ':cid' => $cid,
+            ':added' => $fileadded,
+            ':changed' => $filechanged,
+            ':uid' => $user->uid,
+            ':time' => time()));
       }
       else {
         $sql  = "UPDATE {filedepot_notifications} set cid_newfiles=:added, ";
         $sql .= "cid_changes=:changed, date=:time ";
         $sql .= "WHERE uid=:uid and cid=:cid";
-        db_query($sql, 
+        db_query($sql,
           array(
-            'added' => $fileadded, 
-            'changed' => $filechanged, 
-            'time' => time(), 
-            'uid' => $user->uid, 
-            'cid' => $cid));
+            ':added' => $fileadded,
+            ':changed' => $filechanged,
+            ':time' => time(),
+            ':uid' => $user->uid,
+            ':cid' => $cid));
       }
     }
     else {
-      db_query("DELETE FROM {filedepot_notifications} WHERE uid=:uid AND cid=:cid", 
+      db_query("DELETE FROM {filedepot_notifications} WHERE uid=:uid AND cid=:cid",
         array(
-          'uid' => $user->uid, 
-          'cid' => $cid));
+          ':uid' => $user->uid,
+          ':cid' => $cid));
     }
 
     // Now test if user has requested to change the folder's parent and if they have permission to this folder
-    $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", 
+    $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
       array(
-        'cid' => $cid))->fetchField();
+        ':cid' => $cid))->fetchField();
     if ( $pid != $catpid) {
       if ($filedepot->checkPermission($catpid, 'admin') OR user_access('administer filedepot')) {
-        db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid", 
+        db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid",
           array(
-            'pid' => $catpid, 
-            'cid' => $cid));
+            ':pid' => $catpid,
+            ':cid' => $cid));
       }
     }
 
@@ -1093,15 +1095,18 @@ function filedepotAjaxServer_moveCheckedFiles() {
           }
         }
         else {
-          $fname = db_query("SELECT fname FROM {filedepot_files} WHERE fid=:fid", 
-            array('fid' => $id))->fetchField();
-          if (db_query("SELECT fid from {filedepot_files} WHERE cid=:cid AND fname=:fname", 
-            array('cid' => $newcid, 'fname' => $fname))->fetchField() > 0) {
+          $filedepot->moveFile($id, $newcid);
+          /*
+          $fname = db_query("SELECT fname FROM {filedepot_files} WHERE fid=:fid",
+            array(':fid' => $id))->fetchField();
+          if (db_query("SELECT fid from {filedepot_files} WHERE cid=:cid AND fname=:fname",
+            array(':cid' => $newcid, ':fname' => $fname))->fetchField() > 0) {
             $duplicates++;
           }
           elseif ($filedepot->moveFile($id, $newcid)) {
             $movedfiles++;
           }
+          */
         }
       }
     }
@@ -1112,8 +1117,8 @@ function filedepotAjaxServer_moveCheckedFiles() {
     if ($reportmode == 'incoming') {
       // Send out email notifications of new file added to all users subscribed  -  Get fileid for the new file record
       $args = array(
-        'cid' => $newcid, 
-        'uid' => $user->uid
+        ':cid' => $newcid,
+        ':uid' => $user->uid
       );
       $fid = db_query_range("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", 0, 1, $args)->fetchField();
       filedepot_sendNotification($fid, FILEDEPOT_NOTIFY_NEWFILE);
@@ -1167,13 +1172,13 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
     return $retval;
   }
 
-  if (db_query("SELECT count(fid) FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid))->fetchField() == 1) {    // Valid file and user
-    $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid))->fetchField();
+  if (db_query("SELECT count(fid) FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField() == 1) {    // Valid file and user
+    $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
     // Check if user has an ignore file changes record or a subscribe to changes record for this file
     $direct = FALSE;
     $ignorefilechanges = FALSE;
-    $query = db_query("SELECT fid,ignore_filechanges FROM {filedepot_notifications} WHERE fid=:fid and uid=:uid", 
-      array('fid' => $fid, 'uid' => $uid));
+    $query = db_query("SELECT fid,ignore_filechanges FROM {filedepot_notifications} WHERE fid=:fid and uid=:uid",
+      array(':fid' => $fid, ':uid' => $uid));
     if ($A = $query->fetchAssoc()) {
       if ($A['ignore_filechanges'] == 1) {
         $ignorefilechanges = TRUE;
@@ -1182,12 +1187,12 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
         $direct = TRUE;
       }
     }
-    $indirect = db_query("SELECT cid_changes FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", 
-      array('cid' => $cid, 'uid' => $uid))->fetchField();
+    $indirect = db_query("SELECT cid_changes FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid",
+      array(':cid' => $cid, ':uid' => $uid))->fetchField();
     if ($indirect AND $direct) {    // User may have subscribed to single file and the folder option was also set
       if ($op == 'toggle' or $op == 'remove') {
-        db_query("UPDATE {filedepot_notifications} set ignore_filechanges = 1 WHERE fid=:fid AND uid=:uid", 
-          array('fid' => $fid, 'uid' => $uid));
+        db_query("UPDATE {filedepot_notifications} set ignore_filechanges = 1 WHERE fid=:fid AND uid=:uid",
+          array(':fid' => $fid, ':uid' => $uid));
         $retval['subscribed'] = FALSE;
       }
     }
@@ -1195,12 +1200,12 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
       if ($op == 'toggle' or $op == 'remove') {
         $retval['subscribed'] = FALSE;
         if ($direct > 0) {
-          db_query("DELETE FROM {filedepot_notifications} WHERE fid=:fid AND uid=:uid", 
-            array('fid' => $fid,'uid' => $uid));
+          db_query("DELETE FROM {filedepot_notifications} WHERE fid=:fid AND uid=:uid",
+            array(':fid' => $fid,':uid' => $uid));
         }
         elseif ($indirect > 0) {
-          db_query("INSERT INTO {filedepot_notifications} (fid,ignore_filechanges,uid,date) VALUES (:fid,1,:uid,:time)", 
-            array('fid' => $fid, 'uid' => $uid, 'time' => time()));
+          db_query("INSERT INTO {filedepot_notifications} (fid,ignore_filechanges,uid,date) VALUES (:fid,1,:uid,:time)",
+            array(':fid' => $fid, ':uid' => $uid, ':time' => time()));
         }
       }
 
@@ -1211,11 +1216,11 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op='toggle') {
         if ($ignorefilechanges) {
           //delete the exception record
           db_query("UPDATE {filedepot_notifications} set ignore_filechanges = 0 WHERE fid=:fid AND uid=:uid",
-            array('fid' => $fid, 'uid' => $uid));
+            array(':fid' => $fid, ':uid' => $uid));
         }
         elseif (!$direct AND !$indirect) {
-          db_query("INSERT INTO {filedepot_notifications} (fid,cid,uid,date) VALUES (:fid,:cid,:uid,:time)", 
-            array('fid' => $fid, 'cid' => $cid, 'uid' => $uid, 'time' => time()));
+          db_query("INSERT INTO {filedepot_notifications} (fid,cid,uid,date) VALUES (:fid,:cid,:uid,:time)",
+            array(':fid' => $fid, ':cid' => $cid, ':uid' => $uid, ':time' => time()));
         }
       }
 
@@ -1241,8 +1246,8 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
     $uquery = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
     while ( $A = $uquery->fetchObject()) {
       if ($A->uid != $user->uid) {
-        if (db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=:uid", 
-          array('uid' => $A->uid))->fetchField() == 0)  {
+        if (db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=:uid",
+          array(':uid' => $A->uid))->fetchField() == 0)  {
           $personal_setting = FALSE;   // Found user setting to not be notified
         }
         else {
@@ -1278,19 +1283,19 @@ function filedepotAjaxServer_broadcastAlert($fid, $comment) {
     $lastuser = 0;
     $type = FILEDEPOT_BROADCAST_MESSAGE;
     $sql = "SELECT file.title,file.cid FROM {filedepot_files} file WHERE file.fid=:fid";
-    $query = db_query($sql, array('fid' => $fid));
+    $query = db_query($sql, array(':fid' => $fid));
     $frec = $query->fetchObject();
     foreach ($target_users as $target_uid) {
       // Check that user has view access to this folder
       if ($target_uid != $lastuser AND $filedepot->checkPermission($frec->cid, 'view', $target_uid)) {
-        $query = db_query("SELECT name,mail FROM {users} WHERE uid=:uid", array('uid' => $target_uid));
+        $query = db_query("SELECT name,mail FROM {users} WHERE uid=:uid", array(':uid' => $target_uid));
         $urec = $query->fetchObject();
         if (!empty($urec->mail)) {
           $distribution[] = $urec->mail;
           $sql = "INSERT INTO {filedepot_notificationlog} (target_uid,submitter_uid,notification_type,fid,cid,datetime) "
           . "VALUES (:tuid,:uid,:type,:fid,:cid,:time)";
-          db_query($sql, 
-            array('tuid' => $target_uid, 'uid' =>  $user->uid, 'type' => $type, 'fid' => $fid, 'cid' => $frec->cid, 'time' => time()));
+          db_query($sql,
+            array(':tuid' => $target_uid, ':uid' =>  $user->uid, ':type' => $type, ':fid' => $fid, ':cid' => $frec->cid, ':time' => time()));
         }
         $lastuser = $target_uid;
       }

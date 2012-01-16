@@ -69,7 +69,7 @@ function template_preprocess_filedepot_header(&$variables) {
 
 function template_preprocess_filedepot_folder_breadcrumb(&$variables) {
   if ($variables['cid'] > 0) {
-    $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $variables['cid']))->fetchField();
+    $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $variables['cid']))->fetchField();
     $variables['catid'] = $variables['cid'];
     $variables['padding_left'] = $variables['padding'];
     $variables['folder_name'] = filter_xss($foldername);
@@ -79,7 +79,7 @@ function template_preprocess_filedepot_folder_breadcrumb(&$variables) {
 
 function template_preprocess_filedepot_activefolder_nonadmin(&$variables) {
   $filedepot = filedepot_filedepot();
-  $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $filedepot->cid))->fetchField();
+  $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $filedepot->cid))->fetchField();
   $variables['active_category_id'] = $filedepot->cid;
   $variables['active_folder_name'] = filter_xss($foldername);
   $variables['LANG_folderoptions'] = t('Folder Notification Options');
@@ -111,7 +111,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $numfiles = 0;
   $totalsize = 0;
   foreach ($list as $folderid) {
-    $q = db_query("SELECT count(fid) as filecount,sum(size) as filesize FROM {filedepot_files} WHERE cid=:cid GROUP BY cid", array('cid' => $folderid));
+    $q = db_query("SELECT count(fid) as filecount,sum(size) as filesize FROM {filedepot_files} WHERE cid=:cid GROUP BY cid", array(':cid' => $folderid));
     $A = $q->fetchAssoc();
     $numfiles = $numfiles + $A['filecount'];
     $totalsize = $totalsize + $A['filesize'];
@@ -119,7 +119,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $variables['file_count'] = $numfiles;
   $variables['total_size'] = filedepot_formatFileSize($totalsize);
 
-  $A = db_query("SELECT pid,name,description,folderorder FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $filedepot->cid))->fetchAssoc();
+  $A = db_query("SELECT pid,name,description,folderorder FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $filedepot->cid))->fetchAssoc();
   $variables['folderorder'] = $A['folderorder'];
   $variables['active_category_id'] = $filedepot->cid;
   $variables['active_folder_name'] = filter_xss($A['name']);
@@ -128,7 +128,7 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $options .= filedepot_recursiveAccessOptions('admin', $A['pid']);
   $variables['folder_parent_options'] = $options;
 
-  $query = db_query("SELECT cid_newfiles,cid_changes FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", array('cid' => $filedepot->cid, 'uid' => $user->uid));
+  $query = db_query("SELECT cid_newfiles,cid_changes FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", array(':cid' => $filedepot->cid, ':uid' => $user->uid));
   if ($query) {
     $B = $query->fetchAssoc();
     if ($B['cid_newfiles'] == 1) $variables['chk_fileadded'] = "CHECKED=checked";
@@ -157,17 +157,17 @@ function template_preprocess_filedepot_activefolder(&$variables) {
   }
   else {
     $variables['show_activefolder'] = '';
-    $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $filedepot->cid))->fetchField();
+    $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $filedepot->cid))->fetchField();
     if ($pid != 0) {
       $parent = $pid;
       $rootfolder = $filedepot->cid;
       while ($parent != 0) {  // Determine the rootfolder
         $rootfolder = $parent;
-        $parent = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $parent))->fetchField();
+        $parent = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $parent))->fetchField();
       }
       $variables['folder_breadcrumb_links'] = theme('filedepot_folder_breadcrumb', array( 'cid' => $rootfolder, 'padding' => 0));
       if ($rootfolder != $pid) {
-        $query = db_query("SELECT cid from {filedepot_categories} WHERE cid=:cid", array('cid' => $pid));
+        $query = db_query("SELECT cid from {filedepot_categories} WHERE cid=:cid", array(':cid' => $pid));
         $A = $query->fetchAssoc();
         $variables['folder_breadcrumb_links'] .= theme('filedepot_folder_breadcrumb', array( 'cid' => $A['cid'], 'padding' => 5));
       }
@@ -215,16 +215,16 @@ function template_preprocess_filedepot_folderlisting(&$variables) {
   // For the checkall files - need to set the inline files
   // and can't be done in filedepot_displayFileListing since a folder can have subfolders
   // and template var in parent folder is being over-written
-  $query_files = db_query("SELECT fid from {filedepot_files} WHERE cid=:cid", array('cid' => $rec['cid']));
+  $query_files = db_query("SELECT fid from {filedepot_files} WHERE cid=:cid", array(':cid' => $rec['cid']));
   $files = array();
   while ($A = $query_files->fetchAssoc()) {
     $files[] = $A['fid'];
   }
   $variables['folder_files'] = implode(',', $files);
   if ($filedepot->checkPermission($rec['cid'], 'admin')) {
-    $variables['onhover_move_options'] = theme('filedepot_folder_moveoptions', array( 
-        'folderid' => $rec['cid'], 
-        'order' => $rec['folderorder'], 
+    $variables['onhover_move_options'] = theme('filedepot_folder_moveoptions', array(
+        'folderid' => $rec['cid'],
+        'order' => $rec['folderorder'],
         'maxorder' => $variables['maxorder'])
     );
   }
@@ -286,7 +286,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     $variables['modified_date'] = '';
   }
 
-  $variables['folder_link'] = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $rec['cid'])), 'absolute' => true));
+  $variables['folder_link'] = url('filedepot', array('query' => array('cid' => $rec['cid']), 'absolute' => true));
   $variables['folder_name'] = filter_xss($rec['foldername']);
   $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
   if (variable_get('filedepot_show_index_enabled', 1) == 1) {  // Check admin config setting
@@ -303,7 +303,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['show_favorite'] = 'none';
   if ($rec['status'] > 0 AND user_is_logged_in()) {
     $variables['show_favorite'] = '';
-    if (db_query("SELECT count(fid) FROM {filedepot_favorites} WHERE uid=:uid AND fid=:fid", array('uid' => $user->uid, 'fid' => $variables['fid']))->fetchField() > 0) {
+    if (db_query("SELECT count(fid) FROM {filedepot_favorites} WHERE uid=:uid AND fid=:fid", array(':uid' => $user->uid, ':fid' => $variables['fid']))->fetchField() > 0) {
       $variables['favorite_status_image'] = "{$variables['layout_url']}/css/images/{$filedepot->iconmap['favorite-on']}";
       $variables['LANG_favorite_status'] = t('Click to clear favorite');
     }
@@ -318,14 +318,14 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     $variables['show_approvalsubmitter'] = '';
     $variables['show_submitter'] = 'none';
     $variables['show_foldername'] = '';
-    $variables['submitter'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array('uid' => $rec['submitter']))->fetchField();
+    $variables['submitter'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $rec['submitter']))->fetchField();
   }
   elseif ($filedepot->activeview == 'incoming') {
       $movelink = "<a class=\"moveincoming\" href=\"?fid={$rec['fid']}\" onClick=\"return false;\">" . t('Move') .'</a>';
       $deletelink = "<a class=\"deleteincoming\" href=\"?fid={$rec['fid']}\" onClick=\"return false;\">" . t('Delete') .'</a>';
       $variables['action1_link'] = $movelink;
       $variables['action2_link'] = $deletelink;
-      $variables['submitter'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array('uid' => $rec['submitter']))->fetchField();
+      $variables['submitter'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $rec['submitter']))->fetchField();
       $variables['show_submitter'] = '';
       $variables['show_foldername'] = 'none';
   }
@@ -338,16 +338,17 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     $variables['action2_link'] = '&nbsp;';
     $variables['actionclass'] = 'noactions';
     $allowLockedFileDownloads = variable_get('filedepot_locked_file_download_enabled', 0);  // Check admin config setting
-
     if ($rec['status'] == FILEDEPOT_LOCKED_STATUS) {
       if ($folder_admin OR $rec['changedby_uid'] == $user->uid) {  // File locked and folder admin or file owner
         $variables['action1_link'] = $downloadlink;
-        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
+        $downloadlinkimage = theme_image(array('path' => $path));
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
           $variables['actionclass'] = 'twoactions';
-          $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
+          $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile');
+          $editlinkimage = theme_image(array('path' => $path));
           $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
         }
@@ -357,7 +358,8 @@ function template_preprocess_filedepot_filelisting(&$variables) {
         }
       }
       elseif ($allowLockedFileDownloads == 1) {  // File locked and downloads allowed
-        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
+        $downloadlinkimage = theme_image(array('path' => $path));
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         $variables['action2_link'] = '';
@@ -367,12 +369,14 @@ function template_preprocess_filedepot_filelisting(&$variables) {
     else {
       if ($folder_admin OR $rec['changedby_uid'] == $user->uid) {
         $variables['action1_link'] = $downloadlink;
-        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
+        $downloadlinkimage = theme_image(array('path' => $path));
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
           $variables['actionclass'] = 'twoactions';
-          $editlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile'));
+          $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile');
+          $editlinkimage = theme_image(array('path' => $path));
           $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
         }
@@ -382,7 +386,8 @@ function template_preprocess_filedepot_filelisting(&$variables) {
         }
       }
       else {
-        $downloadlinkimage = theme_image(drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download'));
+        $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
+        $downloadlinkimage = theme_image(array('path' => $path));
         $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         $variables['action2_link'] = '';
@@ -395,17 +400,17 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $icon = $filedepot->getFileIcon($rec['fname']);
   $variables['extension_icon'] = "{$variables['layout_url']}/css/images/$icon";
   if ($variables['morerecords'] == 'loadfolder_msg') {
-    $variables['more_records_message'] = theme('filedepot_filelisting_loadfolder', array( 
-        'cid' => $rec['cid'], 
-        'fid' => $variables['fid'], 
-        'foldernumber' => $variables['file_number'], 
+    $variables['more_records_message'] = theme('filedepot_filelisting_loadfolder', array(
+        'cid' => $rec['cid'],
+        'fid' => $variables['fid'],
+        'foldernumber' => $variables['file_number'],
         'level' => $level)
     );
   }
   elseif ($variables['morerecords'] != '') {
     $variables['more_records_message'] = theme('filedepot_filelisting_moredata', array(
-        'cid' => $rec['cid'], 
-        'fid' => $variables['fid'], 
+        'cid' => $rec['cid'],
+        'fid' => $variables['fid'],
         'foldernumber' => $variables['file_number'],
         'level' => $level)
     );
@@ -499,7 +504,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
   }
 
   $filedetail = FALSE;
-  $query = db_query($sql, array('fid' => $fid));
+  $query = db_query($sql, array(':fid' => $fid));
   $A = $query->fetchAssoc();
   if ($A != NULL) {
     list($cid, $title, $fname, $date, $cur_version, $size, $description, $submitter, $status, $cur_notes, $tags) = array_values($A);
@@ -509,9 +514,9 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $icon = $filedepot->getFileIcon($fname);
     $variables['fileicon'] = "{$variables['layout_url']}/css/images/$icon";
 
-    $author = db_query("SELECT name FROM {users} WHERE uid=:uid", array('uid' => $submitter))->fetchField();
-    $catname = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField();
-    $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField();
+    $author = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
+    $catname = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
+    $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
     $variables['fname'] = filter_xss($fname);
     $variables['current_version'] = "(V{$cur_version})";
     $variables['filetitle'] = filter_xss($title);
@@ -531,8 +536,8 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['disable_download'] = 'onClick="return false;"';
     }
     elseif ($status == FILEDEPOT_LOCKED_STATUS) {
-      $stat_userid = db_query("SELECT status_changedby_uid FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid))->fetchField();
-      $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array('uid' => $stat_userid))->fetchField();
+      $stat_userid = db_query("SELECT status_changedby_uid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
+      $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $stat_userid))->fetchField();
       $variables['status_image'] = '<img src="'. $variables['layout_url'] . '/css/images/padlock.gif">';
       $variables['statusmessage'] = '* ' . t('Locked by %name', array('%name' => $stat_user));
       $variables['LANG_DOWNLOAD_MESSAGE'] = t('File Locked by: %name', array('%name' => $stat_user));
@@ -568,7 +573,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     // Retrieve file versions
     $sql = "SELECT fid,fname,version,notes,size,date,uid FROM {filedepot_fileversions} "
     . "WHERE fid=:fid AND version < :version ORDER by version DESC";
-    $query = db_query($sql, array('fid' => $fid, 'version' => $cur_version));
+    $query = db_query($sql, array(':fid' => $fid, ':version' => $cur_version));
     $version_records = '';
     if ($query) {
       while ($rec = $query->fetchAssoc()) {
@@ -596,8 +601,8 @@ function template_preprocess_filedepot_fileversion(&$variables) {
   $variables['LANG_edit'] = t('Edit File');
   $variables['LANG_delete'] = t('Delete File');
   $ver_shortdate = strftime($filedepot->shortdate, $ver_date);
-  $ver_author = db_query("SELECT name from {users} WHERE uid=:uid", array('uid' => $submitter))->fetchField();
-  $cid = db_query("SELECT cid from {filedepot_files} WHERE fid=%d", array('fid' => $fid))->fetchField();
+  $ver_author = db_query("SELECT name from {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
+  $cid = db_query("SELECT cid from {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
   $icon = $filedepot->getFileIcon($fname);
   $variables['fileicon'] = "{$variables['layout_url']}/css/images/$icon";
   $variables['fid'] = $fid;
@@ -644,7 +649,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
-  $query = db_query($sql, array('cid' => $variables['cid']));
+  $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
@@ -658,7 +663,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   }
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = :cid";
-  $query = db_query($sql, array('cid' => $variables['cid']));
+  $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
@@ -695,7 +700,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
-  $query = db_query($sql, array('cid' => $variables['cid']));
+  $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
@@ -710,7 +715,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'group' AND permid > 0 AND catid = :cid";
-  $query = db_query($sql, array('cid' => $variables['cid']));
+  $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
@@ -725,7 +730,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = :cid";
-  $query = db_query($sql, array('cid' => $variables['cid']));
+  $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
@@ -743,13 +748,13 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
 function template_preprocess_filedepot_folderperm_rec(&$variables) {
   list($accid, $permid, $acc_view, $acc_upload, $acc_uploaddirect, $acc_uploadver, $acc_approval, $acc_admin) = array_values($variables['permRec']);
   if ($variables['mode'] == 'user') {
-    $variables['name'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array('uid' => $permid))->fetchField();
+    $variables['name'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $permid))->fetchField();
   }
   else if ($variables['mode'] == 'group') {
-    $variables['name'] = db_query("SELECT title FROM {node} WHERE nid=:uid", array('uid' => $permid))->fetchField();
+    $variables['name'] = db_query("SELECT title FROM {node} WHERE nid=:uid", array(':uid' => $permid))->fetchField();
   }
   else {
-    $variables['name'] = db_query("SELECT name FROM {role} WHERE rid=:uid", array('uid' => $permid))->fetchField();
+    $variables['name'] = db_query("SELECT name FROM {role} WHERE rid=:uid", array(':uid' => $permid))->fetchField();
   }
   $variables['accid'] = $accid;
   $variables['view_perm'] = ($acc_view) ? t('Yes') : t('No');
@@ -809,7 +814,7 @@ function template_preprocess_filedepot_notifications_folder(&$variables) {
   else {
     $variables['chk_filechanges'] = '';
   }
-  $folder = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $rec['cid']))->fetchField();
+  $folder = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $rec['cid']))->fetchField();
   $variables['foldername'] = filter_xss($folder);
 }
 
@@ -824,7 +829,7 @@ function template_preprocess_filedepot_notifications_history(&$variables) {
   $variables['submitter_uid'] = $rec['submitter_uid'];
   $variables['submitter_name']= $rec['name'];
   $variables['file_name'] = filter_xss($rec['fname']);
-  $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $rec['cid']))->fetchField();
+  $foldername = db_query("SELECT name FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $rec['cid']))->fetchField();
   $variables['folder_name'] = filter_xss($foldername);
   $variables['fid'] = $rec['fid'];
   $variables['cid'] = $rec['cid'];
@@ -900,7 +905,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
     $variables['chk_broadcasts_off'] = 'CHECKED=checked';
   }
 
-  $qsettings = db_query("SELECT * FROM {filedepot_usersettings} WHERE uid=:uid", array('cid' => $user->uid));
+  $qsettings = db_query("SELECT * FROM {filedepot_usersettings} WHERE uid=:uid", array(':uid' => $user->uid));
   if ($qsettings) {
     $A = $qsettings->fetchAssoc();
     if ($A['notify_newfile'] == 1) {

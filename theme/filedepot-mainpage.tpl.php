@@ -32,7 +32,6 @@
   var ajax_post_handler_url = '<?php print $ajax_server_url ?>';
   var actionurl_dir = '<?php print $actionurl_dir ?>';
   var imgset = '<?php print $layout_url ?>/css/images';
-  var yui_uploader_url = '<?php print $yui_uploader_url; ?>';
   var ajaxactive = false;
   var clear_ajaxactivity = false;
   var blockui = false;
@@ -57,7 +56,7 @@
       base: YUIBaseURL + '/',
       // Identify the components you want to load.  Loader will automatically identify
       // any additional dependencies required for the specified components.
-      require: ["container","layout","resize","connection","dragdrop","menu","button","tabview","autocomplete","treeview","element","cookie","uploader","logger","animation"],
+      require: ["container","layout","resize","connection","dragdrop","menu","button","tabview","treeview","element","cookie","logger","animation"],
 
       // Configure loader to pull in optional dependencies.  For example, animation
       // is an optional dependency for slider.
@@ -115,6 +114,7 @@
 
       <div id="filedepottoolbar" class="filedepottoolbar" style="margin-right:0px;padding:5px;display:none;margin-bottom:1px;">
       <div style="float:left;width:250px;height:20px;">
+      <!--
         <span id="newfolderlink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">
             <a href="#"><?php print $LANG_newfolder ?></a>
@@ -123,6 +123,17 @@
         <span id="newfilelink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">
             <a href="#"><?php print $LANG_upload ?></a>
+          </span>
+        </span>
+      -->
+        <span id="filedepot_newfolder_link">
+          <span class="first-child">
+            <a class="ctools-use-modal ctools-modal-filedepot-newfolder-dialog-style" href="filedepot/nojs/newfolder">New Folder</a>
+          </span>
+        </span>
+        <span id="filedepot_newfile_link">
+          <span class="first-child">
+            <a class="ctools-use-modal ctools-modal-filedepot-newfile-dialog-style" href="filedepot/nojs/newfile">New File</a>
           </span>
         </span>
       </div>
@@ -310,72 +321,7 @@
     <div id="newfiledialog" style="display:none;">
       <div id="newfiledialog_heading" class="hd"></div>
       <div class="bd" style="text-align:left;">
-        <form name="frmNewFile" method="post" enctype="multipart/form-data">
-          <input type="hidden" id="newfile_op" name="op" value="savefile">
-          <input type="hidden" name="tagstore" value="">
-          <input type="hidden" id="newfile_fid" name="fid" value="">
-          <input type="hidden" id="cookie_session" name="cookie_session" value="<?php print $session_id ?>">
-          <!-- This is where the file ID is stored after SWFUpload uploads the file and gets the ID back from upload.php -->
-          <table class="formtable">
-            <tr>
-              <td width="30%" style="padding-top:10px;"><label for="filename">File:</label><span class="required">*</span></td>
-              <td width="70%">
-                <div id="fileProgress">
-                  <div id="fileName"></div>
-                  <div id="progressBar" class="uploaderprogress"></div>
-                </div>
-                <div id="uploaderUI" style="width:65px;height:25px;margin-left:5px;float:left"></div>
-                <div class="uploadButton" style="float:left">
-                  <a class="rolloverButton" href="#" onClick="upload(); return false;"></a>
-                </div>
-                <div id="btnClearUpload" style="padding-left:10px;padding-top:10px;float:left;visibility:hidden;">
-                  <a href="#" onClick="uploaderInit(); return false;">Clear</a>
-                </div>
-              </td>
-            </tr>
-            <tr id="newfiledialog_filename">
-              <td width="30%"><label for="filename"><?php print $LANG_displayname ?>:</label></td>
-              <td width="70%"><input type="text" id="newfile_displayname" class="form-text" style="width:290px" /></td>
-            </tr>
-            <tr id="newfiledialog_folderrow">
-              <td><label for="category"><?php print $LANG_parentfolder ?>:</label><span class="required">*</span></td>
-              <td id="newfile_selcategory"><select id="newfile_category" name="category" style="width:290px" onChange="onCategorySelect(this);">
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td><label for="tags"><?php print $LANG_tags ?>:</label></td>
-              <td style="padding-top:0px;margin-top:0px;margin-bottom:10px;"><div style="padding-top:0px;margin-top:0px;padding-bottom:10px;">
-                  <input id="newfile_tags" class="form-text" type="text" size="40" style="width:290px" />
-                  <div id="newfile_autocomplete"></div>
-                </div>
-              </td>
-            </tr>
-            <tr id="newfiledialog_filedesc">
-              <td style="padding-top:10px;"><label for="filedesc"><?php print $LANG_description ?>:</label></td>
-              <td style="padding-top:10px;"><textarea id="newfile_desc" class="form-textarea" name="filedesc" rows="3" style="font-size:10pt;width:290px"></textarea></td>
-            </tr>
-            <tr>
-              <td><label for="versionnote"><?php print $LANG_versionnote ?>:</label></td>
-              <td><textarea id="newfile_notes" class="form-textarea" name="versionnote" rows="2" style="font-size:10pt;width:290px"></textarea></td>
-            </tr>
-            <tr>
-              <td><label for="filedepot_notify"><?php print $LANG_emailnotify ?>:</label></td>
-              <td><input id="filedepot_notify" name="notify" type="checkbox" value="1">&nbsp;<?php print $LANG_yes ?></td>
-            </tr>
-            <tr>
-              <td colspan="2" style="padding:15px 0px;">
-                <div class="floatleft required">*&nbsp;<?php print $LANG_required ?></div>
-                <div class="floatleft" style="width:80%;text-align:center;">
-                  <input id="btnNewFileSubmit" class="form-submit" type="button" value="<?php print t('Submit'); ?>" onClick="upload(); return false;">
-                  <span style="padding-left:10px;">
-                    <input id="btnNewFileCancel" class="form-submit" type="button" value="<?php print t('Cancel'); ?>">
-                  </span>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </form>
+        <?php print drupal_render(drupal_get_form('filedepot_newversion_form')); ?>
       </div>
     </div>
 

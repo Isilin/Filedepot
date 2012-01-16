@@ -13,6 +13,67 @@
  * Implementation of hook_install().
  */
 function filedepot_install() {
+  // During installation, the t() function is unavailable, so we use get_t()
+  // to store the name of the translation function.
+  $t = get_t();
+
+  $folder_def = array(
+    'name' => $t('Filedepot Folder'),
+    'type' => 'filedepot_folder',
+    'description' => $t('Filedepot Folder for storing documents'),
+    'title_label' => $t('Folder Name'),
+    'bundle' => 'filedepot',
+    'base'  => 'node_content',
+    'min_word_count' => 0,
+    'help' => '',
+    'node_options' =>
+    array(
+      'status' => TRUE,
+      'promote' => FALSE,
+      'sticky' => FALSE,
+      'revision' => FALSE,
+    ),
+    'custom' => TRUE,
+    'comment' => 1,
+  );
+
+  // Complete the node type definition by setting any defaults not explicitly
+  // declared above.
+  // http://api.drupal.org/api/function/node_type_set_defaults/7
+  $folder_type = node_type_set_defaults($folder_def);
+
+    // Save the content type
+  node_type_save($folder_type);
+
+
+  /* Was having a real issue trying to add the body field. When creating
+   * a node, the body field was not in the object after seeing it in the form
+   * and getting errors from the field.module
+
+   * Using
+
+  //node_add_body_field($folder_type, $t('Folder Description'));
+*/
+
+  // Default to not promoted.
+  variable_set('node_options_filedepot_folder', array('status'));
+  // Default to closed comments
+  variable_set('comment_filedepot_folder', COMMENT_NODE_CLOSED);
+
+  // Create all the fields we are adding to our content type.
+  // http://api.drupal.org/api/function/field_create_field/7
+  foreach (_filedepot_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  // Create all the instances for our fields.
+  // http://api.drupal.org/api/function/field_create_instance/7
+  foreach (_filedepot_installed_instances() as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $folder_def['type'];
+    field_create_instance($instance);
+  }
+
   /* Setup the default extension mapping so icons appear in the file listing */
   $rawextensions  = 'jpg=jpg.gif, gif=gif.gif, bmp=bmp.gif, doc=doc.gif, docx=doc.gif, xls=xls.gif, xlsx=xls.gif,';
   $rawextensions  .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif';
@@ -33,6 +94,137 @@ function filedepot_install() {
 }
 
 
+/**
+ * Returns a structured array defining the fields created by this content type.
+ *
+ * This is factored into this function so it can be used in both
+ * filedepot_install() and filedepot_uninstall().
+ *
+ * @return
+ *  An associative array specifying the fields we wish to add to our
+ *  new node type.
+ */
+function _filedepot_installed_fields() {
+  $t = get_t();
+  return array(
+  'filedepot_file' => array(
+  'field_name' => 'filedepot_folder_file',
+  'type'       => 'file',
+  'active' => '1',
+  'locked' => '0',
+  'cardinality' => '-1',
+  'translatable' => '0',
+  'settings' => array(
+  'display_field' => 1,
+  'display_default' => 1,
+  'uri_scheme' => 'temporary',
+  ),
+  ),
+  'filedepot_folder_desc' => array(
+  'translatable' => '0',
+  'settings' => array(),
+  'field_name' => 'filedepot_folder_desc',
+  'type' => 'text_long',
+  'active' => '1',
+  'locked' => '0',
+  'cardinality' => '1',
+  ),
+  );
+}
+
+
+/**
+ * Returns a structured array defining the instances for this content type.
+ *
+ * The instance lets Drupal know which widget to use to allow the user to enter
+ * data and how to react in different view modes.
+ *
+ * This is factored into this function so it can be used in both
+ * filedepot_install() and filedepot_uninstall().
+ *
+ * @return
+ *  An associative array specifying the instances we wish to add to our new
+ *  node type.
+ */
+function _filedepot_installed_instances() {
+  $t = get_t();
+  return array(
+  'filedepot_file' => array(
+  'field_name'  => 'filedepot_folder_file',
+  'label'       => $t('Files'),
+  'entity_type' => 'node',
+  'bundle' => 'filedepot',
+  'required'    => FALSE,
+  'widget' => array(
+  'weight' => 1,
+  'type' => 'file_generic',
+  'active' => 1,
+  'translatable' => '0',
+  'settings' => array(
+  'progress_indicator' => 'throbber',
+  ),
+  ),
+  'settings' => array(
+  'file_directory' => 'filedepot',
+  'file_extensions' => 'txt pdf xls doc',
+  'max_filesize' => '',
+  'description_field' => 0,
+  'user_register_form' => FALSE,
+  ),
+  'display' => array(
+  'default' => array(
+  'label' => 'above',
+  'type' => 'file_default',
+  'settings' => array(),
+  'weight' => 1,
+  ),
+  'teaser' => array(
+  'type' => 'hidden',
+  'label' => 'above',
+  'settings' => array(),
+  'weight' => 0,
+  ),
+  ),
+  ),
+  'filedepot_folder_desc' => array(
+  'label' => 'Folder Description',
+  'widget' => array(
+  'type' => 'text_textarea',
+  'settings' => array(
+  'rows' => 3,
+  ),
+  'weight' => '-4',
+  ),
+  'settings' => array(
+  'display_summary' => FALSE,
+  'text_processing' => 0,
+  'user_register_form' => FALSE,
+  ),
+  'display' => array(
+  'default' => array(
+  'label' => 'above',
+  'type' => 'text_default',
+  'settings' => array(),
+  'weight' => 0,
+  ),
+  'teaser' => array(
+  'label' => 'hidden',
+  'type' => 'hidden',
+  'settings' => array(),
+  'weight' => 0,
+  ),
+  ),
+  'required' => FALSE,
+  'description' => '',
+  'field_name' => 'filedepot_folder_desc',
+  'entity_type' => 'node',
+  'bundle' => 'filedepot_folder',
+  'default_value' => NULL,
+  ),
+  );
+}
+
+
 
 /**
  * Implementation of hook_uninstall().
@@ -44,10 +236,43 @@ function filedepot_uninstall() {
   $filedepot = filedepot::getInstance();
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
 
-  $query = db_query("SELECT nid FROM {filedepot_categories} WHERE pid=0");
-  while ($A = $query->fetchAssoc()) {
-    $filedepot->deleteFolder($A['nid']);
+  // Gather all the example content that might have been created while this module was enabled.
+  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+  $result = db_query($sql, array(':type' => 'filedepot_folder'));
+  $nids = array();
+  foreach ($result as $row) {
+    $nids[] = $row->nid;
   }
+
+  // Delete all the nodes at once
+  // http://api.drupal.org/api/function/node_delete_multiple/7
+  node_delete_multiple($nids);
+
+  // Loop over each of the fields defined by this module and delete
+  // all instances of the field, their data, and the field itself.
+  // http://api.drupal.org/api/function/field_delete_field/7
+  foreach (array_keys(_filedepot_installed_fields()) as $field) {
+    field_delete_field($field);
+  }
+
+  // Loop over any remaining field instances attached to the node_example
+  // content type (such as the body field) and delete them individually.
+  // http://api.drupal.org/api/function/field_delete_field/7
+  $instances = field_info_instances('node', 'filedepot_folder');
+  foreach ($instances as $instance_name => $instance) {
+    field_delete_instance($instance);
+  }
+
+  // Delete our content type
+  // http://api.drupal.org/api/function/node_type_delete/7
+  node_type_delete('filedepot_folder');
+
+  // Purge all field infromation
+  // http://api.drupal.org/api/function/field_purge_batch/7
+  field_purge_batch(1000);
+
+
+
 
   $sitepath = dirname(realpath($_SERVER['SCRIPT_FILENAME']));
   $sitepath = str_replace('\\', '/', $sitepath);
@@ -80,6 +305,9 @@ function filedepot_uninstall() {
   variable_del('filedepot_default_roles');
   variable_del('filedepot_extensions');
   variable_del('filedepot_extension_data');
+  variable_del('node_options_filedepot_folder');
+  variable_del('comment_filedepot_folder');
+
 
 }
 
@@ -195,8 +423,8 @@ $schema['filedepot_files'] = array(
       'not null' => TRUE,
       'default' => 1,
     ),
-    'cckfid' => array(
-      'description' => ('TODO: please describe this field!'),
+    'drupal_fid' => array(
+      'description' => ('Drupal file id also called fid in the drupal tables'),
       'type' => 'int',
       'not null' => TRUE,
       'default' => 0,
@@ -375,7 +603,7 @@ $schema['filedepot_fileversions'] = array(
       'not null' => TRUE,
       'default' => 0,
     ),
-    'cckfid' => array(
+    'drupal_fid' => array(
       'description' => ('TODO: please describe this field!'),
       'type' => 'int',
       'not null' => TRUE,
@@ -558,7 +786,7 @@ $schema['filedepot_filesubmissions'] = array(
       'size' => 'big',
       'not null' => TRUE,
     ),
-    'cckfid' => array(
+    'drupal_fid' => array(
       'description' => ('TODO: please describe this field!'),
       'type' => 'int',
       'not null' => TRUE,
@@ -707,7 +935,7 @@ $schema['filedepot_import_queue'] = array(
       'length' => '255',
       'not null' => TRUE,
     ),
-    'cckfid' => array(
+    'drupal_fid' => array(
       'description' => ('TODO: please describe this field!'),
       'type' => 'int',
       'not null' => TRUE,
@@ -1060,44 +1288,5 @@ function filedepot_requirements($phase) {
   return $requirements;
 }
 
-/**
- * Implementation of hook_update_N().
- * RC3 - Change the size field to support a larger file size (bytes)
- */
-function filedepot_update_6001() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("ALTER TABLE {filedepot_files} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
-      db_query("ALTER TABLE {filedepot_fileversions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
-      db_query("ALTER TABLE {filedepot_filesubmissions} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
-      db_query("ALTER TABLE {filedepot_import_queue} CHANGE `size` `size` INT( 11 ) NOT NULL DEFAULT '0'");
-      break;
-
-    case 'pgsql':
-      db_change_column($ret, 'filedepot_files', 'size', 'size', 'int', array('not null' => TRUE));
-      db_change_column($ret, 'filedepot_fileversions', 'size', 'size', 'int', array('not null' => TRUE));
-      db_change_column($ret, 'filedepot_filesubmissions', 'size', 'size', 'int', array('not null' => TRUE));
-      db_change_column($ret, 'filedepot_import_queue', 'size', 'size', 'int', array('not null' => TRUE));
-      break;
-  }
-
-}
-
-/**
- * Implementation of hook_update_N().
- * RC4 - After adding support for OG - needed to change the tag class to allow perms/metrics assigned by groups
- */
-function filedepot_update_6002() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("ALTER TABLE {nextag_metrics} CHANGE `uid` `groupid` MEDIUMINT( 9 ) NULL DEFAULT NULL");
-      break;
-    case 'pgsql':
-      db_change_column($ret, 'nextag_metrics', 'uid', 'groupid', 'int', array('not null' => FALSE));
-      break;
-    }
-}
 
 

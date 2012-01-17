@@ -13,7 +13,7 @@
       <td width="70%"><input type="text" id="catname" class="form-text" name="catname" style="width:265px;" /></td>
     </tr>
     <tr>
-      <td><label for="parent"><?php print $LANG_parentfolder ?>:</label></td>
+      <td><label for="parent"><?php print t('Parent Folder'); ?>:</label></td>
       <td><select id="newcat_parent" class="form-select" name="catparent" style="width:270px">
           <?php print $folder_options ?>
         </select>

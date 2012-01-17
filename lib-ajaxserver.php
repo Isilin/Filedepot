@@ -196,7 +196,7 @@ function filedepotAjaxServer_generateLeftSideNavigation($data='') {
     }
   }
 
-  if (function_exists(filedepot_customLeftsideNavigation)) {
+  if (function_exists('filedepot_customLeftsideNavigation')) {
     $data = filedepot_customLeftsideNavigation($data);
   }
 
@@ -219,7 +219,7 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
     $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
       array(':cid' => $id));
     $rec = $q1->fetchObject();
-    if ($rec->pid != 0) {
+    if ($rec AND $rec->pid != 0) {
       $folderprefix = $rec->folderorder / 10;
       while ($rec->pid != 0) {
         $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
@@ -282,7 +282,9 @@ function filedepot_displayFolderListing($id=0, $level=0, $folderprefix='', $rowi
       $i++;
     }
     if (empty($output) AND $level == 1) {
-      $retval .= "<div id=\"subfolder{$GLOBALS['lastRenderedFiles'][0][0]}_rec{$GLOBALS['lastRenderedFiles'][0][1]}_bottom\">";
+      if (isset($filedepot->lastRenderedFiles[0][0])) {
+        $retval .= "<div id=\"subfolder{$filedepot->lastRenderedFiles[0][0]}_rec{$filedepot->lastRenderedFiles[0][1]}_bottom\">";
+      }
     }
   }
 
@@ -304,7 +306,7 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
     $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
       array(':cid' => $cid));
     $rec = $q1->fetchObject();
-    if ($rec->pid != 0) {
+    if ($rec AND $rec->pid != 0) {
       $folderprefix = $rec->folderorder / 10;
       while ($rec->pid != 0) {
         $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
@@ -320,7 +322,8 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
     if ($filedepot->activeview == 'approvals') {
       $A['fid'] = $A['id'];
     }
-    if (!in_array($fid, $files)) {
+
+    if (empty($fid) or empty($files) OR !in_array($fid, $files)) {
       $i++;
       $more_records_message = '';
       if ($filedepot->ajaxBackgroundMode == TRUE AND $i >= $filedepot->recordCountPass1) {
@@ -489,7 +492,7 @@ function filedepot_getFileListingSQL($cid) {
     $sql .= "WHERE file.cid={$cid} ORDER BY file.date DESC, file.fid DESC ";
     if ($filedepot->activeview == 'getmorefolderdata') {
       if (isset($_POST['pass2']) AND $_POST['pass2'] == 1) {
-        if ($GLOBALS['db_type'] == 'pgsql') {
+        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
           $sql .= "LIMIT 100000 OFFSET {$filedepot->recordCountPass1}";
         }
         else {
@@ -499,7 +502,7 @@ function filedepot_getFileListingSQL($cid) {
       else {
         $recordoffset = $filedepot->recordCountPass2 + $filedepot->recordCountPass1;
         $filedepot->folder_filenumoffset = $recordoffset;
-        if ($GLOBALS['db_type'] == 'pgsql') {
+        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
           $sql .= "LIMIT 100000 OFFSET {$recordoffset}";
         }
         else {
@@ -512,7 +515,7 @@ function filedepot_getFileListingSQL($cid) {
       if ($filedepot->lastRenderedFolder == $cid) {
         $filedepot->folder_filenumoffset = $filedepot->recordCountPass1;
         $folder_filelimit = $filedepot->recordCountPass2 + 1;
-        if ($GLOBALS['db_type'] == 'pgsql') {
+        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
           $sql .= "LIMIT $folder_filelimit OFFSET {$filedepot->recordCountPass1} ";
         }
         else {
@@ -520,7 +523,7 @@ function filedepot_getFileListingSQL($cid) {
         }
       }
       else {
-        if ($GLOBALS['db_type'] == 'pgsql') {
+        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
           $sql .= "LIMIT $filedepot->recordCountPass1 OFFSET 0 ";
         }
         else {

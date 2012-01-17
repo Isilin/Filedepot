@@ -10,7 +10,7 @@
 
 function firelogmsg($message) {
   global $firephp, $mytimer;
-  $exectime = timer_read($filedepot_timer);
+  $exectime = timer_read('filedepot_timer');
   if (function_exists('dfb')) dfb("$message - time:$exectime");
 }
 

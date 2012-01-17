@@ -32,7 +32,7 @@
   <div class="floatright" style="padding-right:60px;">
     <div class="floatright"><?php print $LANG_action ?></div>
     <div class="floatright" style="padding-right:45px;"><?php print $LANG_submitted ?></div>
-    <div class="floatright" style="display:<?php print $show_ownername ?>;padding-right:15px"><?php print $LANG_owner ?></div>
+    <div class="floatright" style="padding-right:15px"><?php print $LANG_owner ?></div>
   </div>
 </div>
 

@@ -8,7 +8,7 @@
 <div id="activefolder"><a href="#" onclick="edit_activefolder();" TITLE="<?php print $LANG_click_adminmsg ?>"><?php print $active_folder_name ?></a></div>
 
 <div id="edit_activefolder">
-  <form name="frm_activefolder" method="post" action="<?php print $action_url ?>">
+  <form name="frm_activefolder" method="post" action="<?php print $ajax_server_url ?>">
     <input type="hidden" name="op" value="updatefolder">
     <input type="hidden" name="cid" value="<?php print $active_category_id ?>">
     <div style="float:left;width:68%;">
@@ -17,8 +17,8 @@
           <td width="100">Folder Name:</td>
           <td><input type="text" name="categoryname" class="form-text" value="<?php print $active_folder_name ?>" style="width:270px"></td>
         </tr>
-        <tr style="display:<?php print $show_parentfolder ?>;">
-          <td><?php print $LANG_parentfolder ?></td>
+        <tr>
+          <td><?php print t('Parent Folder'); ?></td>
           <td><select id="folder_parent" name="catpid" class="form-select" style="width:270px">
               <?php print $folder_parent_options ?>
             </select>

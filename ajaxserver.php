@@ -17,7 +17,9 @@ function filedepot_dispatcher($action) {
   module_load_include('php','filedepot','lib-ajaxserver');
   module_load_include('php','filedepot','lib-common');
 
-  timer_start($filedepot_timer);
+  if (function_exists('timer_start')) {
+    timer_start('filedepot_timer');
+  }
   firelogmsg("AJAX Server code executing - action: $action");
 
   switch ($action) {

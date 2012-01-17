@@ -70,7 +70,24 @@ function filedepot_help($path, $args) {
  * Implementation of hook_perm().
  */
 function filedepot_permission() {
-  return array('access filedepot', 'administer filedepot', 'filedepot upload', 'filedepot desktop client');
+  return array(
+    'access filedepot' => array(
+      'title' => t('Access Fildepot'),
+      'description' => t('Access the filedepot main screen but possibly not any folders which have individual permissions setup from within the module. To set a folder permission inside the module requires you to be the folder admin and then select the folder. Hover over the folder name in the main display area and you will see the name change to a edit field like effect. Click on the folder name now, and you will get the edit folder dialog where there is a folder permissions button.'),
+    ),
+    'administer filedepot' => array(
+      'title' => t('Administer Fildepot'),
+      'description' => t('Provides the user with overall admin rights including folder admin rights to all folders.'),
+    ),
+    'filedepot upload' => array(
+      'title' => t('Fildepot Upload'),
+      'description' => t('Users need this permission to be able to upload files from within filedepot regardless what folder permissions are set. If the user has this permission, the upload permissions per folder are set from that folder permission settings.'),
+    ),
+    'filedepot desktop client' => array(
+      'title' => t('Fildepot Desktop Client'),
+      'description' => t('Users need this permission to be able to use the desktop filedepot client for batch file uploading.'),
+    ),
+  );
 }
 
 /**

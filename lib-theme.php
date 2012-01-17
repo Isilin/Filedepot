@@ -92,7 +92,6 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
 
   $filedepot = filedepot_filedepot();
   $variables['LANG_click_adminmsg'] = t('Click to edit folder options or administrate folder');
-  $variables['LANG_parentfolder'] = t('Parent Folder');
   $variables['LANG_description'] = t('Description');
   $variables['LANG_folderorder'] = t('Folder Order');
   $variables['LANG_folderordermsg'] = t('Displayed in increments of 10 for easy editing');
@@ -449,7 +448,6 @@ function template_preprocess_filedepot_newfolderdialog(&$variables) {
   $variables['LANG_inherit'] = t('Inherit Parent Permissions');
   $variables['LANG_submit'] = t('Submit');
   $variables['LANG_cancel'] = t('Cancel');
-  $variables['LANG_parentfolder'] = t('Parent Folder');
 }
 
 
@@ -828,8 +826,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
   global $user;
 
   $filedepot = filedepot_filedepot();
-  $variables['LANG_yes'] = t('Yes');
-  $variables['LANG_no'] = t('No');
+
   $variables['LANG_files_menuitem'] = t('Files');
   $variables['LANG_folder_menuitem'] = t('Folders');
   $variables['LANG_history_menuitem'] = t('Notification&nbsp;History');
@@ -846,7 +843,6 @@ function template_preprocess_filedepot_notifications(&$variables) {
   $variables['LANG_type'] = t('Type');
   $variables['LANG_submitter'] = t('Submitter');
   $variables['LANG_file'] = t('File');
-  $variables['LANG_norecords'] = t('No notification history on file');
   $variables['LANG_savesettings'] = t('Save Settings');
   $variables['LANG_settingheading'] = t('Setup your personal notification defaults. Individual folder and file notifications can also be used to over-ride these defaults.');
   $variables['LANG_settingline1'] = t('If you want to be notified of all new new files being added for all folders you have access, then you only need to enable the setting here');
@@ -856,8 +852,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
   $variables['LANG_personalsettings'] = t('Personal Notification Setting');
   $variables['LANG_default'] = t('Default');
   $variables['LANG_newfilesadded'] = t('New Files being added');
-  $variables['LANG_yes'] = t('Yes');
-  $variables['LANG_no'] = t('No');
+
   $variables['LANG_filesupdated'] = t('Files updated');
   $variables['LANG_allowadminbroadcasts'] = t('Allow Admin Broadcasts');
 

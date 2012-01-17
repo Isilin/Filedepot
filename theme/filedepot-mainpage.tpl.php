@@ -38,7 +38,7 @@
   var timerArray = new Array();
   var lastfiledata = new Array();
   var expandedfolders = new Array();
-  var searchprompt = '<?php print $LANG_searchprompt ?>';
+  var searchprompt = '<?php print t('Keyword Search'); ?>';
   var show_upload = <?php print $show_upload ?>;
   var show_newfolder = <?php print $show_newfolder ?>;
 </script>
@@ -117,12 +117,12 @@
       <!--
         <span id="newfolderlink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">
-            <a href="#"><?php print $LANG_newfolder ?></a>
+            <a href="#"><?php print t('New Folder'); ?></a>
           </span>
         </span>
         <span id="newfilelink" class="yui-button yui-link-button" style="display:none;">
           <span class="first-child">
-            <a href="#"><?php print $LANG_upload ?></a>
+            <a href="#"><?php print t('Upload'); ?></a>
           </span>
         </span>
       -->
@@ -157,7 +157,7 @@
     </div>
     <div class="tagsearchboxcontainer">
       <div id="tagspanel" style="display:none;">
-        <div class="hd"><?php print $LANG_searchtags ?></div>
+        <div class="hd"><?php print t('Search Tags'); ?></div>
         <div id="tagcloud" class="bd tagcloud">
           <?php print $tagcloud ?>
         </div>
@@ -202,33 +202,33 @@
   <!-- Supporting Panels - initially hidden -->
 
     <div id="filedetails" style="display:none;">
-      <div id="filedetails_titlebar" class="hd"><?php print $LANG_filedetails ?></div>
+      <div id="filedetails_titlebar" class="hd"><?php print t('File Details'); ?></div>
       <div id="filedetailsmenubar" class="yuimenubar" style="border:0px;">
         <div class="bd" style="margin:0px;padding:0px 2px 2px 2px;border:0px;font-size:11pt;">
           <ul class="first-of-type">
             <li id="displaymenubaritem" class="yuimenubaritem first-of-type">
-              <a id="menubar_downloadlink" href="" TITLE="<?php print $LANG_downloadmsg ?>"><?php print $LANG_download_menuitem ?></a>
+              <a id="menubar_downloadlink" href="" TITLE="<?php print t('Download file'); ?>"><?php print t('Download'); ?></a>
             </li>
             <li id="editmenubaritem" class="yuimenubaritem first-of-type">
-              <a id="editfiledetailslink" href="#" TITLE="<?php print $LANG_editmsg ?>"> <?php print $LANG_edit_menuitem ?> </a>
+              <a id="editfiledetailslink" href="#" TITLE="<?php print t('Edit File'); ?>"> <?php print t('Edit'); ?> </a>
             </li>
             <li id="addmenubaritem" class="yuimenubaritem first-of-type">
-              <a id="newversionlink" href="#" TITLE="<?php print $LANG_versionmsg ?>"><?php print $LANG_version_menuitem ?></a>
+              <a id="newversionlink" href="#" TITLE="<?php print t('Upload new version'); ?>"><?php print t('New Version'); ?></a>
             </li>
             <li id="approvemenubaritem" class="yuimenubaritem first-of-type">
-              <a id="approvefiledetailslink" href="#" TITLE="<?php print $LANG_approvemsg ?>"><?php print $LANG_approve_menuitem ?></a>
+              <a id="approvefiledetailslink" href="#" TITLE="<?php print t('Approve File Submission'); ?>"><?php print t('Approve'); ?></a>
             </li>
             <li id="deletemenubaritem" class="yuimenubaritem first-of-type">
-              <a id="deletefiledetailslink" href="#" TITLE="<?php print $LANG_deletemsg ?>"><?php print $LANG_delete_menuitem ?></a>
+              <a id="deletefiledetailslink" href="#" TITLE="<?php print t('Delete File'); ?>"><?php print t('Delete'); ?></a>
             </li>
             <li id="lockmenubaritem" class="yuimenubaritem first-of-type">
-              <a id="lockfiledetailslink" href="#" TITLE="<?php print $LANG_lockmsg ?>"><?php print $LANG_lock_menuitem ?></a>
+              <a id="lockfiledetailslink" href="#" TITLE="<?php print t('Lock File'); ?>"><?php print t('Lock'); ?></a>
             </li>
             <li id="notifymenubaritem" class="yuimenubaritem first-of-type">
-              <a id="notifyfiledetailslink" href="#" TITLE="<?php print $LANG_subscribemsg ?>"><?php print $LANG_subscribe_menuitem ?></a>
+              <a id="notifyfiledetailslink" href="#" TITLE="<?php print t('Enable email notification for any updates'); ?>"><?php print t('Subscribe'); ?></a>
             </li>
             <li id="broadcastmenubaritem" class="yuimenubaritem first-of-type">
-              <a id="broadcastnotificationlink" href="#" TITLE="<?php print $LANG_broadcasttmsg ?>"><?php print $LANG_broadcast_menuitem ?></a>
+              <a id="broadcastnotificationlink" href="#" TITLE="<?php print t('Send out a broadcast email notification'); ?>"><?php print t('Broadcast Notification'); ?></a>
             </li>
           </ul>
         </div>
@@ -248,41 +248,41 @@
 
           <table width="100%" style="margin:10px;">
             <tr>
-              <td width="100"><label><?php print $LANG_filename ?></label></td>
+              <td width="100"><label><?php print t('File Name'); ?></label></td>
               <td width="225"><input type="text" class="form-text" name="filetitle" size="29" value="" style="width:195px;" /></td>
-              <td width="80"><label><?php print $LANG_folder ?></label></td>
+              <td width="80"><label><?php print t('Folder'); ?></label></td>
               <td width="255" id="folderoptions"></td>
             </tr>
             <tr style="vertical-align:top;">
-              <td rowspan="3"><label><?php print $LANG_description ?></label></td>
+              <td rowspan="3"><label><?php print t('Description'); ?></label></td>
               <td rowspan="3"><textarea rows="6" cols="30" name="description" style="width:195px;"></textarea></td>
-              <td><label><?php print $LANG_owner ?></label></td>
+              <td><label><?php print t('Owner'); ?></label></td>
               <td><span id="disp_owner"></span></td>
             </tr>
             <tr style="vertical-align:top;">
-              <td><label><?php print $LANG_date ?></label></td>
+              <td><label><?php print t('Date'); ?></label></td>
               <td><span id="disp_date"></span></td>
             </tr>
             <tr>
-              <td><label><?php print $LANG_size ?></label></td>
+              <td><label><?php print t('Size'); ?></label></td>
               <td><span id="disp_size"></span></td>
             </tr>
             <tr style="vertical-align:top;">
-              <td><label><?php print $LANG_versionnote ?></label></td>
+              <td><label><?php print t('Version Notes'); ?></label></td>
               <td><textarea rows="3" cols="30" name="version_note" style="width:195px;"></textarea></td>
-              <td><label><?php print $LANG_tags ?></label></td>
+              <td><label><?php print t('Tags'); ?></label></td>
               <td>
                 <div id="tagsfield" style="padding-bottom:15px;">
                   <input id="editfile_tags" class="form-text" name="tags" type="text" size="30" style="width:210px" />
                   <div id="editfile_autocomplete" style="width:210px;"></div>
                 </div>
-                <div id="tagswarning" class="pluginAlert" style="width:180px;display:none;"><?php print $LANG_folderpermsmsg ?></div>
+                <div id="tagswarning" class="pluginAlert" style="width:180px;display:none;"><?php print t('Folder Perms not set'); ?></div>
               </td>
             </tr>
             <tr>
               <td colspan="4" style="padding-top:10px;text-align:center;">
                 <input type="button" value="<?php print t('Submit'); ?>" class="form-submit" onClick="makeAJAXUpdateFileDetails(this.form)"/>
-                <span style="padding-left:10px;"><input id="filedetails_cancel" class="form-submit" type="button" value="<?php print $LANG_cancel ?>"></span>
+                <span style="padding-left:10px;"><input id="filedetails_cancel" class="form-submit" type="button" value="<?php print t('Cancel'); ?>"></span>
               </td>
             </tr>
           </table>
@@ -296,23 +296,23 @@
     </div>
 
     <div id="newfolderdialog" style="display:none;">
-      <div class="hd"><?php print $LANG_addfolder ?></div>
+      <div class="hd"><?php print t('Add a new folder'); ?></div>
       <div id="newfolderdialog_form" class="bd" style="text-align:left;">
 
       </div>
     </div>
 
     <div id="moveIncomingFileDialog" style="display:none;">
-      <div class="hd"><?php print $LANG_moveselected ?></div>
-      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print $LANG_selectdestination ?></div>
+      <div class="hd"><?php print t('Move Selected Files'); ?></div>
+      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print t('Select the destination folder'); ?></div>
       <div id="movebatchfiledialog_form" class="bd" style="text-align:left;">
 
       </div>
     </div>
 
     <div id="movebatchfilesdialog" style="display:none;">
-      <div class="hd"><?php print $LANG_moveselected ?></div>
-      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print $LANG_movepermsmsg ?></div>
+      <div class="hd"><?php print t('Move Selected File'); ?></div>
+      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print t('Only selected files where you are the Owner or have Folder Admin rights will be moved to the new target folder'); ?></div>
       <div id="movebatchfilesdialog_form" class="bd" style="text-align:left;">
 
       </div>
@@ -326,15 +326,15 @@
     </div>
 
     <div id="broadcastDialog" style="display:none;">
-      <div class="hd"><?php print $LANG_broadcast ?></div>
-      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print $LANG_broadcastmsg ?></div>
+      <div class="hd"><?php print t('Send out a Broadcast Notification'); ?></div>
+      <div class="pluginInfo alignleft" style="color:#000;font-size:90%"><?php print t('Broadcast email will be sent to all site members that have view access to this folder alerting them. A link to this file will be included'); ?></div>
       <div class="bd" style="text-align:left;">
         <form id="frmBroadcast" name="frmBroadcast" method="post">
           <input type="hidden" name="fid" value="">
           <input type="hidden" name="cid" value="">
           <table class="formtable">
             <tr>
-              <td><label for="parent"><?php print $LANG_message ?>:</label>&nbsp;</td>
+              <td><label for="parent"><?php print t('Message'); ?>:</label>&nbsp;</td>
               <td><textarea name="message" rows="4" class="form-textarea" style="width:300px;font-size:10pt;"></textarea></td>
             </tr>
             <tr>

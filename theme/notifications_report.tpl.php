@@ -3,7 +3,7 @@
   * @file
   * notifications_report.tpl.php
   */
-?>  
+?>
 
 <div id="reportlisting_container" style="margin-right:5px;display:none;">
   <div id="notification_report" class="yui-navset">
@@ -54,7 +54,7 @@
               <?php print $history_records ?>
             </table>
           </div>
-          <div id="notificationlog_norecords" style="display:none;padding:10px;"><?php print $LANG_norecords ?></div>
+          <div id="notificationlog_norecords" style="display:none;padding:10px;"><?php print t('No notification history on file'); ?></div>
         </div>
 
       </div>
@@ -76,20 +76,20 @@
           <tr>
             <td><?php print $LANG_newfilesadded ?></td>
             <td>
-              <div style="float:left;width:60px;"> <?php print $LANG_yes ?> <input type="radio" name="fileadded_notify" value="1" <?php print $chk_fileadded_on ?>></div>
-              <?php print $LANG_no ?><input type="radio" name="fileadded_notify" value="0" <?php print $chk_fileadded_off ?>></td>
+              <div style="float:left;width:60px;"> <?php print t('Yes'); ?> <input type="radio" name="fileadded_notify" value="1" <?php print $chk_fileadded_on ?>></div>
+              <?php print t('No'); ?><input type="radio" name="fileadded_notify" value="0" <?php print $chk_fileadded_off ?>></td>
           </tr>
           <tr>
             <td><?php print $LANG_filesupdated ?></td>
             <td>
-              <div style="float:left;width:60px;"><?php print $LANG_yes ?><input type="radio" name="fileupdated_notify" value="1" <?php print $chk_filechanged_on ?>></div>
-              <?php print $LANG_no ?><input type="radio" name="fileupdated_notify" value="0" <?php print $chk_filechanged_off ?>></td>
+              <div style="float:left;width:60px;"><?php print t('Yes'); ?><input type="radio" name="fileupdated_notify" value="1" <?php print $chk_filechanged_on ?>></div>
+              <?php print t('No'); ?><input type="radio" name="fileupdated_notify" value="0" <?php print $chk_filechanged_off ?>></td>
           </tr>
           <tr>
             <td><?php print $LANG_allowadminbroadcasts ?></td>
             <td>
-              <div style="float:left;width:60px;"><?php print $LANG_yes ?><input type="radio" name="admin_broadcasts" value="1" <?php print $chk_broadcasts_on ?>></div>
-              <?php print $LANG_no ?><input type="radio" name="admin_broadcasts" value="0" <?php print $chk_broadcasts_off ?>></td>
+              <div style="float:left;width:60px;"><?php print t('Yes'); ?><input type="radio" name="admin_broadcasts" value="1" <?php print $chk_broadcasts_on ?>></div>
+              <?php print t('No'); ?><input type="radio" name="admin_broadcasts" value="0" <?php print $chk_broadcasts_off ?>></td>
           </tr>
           <tr>
             <td colspan="2" class="aligncenter" style="padding:5px;font-size:12pt;">

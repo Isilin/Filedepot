@@ -1341,58 +1341,10 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['site_url']              = $base_url;
   $variables['ajax_server_url']       = url('filedepot_ajax');
   $variables['actionurl_dir']         = base_path() . drupal_get_path('module', 'filedepot');
-  $variables['LANG_searchprompt']     = t('Keyword Search');
   $variables['filedepot_javascript_url']= base_path() . drupal_get_path('module', 'filedepot') . '/js/';
   $variables['yui_uploader_url'] = libraries_get_path('yui_uploader.swf');
-  $variables['LANG_addfolder'] = t('Add a new folder');
-  $variables['LANG_moveselected'] = t('Move Selected File');
-  $variables['LANG_selectdestination'] = t('Select the destination folder');
-  $variables['LANG_moveselected'] = t('Move Selected Files');
-  $variables['LANG_movepermsmsg'] = t('Only selected files where you are the Owner or have Folder Admin rights will be moved to the new target folder');
-  $variables['LANG_displayname'] = t('Display Name');
-  $variables['LANG_parentfolder'] = t('Parent Folder');
-  $variables['LANG_tags'] = t('Tags');
-  $variables['LANG_description'] = t('Description');
-  $variables['LANG_versionnote'] = t('Version Notes');
-  $variables['LANG_emailnotify'] = t('Email Notification');
-  $variables['LANG_yes'] = t('Yes');
-  $variables['LANG_required'] = t('Required');
-  $variables['LANG_broadcast'] = t('Send out a Broadcast Notification');
-  $variables['LANG_broadcastmsg'] = t('Broadcast email will be sent to all site members that have view access to this folder alerting them. A link to this file will be included');
-  $variables['LANG_message'] = t('Message');
-  $variables['LANG_searchtags'] = t('Search Tags');
-  $variables['LANG_filedetails'] = t('File Details');
-  $variables['LANG_download_menuitem'] = t('Download');
-  $variables['LANG_downloadmsg'] = t('Download file');
-  $variables['LANG_edit_menuitem'] = t('Edit');
-  $variables['LANG_editmsg'] = t('Edit File');
-  $variables['LANG_version_menuitem'] = t('New Version');
-  $variables['LANG_versionmsg'] = t('Upload new version');
-  $variables['LANG_delete_menuitem'] = t('Delete');
-  $variables['LANG_deletemsg'] = t('Delete File');
-  $variables['LANG_approve_menuitem'] = t('Approve');
-  $variables['LANG_approvemsg'] = t('Approve File Submission');
-  $variables['LANG_lock_menuitem'] = t('Lock');
-  $variables['LANG_lockmsg'] = t('Lock File');
-  $variables['LANG_subscribe_menuitem'] = t('Subscribe');
-  $variables['LANG_subscribemsg'] = t('Enable email notification for any updates');
-  $variables['LANG_broadcast_menuitem'] = t('Broadcast Notification');
-  $variables['LANG_broadcasttmsg'] = t('Send out a broadcast email notification');
-
-  $variables['LANG_filename'] = t('File Name');
-  $variables['LANG_folder'] = t('Folder');
-  $variables['LANG_owner'] = t('Owner');
-  $variables['LANG_date'] = t('Date');
-  $variables['LANG_size'] = t('Size');
-  $variables['LANG_folderpermsmsg'] = t('Folder Perms not set');
-  $variables['LANG_cancel'] = t('Cancel');
-
-  $variables['LANG_newfolder'] = t('New Folder');
-  $variables['LANG_upload'] = t('Upload');
-
   if (!user_is_logged_in()) {
     $variables['alert_message']       = 'You are not Logged in';
-    $variables['show_alert']          = '';
   }
   else {
     $variables['alert_message']       = '';

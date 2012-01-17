@@ -1,5 +1,5 @@
 7.x-1.x RELEASE NOTE:
-The current 7.x branch is highly unstable.  DO not use this branch.
+ (Jan 17 2012) The current 7.x branch is under development and is still unstable but core features are working.
 
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.

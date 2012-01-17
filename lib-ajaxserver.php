@@ -1095,7 +1095,9 @@ function filedepotAjaxServer_moveCheckedFiles() {
           }
         }
         else {
-          $filedepot->moveFile($id, $newcid);
+          if ($filedepot->moveFile($id, $newcid)) {
+            $movedfiles++;
+          }
           /*
           $fname = db_query("SELECT fname FROM {filedepot_files} WHERE fid=:fid",
             array(':fid' => $id))->fetchField();

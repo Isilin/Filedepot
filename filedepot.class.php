@@ -876,6 +876,7 @@ class filedepot {
             $file = file_load($dfid);
             $private_uri = $private_destination . $file->filename;
             $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+            $file->display = 1;
             list($scheme, $target) = explode('://', $file->uri, 2);
             $moved_filename = str_replace("filedepot/{$newcid}/",'',$target);
             if ($moved_filename != $fname) {
@@ -917,7 +918,9 @@ class filedepot {
   }
 
 
-  public function saveFile( $file, $validators = array() ) {
+  // D7 version so far not using this function as we are not using ajax now for this
+  // Using ctools modal dialog and form submit handler functions
+  public function xsaveFile( $file, $validators = array() ) {
     global $user;
     $nexcloud =  filedepot_nexcloud();
 
@@ -930,44 +933,30 @@ class filedepot {
     }
 
     if ($file->folder > 0 AND file_exists($this->tmp_storage_path) AND is_writable($this->tmp_storage_path)) {
-      /* Tried to use the file_save_upload but was getting a PHP error in CCK but field_file_save_upload worked
-      * $nodefileObj = file_save_upload($file->tmp_name,array(), $this->tmp_storage_path);
-      */
 
-      /* Attachment will be saved in the temporary directory with the PHPTMP filename
-      * Drupal files table record is created. The node_save API will move and rename the file
-      */
+      //if (is_array($nodefile) AND $nodefile['fid'] > 0) {
+        // Need to populate the file field and attach the file to the folder node
+        //$nodefile['list'] = 1;
+        //$nodefile['data'] = serialize(array('description' => $file->description));
+        //$nodefile['realname'] = $file->name;
+        //$nodefile['moderated'] = $file->moderated;
 
-      $nodefile = field_file_save_file($file->tmp_name, array(), $this->tmp_storage_path);
-      // Determine the Drupal Files record id that was just created for the new file.
-      // The return array should have fid set which is the field value used in the CCK table record
-      // that maintains the attachment info for the CCK Folder Content record.
-
-      if (is_array($nodefile) AND $nodefile['fid'] > 0) {
-        // Need to populate the CCK fields for the filefield field - so node_save will update the CCK field
-        $nodefile['list'] = 1;
-        $nodefile['data'] = serialize(array('description' => $file->description));
-        $nodefile['realname'] = $file->name;
-        $nodefile['moderated'] = $file->moderated;
         if ($file->moderated) {
           // Generate random file name for newly submitted file to hide it until approved
           $charset = "abcdefghijklmnopqrstuvwxyz";
           for ($i=0; $i<12; $i++) $random_name .= $charset[(mt_rand(0, (drupal_strlen($charset)-1)))];
           $ext = end(explode(".", $file->name));
           $random_name .= '.' . $ext;
-          $nodefile['moderated_tmpname'] = $random_name;
+          $file['moderated_tmpname'] = $random_name;
         }
         else {
-          $nodefile['moderated'] = FALSE;
+          $file['moderated'] = FALSE;
         }
 
         $node = node_load($file->nid);
         $content_type = content_types($node->type);
 
-        $nodefileObj = new stdClass();
-        $nodefileObj->fid = $nodefile['fid'];   // file_set_status API expects an object but just needs fid
-        file_set_status($nodefileObj, 1);
-        $node->filedepot_folder_file[] = $nodefile;
+        $node->filedepot_folder_file[] = $file;
         node_save($node);
 
         // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
@@ -1058,11 +1047,13 @@ class filedepot {
         }
 
         return TRUE;
+      /*
       }
       else {
         drupal_set_message('Error saving file - move file failed');
         return FALSE;
       }
+      */
 
     }
     else {

@@ -1029,6 +1029,9 @@ function filedepot_file_download() {
 
   /* Check if user has access to folder to download file */
   $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
+  if (!isset($version) OR empty($version)) {
+    $version = db_query("SELECT version FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
+  }
   $filedepot = filedepot_filedepot();
   $ret = $filedepot->checkPermission($cid, 'view');
   if ($filedepot->checkPermission($cid, 'view') === FALSE) {
@@ -1151,9 +1154,9 @@ function filedepot_file_download() {
 
       $type = mime_header_encode($file->filemime);
       $headers = array(
-      'Content-Type' => $type . '; name="' . $file->filename . '"',
+      'Content-Type' => $type . '; name="' . $fname . '"',
       'Content-Length' => $file->filesize,
-      'Content-Disposition' => $disposition . '; filename="' . $file->filename . '"',
+      'Content-Disposition' => $disposition . '; filename="' . $fname . '"',
       'Cache-Control' => 'private',
       );
     } else {

@@ -473,14 +473,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
   $fid = $variables['fid'];
   $variables['site_url']              = base_path();
   $variables['ajax_server_url']       = url('filedepot_ajax');
-  $variables['LANG_tags'] = t('Tags');
-  $variables['LANG_size'] = t('Size');
-  $variables['LANG_author'] = t('Author');
-  $variables['LANG_folder'] = t('Folder');
-  $variables['LANG_description'] = t('Description');
-  $variables['LANG_version_note'] = t('Version Note');
   $variables['LANG_download'] = t('Download File');
-  $variables['LANG_link_message'] = t('Direct link to file');
   $variables['LANG_lastupated'] = t('Last Updated');
 
   if ($variables['reportmode'] == 'approvals') {
@@ -496,7 +489,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $sql .= "WHERE file.id=%d";
   }
   else {
-    $sql  = "SELECT file.cid, file.title, file.fname, file.date, file.version, file.size, ";
+    $sql  = "SELECT file.cid, file.title, v.fname, file.date, file.version, file.size, ";
     $sql .= "file.description, file.submitter, file.status, v.notes, '' as tags ";
     $sql .= "FROM {filedepot_files} file ";
     $sql .= "LEFT JOIN {filedepot_fileversions} v ON v.fid=file.fid ";
@@ -520,6 +513,7 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $variables['fname'] = filter_xss($fname);
     $variables['current_version'] = "(V{$cur_version})";
     $variables['filetitle'] = filter_xss($title);
+    $variables['real_filename'] = filter_xss($fname);
     $variables['author']  = $author;
     $variables['description'] = nl2br(filter_xss($description));
     $variables['foldername'] = filter_xss($catname);
@@ -593,13 +587,6 @@ function template_preprocess_filedepot_fileversion(&$variables) {
   $filedepot = filedepot_filedepot();
   $variables['site_url']              = base_path();
   list($fid, $fname, $file_version, $ver_note, $ver_size, $ver_date, $submitter, $nid) = array_values($variables['versionRec']);
-  $variables['LANG_version_note'] = t('Version Note');
-  $variables['LANG_size'] = t('Size');
-  $variables['LANG_download_message'] = t('Download Message');
-  $variables['LANG_author'] = t('Author');
-  $variables['LANG_download'] = t('Download File');
-  $variables['LANG_edit'] = t('Edit File');
-  $variables['LANG_delete'] = t('Delete File');
   $ver_shortdate = strftime($filedepot->shortdate, $ver_date);
   $ver_author = db_query("SELECT name from {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
   $cid = db_query("SELECT cid from {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();

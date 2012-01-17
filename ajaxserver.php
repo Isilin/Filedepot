@@ -394,9 +394,9 @@ function filedepot_dispatcher($action) {
                 }
               }
             }
-            $data['html'] = theme('filedepot_folderperms_ogenabled', $cid);
+            $data['html'] = theme('filedepot_folderperms_ogenabled', array( 'cid' => $cid));
           } else {
-            $data['html'] = theme('filedepot_folderperms', $cid);
+            $data['html'] = theme('filedepot_folderperms', array( 'cid' => $cid));
           }
           $data['retcode'] = 200;
       }

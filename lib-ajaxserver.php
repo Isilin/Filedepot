@@ -365,22 +365,22 @@ function nexdocsrv_generateFileListing($cid, $level=1, $folderprefix='') {
 function filedepot_displaySearchListing($query) {
   $filedepot = filedepot_filedepot();
 
-  $query = addslashes($query);
-  $sql = 'SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,';
-  $sql .= 'file.description,category.name as foldername,category.pid,category.nid ';
-  $sql .= 'FROM {filedepot_files} file ';
-  $sql .= 'LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ';
-  $sql .= 'WHERE 1=1 ';
+  $keys = preg_replace('!\*+!', '%', $query);
+  $query = db_select('filedepot_files', 'a');
+  $query->join('filedepot_categories','b','b.cid = a.cid');
+  $query->fields('a', array('fid', 'cid', 'title', 'fname', 'date', 'version', 'submitter', 'status', 'description', 'size'));
+  $query->fields('b', array('pid', 'nid'));
+  $query->addField('b', 'name', 'foldername');
   if (!empty($filedepot->allowableViewFoldersSql)) {
-    $sql .= 'AND file.cid in (%s) ';
+    $query->condition('a.cid', explode(',',$filedepot->allowableViewFoldersSql), 'IN');
   }
-  $sql .= 'AND (file.title LIKE "%%%s%%%" OR file.title LIKE "%%%s%%%" OR file.description LIKE "%%%s%%%" OR file.description LIKE "%%%s%%%") ';
-  $sql .= 'ORDER BY file.date DESC ';
-
-  // TODO: Figure out how to upgrade to Drupal 7
-  $search_query = db_query($sql, $filedepot->allowableViewFoldersSql, $query, $query, $query, $query);
+  $query->condition(db_and()->condition(db_or()->
+      condition('title', db_like($keys) . '%', 'LIKE')->
+      condition('a.description', '%' . db_like($keys) . '%', 'LIKE')
+  ));
+  $result = $query->execute();
   $output = '';
-  while ( $A = $search_query->fetchAssoc()) {
+  WHILE ($A = $result->fetchAssoc()) {
     $output .= theme('filedepot_filelisting', array( 'listingrec' => $A));
   }
   return $output;

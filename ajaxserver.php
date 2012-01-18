@@ -26,6 +26,12 @@ function filedepot_dispatcher($action) {
 
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
+      if ($cid > 0) {
+        if (db_query("SELECT count(*) FROM {filedepot_categories} WHERE cid=:cid", array(
+          ':cid' => $cid))->fetchField() == 1) {
+          $filedepot->ajaxBackgroundMode = TRUE;
+        }
+      }
       $reportmode = check_plain($_POST['reportmode']);
       $filedepot->activeview = $reportmode;
       $filedepot->cid = $cid;

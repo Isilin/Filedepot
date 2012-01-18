@@ -1747,7 +1747,7 @@ function filedepot_newfile_submit($form, &$form_state) {
 
     }
   } else {
-    drupal_set_message('Invalid upload folder selected');
+    drupal_set_message(t('Invalid upload folder selected'),'error');
   }
 
 }
@@ -1883,7 +1883,7 @@ function filedepot_newfolder_submit($form, &$form_state) {
   } else {
     node_save($node);
     if (!$node) {
-      drupal_set_message('Error creating Folder');
+      drupal_set_message(t('Error creating Folder'),'error');
     }
   }
 }
@@ -2070,7 +2070,7 @@ function filedepot_newversion_submit($form, &$form_state) {
 
     }
   } else {
-    drupal_set_message('Invalid upload folder selected');
+    drupal_set_message(t('Invalid upload folder selected'),'error');
   }
 
 }

@@ -287,7 +287,6 @@ class filedepot {
         }
       }
 
-
       // For each role that the user is a member of - check if they have the right
       foreach ($user->roles as $rid => $role) {
         $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
@@ -554,14 +553,6 @@ class filedepot {
     if ($node->parentfolder > 0 AND $this->checkPermission($node->parentfolder,'admin') === FALSE) {
       return FALSE;
     }
-
-    //if (variable_get('filedepot_content_type_initialized', FALSE) === FALSE) {
-    //  require_once './' . drupal_get_path('module', 'filedepot') .  '/setup_content_type.inc';
-    //  filedepot_setup_folder_content_type();
-    //  variable_set('filedepot_content_type_initialized',TRUE);
-    //} else {
-    //  watchdog('filedepot','Content type initialized');
-    //}
 
     if (@is_dir($this->tmp_storage_path) === FALSE) {
       @mkdir($this->tmp_storage_path, FILEDEPOT_CHMOD_DIRS);
@@ -933,152 +924,6 @@ class filedepot {
       }
     }
     return $filemoved;
-  }
-
-
-  // D7 version so far not using this function as we are not using ajax now for this
-  // Using ctools modal dialog and form submit handler functions
-  public function xsaveFile( $file, $validators = array() ) {
-    global $user;
-    $nexcloud =  filedepot_nexcloud();
-
-    // Check for allowable file type.
-    if (!$this->checkFilter($file->name, $file->type)) {
-      $message = t('The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
-      drupal_set_message($message, 'error');
-      watchdog('filedepot', 'The file %name could not be uploaded. Mimetype %mimetype or extension not permitted.', array('%name' => $file->name, '%mimetype' => $file->type ));
-      return FALSE;
-    }
-
-    if ($file->folder > 0 AND file_exists($this->tmp_storage_path) AND is_writable($this->tmp_storage_path)) {
-
-      //if (is_array($nodefile) AND $nodefile['fid'] > 0) {
-        // Need to populate the file field and attach the file to the folder node
-        //$nodefile['list'] = 1;
-        //$nodefile['data'] = serialize(array('description' => $file->description));
-        //$nodefile['realname'] = $file->name;
-        //$nodefile['moderated'] = $file->moderated;
-
-        if ($file->moderated) {
-          // Generate random file name for newly submitted file to hide it until approved
-          $charset = "abcdefghijklmnopqrstuvwxyz";
-          for ($i=0; $i<12; $i++) $random_name .= $charset[(mt_rand(0, (drupal_strlen($charset)-1)))];
-          $ext = end(explode(".", $file->name));
-          $random_name .= '.' . $ext;
-          $file['moderated_tmpname'] = $random_name;
-        }
-        else {
-          $file['moderated'] = FALSE;
-        }
-
-        $node = node_load($file->nid);
-        $content_type = content_types($node->type);
-
-        $node->filedepot_folder_file[] = $file;
-        node_save($node);
-
-        // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
-        // Check and see what the final filename and use that to update the filedepot tables
-        $rec = db_query("SELECT filename,filepath,filemime from {files} WHERE fid=:fid", array('fid'=>$nodefile['fid']))->fetchObject();
-        $file->name = $rec->filename;
-        $dest = $rec->filepath;
-        $ext = end(explode(".", $file->name));
-
-        // fix http://drupal.org/node/803694
-        // seems that SWF (Flash) may always set the Content-Type to 'application/octet-stream'
-        // no matter what.  Check the type and see if this has happened.
-        // $file->type should have the MIME type guessed by Drupal in this instance.
-        if ($rec->filemime == 'application/octet-stream') {
-            db_query("UPDATE {files} SET filemime = :mime WHERE fid = :fid", array(
-              'fid' => $file->type,
-              'mime' => $nodefile['fid']));
-        }
-
-        if ($file->moderated) {   // Save record in submission table and set status to 0 -- not online
-          $sql =  "INSERT INTO {filedepot_filesubmissions} "
-          . "(cid, fname, tempname, title, description, cckfid, version_note, size, mimetype, extension, submitter, date, tags, notify) "
-          . "VALUES (:folder,:realname,:tmpname,:title,:desc,:fid,:note,:size,:type,:ext,:uid,:time,:tags,:notify)";
-          db_query($sql, array(
-            'folder' => $file->folder,
-            'realname' => $nodefile['realname'],
-            'tmpname' => $nodefile['moderated_tmpname'],
-            'title' => $file->title,
-            'desc' => $file->description,
-            'fid' => $nodefile['fid'],
-            'note' => $file->vernote,
-            'size' => $file->size,
-            'type' => $file->type,
-            'ext' => $ext,
-            'uid' => $user->uid,
-            'time' => time(),
-            'tags' => $file->tags,
-            'notify' => $_POST['notify'] ));
-
-          // Get id for the new file record
-          $args = array('folder' => $file->folder, 'uid' => $user->uid);
-          $id = db_query("SELECT id FROM {filedepot_filesubmissions} WHERE cid=:folder AND submitter=:uid ORDER BY id DESC", $args, 0, 1)->fetchField();
-          filedepot_sendNotification($id, FILEDEPOT_NOTIFY_ADMIN);
-
-        }
-        else {
-          // Create filedepot record for file and set status of file to 1 - online
-          $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,cckfid,size,mimetype,extension,submitter,status,date) "
-          . "VALUES (:folder,:name,:title,:desc,1,:fid,:size,:type,:ext,:uid,1,:time)";
-          db_query($sql, array (
-            'folder' => $file->folder,
-            'name' => $file->name,
-            'title' => $file->title,
-            'desc' => $file->description,
-            'fid' => $nodefile['fid'],
-            'size' => $file->size,
-            'type' => $file->type,
-            'ext' => $ext,
-            'uid' => $user->uid,
-            'time' => time()));
-
-          // Get fileid for the new file record
-          $args = array('cid' => $file->folder, 'uid' => $user->uid);
-          $fid = db_query("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", $args, 0, 1)->fetchField();
-
-          db_query("INSERT INTO {filedepot_fileversions} (fid,cckfid,fname,version,notes,size,date,uid,status)
-          VALUES (:fid,:nodefile,:name,'1',:notes,:size,:time,:uid,1)", array(
-            'fid' => $fid,
-            'nodefile' => $nodefile['fid'],
-            'name' => $file->name,
-            'notes' => $file->vernote,
-            'size' => $file->size,
-            'time' => time(),
-            'uid' => $user->uid));
-
-          if (!empty($file->tags) AND $this->checkPermission($file->folder, 'view', 0, FALSE)) {
-            $nexcloud->update_tags($fid, $file->tags);
-          }
-          // Send out email notifications of new file added to all users subscribed
-          if ($_POST['notify'] == 1) {
-            filedepot_sendNotification($fid, FILEDEPOT_NOTIFY_NEWFILE);
-          }
-
-          // Update related folders last_modified_date
-          $workspaceParentFolder = filedepot_getTopLevelParent($file->folder);
-          filedepot_updateFolderLastModified($workspaceParentFolder);
-
-        }
-
-        return TRUE;
-      /*
-      }
-      else {
-        drupal_set_message('Error saving file - move file failed');
-        return FALSE;
-      }
-      */
-
-    }
-    else {
-      drupal_set_message('Error saving file - directory does not exist or not writeable');
-      return FALSE;
-    }
-
   }
 
 

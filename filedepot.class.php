@@ -893,17 +893,30 @@ class filedepot {
 
             // Check the new file name as it will be renamed if a duplicate exists in this directory
 
-
             // Update folder node - add the file as an attachment
             /* @TODO D7: Going to have to revisit this when file has versions.
              * Multiple versions do not appear in the native interface
              * I only want to attach the most recent version to the native folderr.
             */
+
+            $source_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",  array( ':cid' => $orginalCid))->fetchField();
+            $node = node_load($source_folder_nid);
+            // Remove the moved file now from the source folder
+            foreach ($node->filedepot_folder_file[LANGUAGE_NONE] as $delta => $attachment) {
+              if ($attachment['fid'] == $file->fid) {
+                unset($node->filedepot_folder_file[LANGUAGE_NONE][$delta]);
+                node_save($node);
+                break;
+              }
+            }
+
+            // Add the moved file to the target folder
             // Doing node_save changes the file status to permanent in the file_managed table
-            $folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",  array( ':cid' => $newcid))->fetchField();
-            $node = node_load($folder_nid);
+            $target_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",  array( ':cid' => $newcid))->fetchField();
+            $node = node_load($target_folder_nid);
             $node->filedepot_folder_file[LANGUAGE_NONE][] = (array)$file;//the name of the field that requires the files
             node_save($node);
+
             // Need to clear the cache as the node will still have the original file name
             field_cache_clear();
             db_update('filedepot_files')

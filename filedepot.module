@@ -1875,7 +1875,11 @@ function filedepot_newfolder_submit($form, &$form_state) {
   $node->title = $form_state['values']['filedepot_foldername'];
   $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'] = $form_state['values']['filedepot_description'];
   $node->parentfolder = $form_state['values']['filedepot_parentfolder'];
-  $node->inherit = intval($form_state['values']['filedepot_inherit_permissions']['yes']);
+  if ($form_state['values']['filedepot_inherit_permissions']['Yes'] == 'Yes') {
+    $node->inherit = 1;
+  } else {
+    $node->inherit = 0;
+  }
 
   if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
     $data['errmsg'] = t('Error creating Folder - invalid parent folder');

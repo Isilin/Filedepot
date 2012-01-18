@@ -590,39 +590,43 @@ class filedepot {
       if (isset($node->inherit) AND $node->inherit == 1 AND $catpid > 0) {
         // Retrieve parent User access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin FROM {filedepot_access} "
-        . "WHERE permtype='user' AND permid > 0 AND catid=:cid";
+        . "WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
         $q1 = db_query($sql, array('cid' => $catpid));
         foreach($q1 as $rec) {
-          $sql = "INSERT INTO {filedepot_access} "
-          . "(catid,permtype,permid,view,upload,upload_direct,upload_ver,approval,admin) VALUES "
-          . "(:cid,'user',:uid,:view,:upload,:direct,:version,:approval,:admin)";
-          db_query($sql, array(
-            'cid' => $cid,
-            'uid' => $rec->permid,
+          $query = db_insert('filedepot_access');
+          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
+          $query->values(array(
+            'catid' => $cid,
+            'permtype' => 'user',
+            'permid' => $rec->permid,
             'view' => $rec->view,
             'upload' => $rec->upload,
-            'direct' => $rec->upload_direct,
-            'version' => $rec->upload_ver,
+            'upload_direct' => $rec->upload_direct,
+            'upload_ver' => $rec->upload_ver,
             'approval' => $rec->approval,
-            'admin' => $rec->admin));
+            'admin' => $rec->admin)
+          );
+          $query->execute();
         }
         // Retrieve parent Role Access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin "
         . "FROM {filedepot_access} WHERE permtype='role' AND permid > 0 AND catid=:cid";
         $q2 = db_query($sql, array('cid' => $catpid));
         foreach($q2 as $rec) {
-          $sql = "INSERT INTO {filedepot_access} "
-          . "(catid,permtype,permid,view,upload,upload_direct,upload_ver,approval,admin) VALUES "
-          . "(:cid,'role',:uid,:view,:upload,:direct,:version,:approval,:admin)";
-          db_query($sql, array(
-            'cid' => $cid,
-            'uid' => $rec->permid,
+          $query = db_insert('filedepot_access');
+          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
+          $query->values(array(
+            'catid' => $cid,
+            'permtype' => 'role',
+            'permid' => $rec->permid,
             'view' => $rec->view,
             'upload' => $rec->upload,
-            'direct' => $rec->upload_direct,
-            'version' => $rec->upload_ver,
+            'upload_direct' => $rec->upload_direct,
+            'upload_ver' => $rec->upload_ver,
             'approval' => $rec->approval,
-            'admin' => $rec->admin));
+            'admin' => $rec->admin)
+          );
+          $query->execute();
         }
 
         // Retrieve parent Group Access records - for each record create a new one for this category
@@ -630,22 +634,21 @@ class filedepot {
         . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=:cid";
         $q3 = db_query($sql, array('cid' => $catpid));
         foreach($q3 as $rec) {
-          $sql = "INSERT INTO {filedepot_access} "
-          . "(catid,permtype,permid,view,upload,upload_direct,upload_ver,approval,admin) VALUES "
-          . "(:cid,'groupd',:uid,:view,:upload,:direct,:version,:approval,:admin)";
-          db_query($sql,
-            array(
-            'cid' => $cid,
-            'uid' => $rec->permid,
+          $query = db_insert('filedepot_access');
+          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
+          $query->values(array(
+            'catid' => $cid,
+            'permtype' => 'group',
+            'permid' => $rec->permid,
             'view' => $rec->view,
             'upload' => $rec->upload,
-            'direct' => $rec->upload_direct,
-            'version' => $rec->upload_ver,
+            'upload_direct' => $rec->upload_direct,
+            'upload_ver' => $rec->upload_ver,
             'approval' => $rec->approval,
-            'admin' => $rec->admin));
+            'admin' => $rec->admin)
+          );
+          $query->execute();
         }
-
-
       }
       else {
         // Create default permissions record for the user that created the category

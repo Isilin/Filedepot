@@ -6,10 +6,3 @@ core = 7.x
 php = 5.x;
 package = File management
 
-
-; Information added by drupal.org packaging script on 2011-04-13
-version = "7.x-1.x-dev"
-core = "7.x"
-project = "filedepot"
-datestamp = "1302653541"
-

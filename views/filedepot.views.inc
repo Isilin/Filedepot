@@ -197,5 +197,3 @@ function filedepot_views_pre_execute(&$view) {
 
   }
 }
-
-?>

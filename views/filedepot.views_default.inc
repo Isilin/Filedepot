@@ -538,4 +538,3 @@ function filedepot_views_default_views() {
 
 }
 
-?>

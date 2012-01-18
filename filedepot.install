@@ -7,10 +7,8 @@
  *
  */
 
-
-
 /**
- * Implementation of hook_install().
+ * Implements of hook_install().
  */
 function filedepot_install() {
   // During installation, the t() function is unavailable, so we use get_t()
@@ -42,18 +40,8 @@ function filedepot_install() {
   // http://api.drupal.org/api/function/node_type_set_defaults/7
   $folder_type = node_type_set_defaults($folder_def);
 
-    // Save the content type
+  // Save the content type
   node_type_save($folder_type);
-
-
-  /* Was having a real issue trying to add the body field. When creating
-   * a node, the body field was not in the object after seeing it in the form
-   * and getting errors from the field.module
-
-   * Using
-
-  //node_add_body_field($folder_type, $t('Folder Description'));
-*/
 
   // Default to not promoted.
   variable_set('node_options_filedepot_folder', array('status'));
@@ -93,7 +81,6 @@ function filedepot_install() {
 
 }
 
-
 /**
  * Returns a structured array defining the fields created by this content type.
  *
@@ -131,7 +118,6 @@ function _filedepot_installed_fields() {
   ),
   );
 }
-
 
 /**
  * Returns a structured array defining the instances for this content type.
@@ -224,8 +210,6 @@ function _filedepot_installed_instances() {
   );
 }
 
-
-
 /**
  * Implementation of hook_uninstall().
  */
@@ -271,9 +255,6 @@ function filedepot_uninstall() {
   // http://api.drupal.org/api/function/field_purge_batch/7
   field_purge_batch(1000);
 
-
-
-
   $sitepath = dirname(realpath($_SERVER['SCRIPT_FILENAME']));
   $sitepath = str_replace('\\', '/', $sitepath);
   if (@is_dir($filedepot->tmp_incoming_path) === TRUE) {
@@ -307,7 +288,6 @@ function filedepot_uninstall() {
   variable_del('filedepot_extension_data');
   variable_del('node_options_filedepot_folder');
   variable_del('comment_filedepot_folder');
-
 
 }
 

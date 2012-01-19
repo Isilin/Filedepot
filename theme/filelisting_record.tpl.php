@@ -3,15 +3,15 @@
   * @file
   * filelisting_record.tpl.php
   */
-?>  
+?>
 
 <div class="listing_record" id="folder_<?php print $subfolder_id ?>_rec_<?php print $fid ?>">
     <div style="padding-right:0px;">
         <div class="floatleft">
                 <input id="chkfile<?php print $fid ?>" type="checkbox" name="chkfile" value="<?php print $fid ?>" onClick="updateCheckedItems(this)">
-                <span style="display:<?php print $show_favorite ?>">
+                <?php if ($show_favorite) { ?>
                     <a href="?id=<?php print $fid ?>" onclick="return false;"><img id="favitem<?php print $fid ?>" class="togglefavorite" src="<?php print $favorite_status_image ?>" TITLE="<?php print $LANG_favorite_status ?>"></a>
-                </span>
+                <?php } ?>
                 <span style="padding-left:<?php print $padding_left ?>px;">
                     <a class="filedetailsdialog" href="<?php print $details_link_parms ?>"><img src="<?php print $extension_icon ?>"></a>
                 </span>
@@ -23,11 +23,13 @@
         </div>
         <div class="tags" id="listingTagsRec<?php print $fid ?>"><?php print $tags ?></div>
         <div class="floatright">
+          <?php if(isset($action1_link)) { ?>
             <div class="floatright <?php print $actionclass?>">
                 <span><?php print $action1_link ?></span>
                 <span><?php print $action2_link ?></span>
                 <span style="display:<?php print $show_approvalsubmitter ?>;"><?php print $submitter ?></span>
             </div>
+            <?php } ?>
             <div class="floatright" style="padding-right:40px"><?php print $modified_date ?></div>
             <div class="floatright" style="padding-right:40px;display:<?php print $show_submitter ?>;"><?php print $submitter ?></div>
             <div class="floatright" style="padding-right:20px;display:<?php print $show_foldername ?>;"><a href="#" onClick="makeAJAXGetFolderListing(<?php print $subfolder_id ?>);return false;"><?php print $folder_name ?></a></div>

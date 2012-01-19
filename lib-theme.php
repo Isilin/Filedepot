@@ -269,6 +269,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['file_desc_padding_left'] = $filedepot->filedescriptionOffset + ($level * $filedepot->listingpadding);
   $variables['locked_icon'] = base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('locked');
   $variables['submitter'] = '';
+  $variables['favorite_status_image'] = '';
   if ($rec['status'] == 2) {
     $variables['show_lock'] = '';
   }
@@ -301,9 +302,9 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $tags = $nexcloud->get_itemtags($variables['fid']);
   $variables['tags'] = filedepot_formatfiletags($tags);
 
-  $variables['show_favorite'] = 'none';
+  $variables['show_favorite'] = FALSE;
   if ($rec['status'] > 0 AND user_is_logged_in()) {
-    $variables['show_favorite'] = '';
+    $variables['show_favorite'] = TRUE;
     if (db_query("SELECT count(fid) FROM {filedepot_favorites} WHERE uid=:uid AND fid=:fid", array(':uid' => $user->uid, ':fid' => $variables['fid']))->fetchField() > 0) {
       $variables['favorite_status_image'] = "{$variables['layout_url']}/css/images/{$filedepot->iconmap['favorite-on']}";
       $variables['LANG_favorite_status'] = t('Click to clear favorite');
@@ -473,18 +474,19 @@ function template_preprocess_filedepot_filedetail(&$variables) {
   $variables['ajax_server_url']       = url('filedepot_ajax');
   $variables['LANG_download'] = t('Download File');
   $variables['LANG_lastupated'] = t('Last Updated');
+  $variables['show_statusmsg'] = 'none';
 
   if ($variables['reportmode'] == 'approvals') {
     $sql = "SELECT file.cid,file.title,file.fname,file.date,file.version,file.size, ";
     $sql .= "file.description,file.submitter,file.status,file.version_note as notes,tags ";
     $sql .= "FROM {filedepot_filesubmissions} file ";
-    $sql .= "WHERE file.id=%d";
+    $sql .= "WHERE file.id=:fid";
   }
   elseif ($variables['reportmode'] == 'incoming') {
     $sql = "SELECT 0,file.orig_filename as title,file.orig_filename as fname,file.timestamp,1,file.size, ";
     $sql .= "file.description,file.uid,9,file.version_note,'' ";
     $sql .= "FROM {filedepot_import_queue} file ";
-    $sql .= "WHERE file.id=%d";
+    $sql .= "WHERE file.id=:fid";
   }
   else {
     $sql  = "SELECT file.cid, file.title, v.fname, file.date, file.version, file.size, ";
@@ -518,17 +520,19 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $variables['current_ver_note']= nl2br(filter_xss($cur_notes));
     $variables['tags'] = $nexcloud->get_itemtags($fid);
     $variables['disable_download'] = '';
-
     if ($status == FILEDEPOT_UNAPPROVED_STATUS) {
+      $variables['show_statusmsg'] = '';
       $variables['status_image'] = '<img src="'. $variables['layout_url'] . '/css/images/padlock.gif">';
       $variables['statusmessage'] = '* '.  t('File Submission to Approve');
     }
     elseif ($status == FILEDEPOT_INCOMING_STATUS) {
+      $variables['show_statusmsg'] = '';
       $variables['status_image']   = '&nbsp;';
       $variables['statusmessage'] = '* '.  t('Incoming File - needs to be moved or deleted');
       $variables['disable_download'] = 'onClick="return false;"';
     }
     elseif ($status == FILEDEPOT_LOCKED_STATUS) {
+      $variables['show_statusmsg'] = '';
       $stat_userid = db_query("SELECT status_changedby_uid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
       $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $stat_userid))->fetchField();
       $variables['status_image'] = '<img src="'. $variables['layout_url'] . '/css/images/padlock.gif">';
@@ -537,7 +541,6 @@ function template_preprocess_filedepot_filedetail(&$variables) {
       $variables['disable_download'] = 'onClick="return FALSE;"';
     }
     else {
-      $variables['show_statusmsg'] = 'none';
       $variables['status_image']   = '&nbsp;';
       $variables['statusmessage']  = '&nbsp;';
     }

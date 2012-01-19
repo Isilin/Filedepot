@@ -777,13 +777,16 @@ var makeAJAXLoadFileDetails = function(id) {
           Dom.setStyle('notifymenubaritem', 'display', 'none');
           Dom.setStyle('approvefiledetailslink', 'display', '');
           document.frmFileDetails.approved.value = 0;
-          Event.addListener("approvefiledetailslink", "click", adminApproveSubmission);
+          if (!Event.getListeners('approvefiledetailslink')) {   // Check first to see if listener already active
+            Event.addListener("approvefiledetailslink", "click", adminApproveSubmission);
+          }
         } else {
           Dom.setStyle('newversionlink', 'display', '');
           Dom.setStyle('lockmenubaritem', 'display', '');
           Dom.setStyle('notifymenubaritem', 'display', '');
           Dom.setStyle('approvefiledetailslink', 'display', 'none');
           document.frmFileDetails.approved.value = 1;
+          Event.removeListener("approvefiledetailslink", "click");
         }
         document.frmBroadcast.fid.value = oResults.fid;
         document.frmBroadcast.message.value = '';

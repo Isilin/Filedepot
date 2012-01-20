@@ -33,11 +33,6 @@ function filedepot_admin_settings() {
   '#size' => 60
   );
 
-  $form['basic']['filedepot_allow_folder_duplicates'] = array('#type' => 'checkbox',
-  '#title' => t('Allow Duplicates in Folders'),
-  '#default_value' => variable_get('filedepot_allow_folder_duplicates', 1),
-  '#description' => t('If enabled, users can upload files with the same name in folders.'));
-
   $form['performance'] = array(
   '#type' => 'fieldset',
   '#title' => t('Performance Settings'),

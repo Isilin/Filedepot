@@ -1516,6 +1516,19 @@ function makeAJAXBroadcastNotification () {
 }
 
 
+
+
+function onCategorySelect(elm) {
+  if (document.frmNewFile.op.value == 'savefile') {
+    if ( fileID != null && elm.options[elm.selectedIndex].value > 0) {
+      document.getElementById('btnNewFileSubmit').disabled=false;
+    } else {
+      document.getElementById('btnNewFileSubmit').disabled=true;
+    }
+  }
+}
+
+
 function doAJAXEditVersionNote(fobj) {
   var surl = ajax_post_handler_url + '/updatenote';
   var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value;
@@ -1982,24 +1995,9 @@ function showAddFilePanel() {
 }
 
 function showAddNewVersion() {
-  /* Clear form and then show it */
-  //Dom.get('newfile_category').options[0].selected=true;
   Dom.get('newfiledialog_heading').innerHTML = NEXLANG_newversion;
-  //document.frmNewFile.fid.value = document.frmFileDetails.id.value;
-
   Dom.get('filedepot-newversion-form').filedepot_fid.value = document.frmFileDetails.id.value;
-
-  //Dom.setStyle('newfiledialog_folderrow', 'display', 'none');
-  //Dom.setStyle('newfiledialog_filedesc', 'display', 'none');
-  //Dom.setStyle('newfiledialog_filename', 'display', 'none');
-  //Dom.get('newfile_op').value='saveversion';
-  //Dom.get('newfile_tags').value='';
-  //Dom.get('newfile_notes').value='';
-  //Dom.get('filedepot_notify').checked='';
   YAHOO.container.newfiledialog.cfg.setProperty("visible",true);
-  //if (!Event.getListeners('btnNewFileCancel')) {   // Check first to see if listener already active
-    //Event.addListener("btnNewFileCancel", "click",hideNewFilePanel, YAHOO.container.newfiledialog, true);
-  //}
 }
 
 function showAddCategoryPanel() {

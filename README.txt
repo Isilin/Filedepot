@@ -25,7 +25,7 @@ The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine
 
 Dependencies
 ------------
- * Content, FileField
+ * Ctools
  * libraries
 
  Organic Groups is not required but if you install the modules 'og' and 'og_access',
@@ -54,28 +54,23 @@ Install
 
    The following three javascript and support files then need to be retrieved and saved to the sites/all/libraies folder.
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
-   > http://yuilibrary.com/support/2.8.2/dropin_patches/uploader-2.7.0.zip  - SAVE FILE as: yui_uploader.swf
    > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js
 
-3) Enable the module using Administer -> Site building -> Modules
-   (/admin/build/modules).
+3) Enable the module using admin/modules
+   The module will create a new content type called 'filedepot_folder'
 
-   The module will create a new content type called 'filedepot folder'
-
-4) Review the module settings using Administer -> Site configuration -> Filedepot Settings
+4) Review the module settings using admin/settings/filedepot
    Save your settings and at a minium, reset to defaults and save settings.
 
 5) Access the module and run create some initial folders and upload files
-   {siteurl}/index.php?q=filedepot
+   {siteurl}/index.php?q=filedepot    (/fildepot - with clean-urls on)
 
 6) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.
 
 Notes:
 a)  You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.
-b)  A new content type is automatically created 'filedepot folder'. When adding the very first folder, the content type
-    will be modified to programtically add the the CCK filefield type for the files or attachements.
-    It is not possible to execute the CCK import to modify the content type during the install as the module has to be first active.
+b)  A new content type is automatically created 'filedepot_folder'.
 c)  You can setup filedepot to not load the YUI libraries remotely from Yahoo via the module admin settings page.
     Set the baseurl to be a local URL and download the YUI libraries from http://yuilibrary.com/downloads/#yui2
     Only version 2.7.0 of the libraries is supported at present.

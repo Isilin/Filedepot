@@ -269,7 +269,6 @@ function filedepot_uninstall() {
   }
 
   variable_del('filedepot_content_type_initialized');
-  variable_del('filedepot_allow_folder_duplicates');
   variable_del('filedepot_default_allow_broadcasts');
   variable_del('filedepot_default_notify_filechange');
   variable_del('filedepot_default_notify_newfile');

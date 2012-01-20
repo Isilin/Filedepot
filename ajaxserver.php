@@ -289,7 +289,6 @@ function filedepot_dispatcher($action) {
       else {
         $data['retcode'] = 500;
       }
-
       break;
 
     case 'loadfiledetails':
@@ -373,12 +372,10 @@ function filedepot_dispatcher($action) {
         }
         else {
           $data['retcode'] = 403; // Forbidden
-
         }
       }
       else {
         $data['retcode'] = 404; // Not Found
-
       }
       break;
 
@@ -386,7 +383,6 @@ function filedepot_dispatcher($action) {
       $cid = intval($_POST['catid']);
       if (!isset($_POST['cb_access'])) {
         $data['retcode'] = 204; // No permission options selected - return 'No content' statuscode
-
       }
       elseif ($filedepot->updatePerms(
         $cid,                           // Category ID
@@ -833,8 +829,18 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'searchtags':
-      $tags = stripslashes($_POST['tags']);
-      $removetag = $_POST['removetag'];
+      if (isset($_POST['tags'])) {
+        $tags = stripslashes($_POST['tags']);
+      }
+      else {
+        $tags = '';
+      }
+      if (isset($_POST['removetag'])) {
+        $removetag = stripslashes($_POST['removetag']);
+      }
+      else {
+        $removetag = '';
+      }
       $current_search_tags = '';
       $filedepot->activeview = 'searchtags';
       $filedepot->cid = 0;

@@ -285,6 +285,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   $variables['locked_icon'] = base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('locked');
   $variables['submitter'] = '';
   $variables['favorite_status_image'] = '';
+  $variables['filesize'] = '';
   if ($rec['status'] == 2) {
     $variables['show_lock'] = '';
   }
@@ -293,7 +294,9 @@ function template_preprocess_filedepot_filelisting(&$variables) {
   }
   $variables['details_link_parms'] = "?fid={$rec['fid']}";
   $variables['fid'] = $rec['fid'];
-  $variables['filesize'] = filedepot_formatFileSize($rec['size']);
+  if(isset($rec['size'])) {
+    $variables['filesize'] = filedepot_formatFileSize($rec['size']);
+  }
   $variables['file_name'] = filter_xss($rec['title']);
 
   if (isset($rec['date']) AND $rec['date'] > 0) {
@@ -361,13 +364,13 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       if ($folder_admin OR $rec['changedby_uid'] == $user->uid) { // File locked and folder admin or file owner
         $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
         $downloadlinkimage = theme('image', array('path' => $path));
-        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}", 
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
           $variables['actionclass'] = 'twoactions';
           $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile');
           $editlinkimage = theme('image', array('path' => $path));
-          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit", 
+          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
         }
         else {
@@ -378,7 +381,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       elseif ($allowLockedFileDownloads == 1) { // File locked and downloads allowed
         $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
         $downloadlinkimage = theme('image', array('path' => $path));
-        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}", 
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         $variables['action2_link'] = '';
         $variables['actionclass'] = 'oneaction';
@@ -388,13 +391,13 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       if ($folder_admin OR $rec['changedby_uid'] == $user->uid) {
         $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
         $downloadlinkimage = theme('image', array('path' => $path));
-        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}", 
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         if ($user->uid > 0 AND $filedepot->checkPermission($rec['cid'], array('upload_dir'), $user->uid)) {
           $variables['actionclass'] = 'twoactions';
           $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('editfile');
           $editlinkimage = theme('image', array('path' => $path));
-          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit", 
+          $variables['action2_link'] =  l( $editlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}/0/edit",
             array('html' => TRUE, 'attributes' => array('title' => t('Download for Editing'))));
         }
         else {
@@ -405,7 +408,7 @@ function template_preprocess_filedepot_filelisting(&$variables) {
       else {
         $path = drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('download');
         $downloadlinkimage = theme('image', array('path' => $path));
-        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}", 
+        $variables['action1_link'] =  l( $downloadlinkimage, "filedepot_download/{$rec['nid']}/{$rec['fid']}",
           array('html' => TRUE, 'attributes' => array('title' => t('Download File'))));
         $variables['action2_link'] = '';
         $variables['actionclass'] = 'oneaction';

@@ -1491,6 +1491,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   global $user;
   $filedepot = filedepot_filedepot();
   $nexcloud =  filedepot_nexcloud();
+  $variables['tagwords'] = '';
 
   $roleids = implode(',', array_keys($user->roles));
   if ($filedepot->ogenabled) {
@@ -1510,6 +1511,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   $sql .= "ORDER BY metric DESC limit 1";
   $qmaxm = db_query($sql, array(':type' => $nexcloud->_type));
   $rec = $qmaxm->fetchAssoc();
+
   $tags = 0;
   if ($rec) {
     list($maxm) = array_values($rec);
@@ -1529,13 +1531,14 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
     $sql .= "GROUP BY tagid ORDER BY a.tagid ASC, metric DESC";
     $query = db_query($sql);
     while ($A = $query->fetchAssoc()) {
-      $variables['tagwords'] .= theme('filedepot_tagcloud_record', array('A' => $A, 'maxm' => $maxm));
+      $variables['tagwords'] .= theme('filedepot_tagcloud_record', array('rec' => $A, 'maxm' => $maxm));
       $tags++;
     }
   }
   if ($tags == 0) {
     $variables['tagwords'] = t('No tagwords defined');
   }
+
 }
 
 function template_preprocess_filedepot_tagcloud_record(&$variables) {

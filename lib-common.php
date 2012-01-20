@@ -29,7 +29,7 @@ function firelogmsg($message) {
 function filedepot_recursiveAccessArray($perms, $id = 0, $level = 1) {
   $filedepot = filedepot_filedepot();
   $options_tree = array();
-  $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=:pid ORDER BY cid", 
+  $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=:pid ORDER BY cid",
     array(':pid' => $id));
   while ($A = $query->fetchAssoc()) {
     list($cid, $pid, $name) = array_values($A);
@@ -172,7 +172,7 @@ function filedepot_updateFolderLastModified($id) {
     $q1 = db_query("SELECT cid FROM {filedepot_categories} WHERE pid=:cid ORDER BY folderorder ASC", array(':cid' => $id));
     while ($A = $q1->fetchAssoc()) {
       $last_modified_date = 0;
-      $q2 = db_query_range("SELECT date FROM {filedepot_files} WHERE cid=:cid ORDER BY date DESC", 
+      $q2 = db_query_range("SELECT date FROM {filedepot_files} WHERE cid=:cid ORDER BY date DESC",
         0, 1, array(':cid' => $A['cid']));
       $B = $q2->fetchAssoc();
       if ($B['date'] > $last_modified_date) {
@@ -184,13 +184,13 @@ function filedepot_updateFolderLastModified($id) {
           $last_modified_date = $latestdate;
         }
       }
-      db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid", 
+      db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid",
         array(':time' => $last_modified_date, ':cid' => $A['cid']));
       if ($last_modified_date > $last_modified_parentdate) {
         $last_modified_parentdate = $last_modified_date;
       }
     }
-    db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid", 
+    db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid",
       array(':time' => $last_modified_parentdate, ':cid' => $id));
   }
   $q4 = db_query("SELECT date FROM {filedepot_files} WHERE cid=:cid ORDER BY date DESC", array(':cid' => $id));
@@ -198,7 +198,7 @@ function filedepot_updateFolderLastModified($id) {
   if ($C['date'] > $last_modified_parentdate) {
     $last_modified_parentdate = $C['date'];
   }
-  db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid", 
+  db_query("UPDATE {filedepot_categories} SET last_modified_date=:time WHERE cid=:cid",
     array(':time' => $last_modified_parentdate, ':cid' => $id));
 
   return $last_modified_parentdate;
@@ -223,10 +223,14 @@ function filedepot_formatfiletags($tags) {
   $retval = '';
   if (!empty($tags)) {
     $atags = explode(',', $tags);
-    $asearchtags = explode(',', stripslashes($_POST['tags']));
+    if (isset($_POST['tags'])) {
+      $asearchtags = explode(',', stripslashes($_POST['tags']));
+    }
+    else {
+      $asearchtags = array();
+    }
     foreach ($atags as $tag) {
       $tag = trim($tag); // added to handle extra space thats added when removing a tag - thats between 2 other tags
-
       if (!empty($tag)) {
         if (in_array($tag, $asearchtags)) {
           $retval .= theme('filedepot_taglinkoff', array('label' => check_plain($tag)));
@@ -354,9 +358,9 @@ function filedepot_sendNotification($id, $type = 1) {
       $target_users[] = $submitter;
       $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $cid, 'fid' => $fid)), 'absolute' => true));
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');
-      $messagetext = t('Site member %@name: your file in folder: !folder', 
+      $messagetext = t('Site member %@name: your file in folder: !folder',
       array('!folder' => $catname)) . '<p>';
-      $messagetext .= t('The file: !filename has been approved and can be accessed !link', 
+      $messagetext .= t('The file: !filename has been approved and can be accessed !link',
       array('!filename' => $fname, '!link' => $link)) . '</p><p>';
       $messagetext .= t('You are receiving this because you requested to be notified.') . '</p><p>';
       $messagetext .= t('Thank You') . '</p>';
@@ -369,7 +373,7 @@ function filedepot_sendNotification($id, $type = 1) {
 
       $target_users[] = $submitter;
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Cancelled');
-      $messagetext = t('Your recent file submission: !filename, was not accepted', 
+      $messagetext = t('Your recent file submission: !filename, was not accepted',
       array('!filename' => $fname)) . '<p>';
       $messagetext .= t('Thank You') . '</p>';
       break;
@@ -490,7 +494,7 @@ function filedepot_sendNotification($id, $type = 1) {
 
       switch ( $type ) {
         case FILEDEPOT_NOTIFY_NEWFILE:
-          $messagetext = t('Site member @@name has submitted a new file (!file)!bp Folder: !folder !ep!bp The file can be accessed at !link !ep!bp You are receiving this because you requested to be notified of updates.!ep!bp Thank You !ep', 
+          $messagetext = t('Site member @@name has submitted a new file (!file)!bp Folder: !folder !ep!bp The file can be accessed at !link !ep!bp You are receiving this because you requested to be notified of updates.!ep!bp Thank You !ep',
                        $messagetext2ary);
           break;
         case FILEDEPOT_NOTIFY_ADMIN:

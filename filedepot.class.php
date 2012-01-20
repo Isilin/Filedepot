@@ -822,12 +822,11 @@ class filedepot {
     list ($cid, $drupal_fid, $tempname, $fname, $notify) = array_values($query->fetchAssoc());
     if (!empty($tempname) AND file_exists("{$this->root_storage_path}{$cid}/submissions/$tempname")) {
       @unlink("{$this->root_storage_path}{$cid}/submissions/$tempname");
-
       // Send out notification of submission being deleted to user - before we delete the record as it's needed to create notification message
       if ($notify == 1) filedepot_sendNotification($id, FILEDEPOT_NOTIFY_REJECT);
-
-      db_query("DELETE FROM {filedepot_filesubmissions} WHERE id=:id",
-      array('id' => $id));
+      db_delete('filedepot_filesubmissions')
+        ->condition('id', $id)
+        ->execute();
       return TRUE;
     }
     else {
@@ -1100,6 +1099,12 @@ class filedepot {
       list($scheme, $target) = explode('://', $file->uri, 2);
       $filename = str_replace("filedepot/{$rec->cid}/",'',$target);
 
+      if(isset($rec->title) AND !empty($rec->title)) {
+        $filetitle = $rec->title;
+      } else {
+          $filetitle = $rec->fname;
+      }
+
       // Load the node for the folder and then update the file usage table
       $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
       array(':cid' => $rec->cid))->fetchField();
@@ -1108,21 +1113,12 @@ class filedepot {
       // Remove the record for the core file module from the file usage table
       file_usage_delete($file,'file');
 
-      // Need to update the filename path in the drupal files table
-      /*
-      db_query("UPDATE {files} SET filename=:fname, filepath=:fpath, filemime=:mime WHERE fid=:fid",
-      array(
-      'fname' => $rec->fname,
-      'fpath' => $newfile,
-      'mine' => $rec->mimetype,
-      'fid' => $rec->cckfid));
-      */
       $query = db_insert('filedepot_files');
       $query->fields(array('cid', 'fname', 'title', 'description', 'version', 'drupal_fid' ,'size', 'mimetype', 'submitter' ,'status', 'date', 'version_ctl' ,'extension'));
       $query->values(array(
       'cid' => $rec->cid,
       'fname' => $filename,
-      'title' => $file->filename,
+      'title' => $filetitle,
       'description' => $rec->description,
       'version' => $rec->version,
       'drupal_fid' => $file->fid,
@@ -1147,7 +1143,7 @@ class filedepot {
       'fname' => $filename,
       'drupal_fid' => $file->fid,
       'version' => 1,
-      'notes' => 'TODO',
+      'notes' => $rec->version_note,
       'size' => $file->filesize,
       'date' => time(),
       'uid' => $rec->submitter,

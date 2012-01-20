@@ -748,11 +748,24 @@ class filedepot {
 
         $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
         array(':cid' => $cid))->fetchField();
-        db_query("DELETE FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid));
-        db_query("DELETE FROM {filedepot_access} WHERE catid=:cid", array('cid' => $cid));
-        db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid", array('cid' => $cid));
-        db_query("DELETE FROM {filedepot_notifications} WHERE cid=:cid", array('cid' => $cid));
-        db_query("DELETE FROM {filedepot_filesubmissions} WHERE cid=:cid", array('cid' => $cid));
+        db_delete('filedepot_categories')
+        ->condition('cid', $cid)
+        ->execute();
+        db_delete('filedepot_categories')
+        ->condition('cid', $cid)
+        ->execute();
+        db_delete('filedepot_access')
+        ->condition('catid', $cid)
+        ->execute();
+        db_delete('filedepot_recentfolders')
+        ->condition('cid', $cid)
+        ->execute();
+        db_delete('filedepot_notifications')
+        ->condition('cid', $cid)
+        ->execute();
+        db_delete('filedepot_filesubmissions')
+        ->condition('cid', $cid)
+        ->execute();
 
         // Call the drupal node delete now for the subfolder node
         //watchdog('filedepot',"Calling node_delete for node id: {$subfolder_nid}");
@@ -825,8 +838,8 @@ class filedepot {
       // Send out notification of submission being deleted to user - before we delete the record as it's needed to create notification message
       if ($notify == 1) filedepot_sendNotification($id, FILEDEPOT_NOTIFY_REJECT);
       db_delete('filedepot_filesubmissions')
-        ->condition('id', $id)
-        ->execute();
+      ->condition('id', $id)
+      ->execute();
       return TRUE;
     }
     else {
@@ -1024,16 +1037,17 @@ class filedepot {
   public function deleteVersion($fid, $version) {
     $q1 = db_query("SELECT cid,version FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
     list ($cid, $curVersion) = array_values($q1->fetchAssoc());
-    $q2 = db_query("SELECT fname,cckfid FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version",
+    $q2 = db_query("SELECT fname, drupal_fid FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version",
     array(
-    'fid' => $fid,
-    'version' => $version));
-    list ($fname, $cckfid) = array_values($q2->fetchAssoc());
-    if ($cid > 0 AND !empty($fname) AND $cckfid > 0) {
-      db_query("DELETE FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version",
-      array(
-      'fid' => $fid,
-      'versuib' => $version));
+    ':fid' => $fid,
+    ':version' => $version)
+    );
+    list ($fname, $dfid) = array_values($q2->fetchAssoc());
+    if ($cid > 0 AND !empty($fname) AND $dfid > 0) {
+      db_delete('filedepot_fileversions')
+      ->condition('fid', $fid)
+      ->condition('version', $version)
+      ->execute();
       // Need to check there are no other repository entries in this category for the same filename
       if (db_query("SELECT count(fid) FROM {filedepot_files} WHERE cid=:cid and fname=:fname",
       array('cid' => $cid, 'fname' => $fname))->fetchField() > 1) {
@@ -1048,24 +1062,26 @@ class filedepot {
         array('@fid' => $fid, '@version' => $version, '@fname' => $fname));
       }
       // If there is at least 1 more version record on file then I may need to update current version
-      if (db_query("SELECT count(fid) FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid))->fetchField() > 0) {
+      if (db_query("SELECT count(fid) FROM {filedepot_fileversions} WHERE fid=:fid", array(':fid' => $fid))->fetchField() > 0) {
         if ($version == $curVersion) {
           // Retrieve most current version on record
           $q3 = db_query("SELECT fname,version,date FROM {filedepot_fileversions} WHERE fid=:fid ORDER BY version DESC",
-          array('fid' => $fid), 0, 1);
+          array(':fid' => $fid), 0, 1);
           list ($fname, $version, $date) = array_values($q3->fetchAssoc());
           db_query("UPDATE {$filedepot_files} SET fname=:fname,version=:version, date=:time WHERE fid=:fid",
           array(
-          'fname' => $fname,
-          'version' => $version,
-          'time' => time(),
-          'fid' => $fid));
+          ':fname' => $fname,
+          ':version' => $version,
+          ':time' => time(),
+          ':fid' => $fid));
         }
       }
       else {
         watchdog('filedepot', 'Delete File final version for fid(@fid), Main file records deleted.',
         array('@fid' => $fid, '@version' => $version, '@fname' => $fname));
-        db_query("DELETE FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
+        db_delete('filedepot_files')
+        ->condition('fid', $fid)
+        ->execute();
       }
       return TRUE;
 
@@ -1102,7 +1118,7 @@ class filedepot {
       if(isset($rec->title) AND !empty($rec->title)) {
         $filetitle = $rec->title;
       } else {
-          $filetitle = $rec->fname;
+        $filetitle = $rec->fname;
       }
 
       // Load the node for the folder and then update the file usage table
@@ -1160,7 +1176,9 @@ class filedepot {
       if ($rec->notify == 1) {
         filedepot_sendNotification($newfid, FILEDEPOT_NOTIFY_APPROVED);
       }
-      db_query("DELETE FROM {filedepot_filesubmissions} WHERE id=:fid", array('fid' => $id));
+      db_delete('filedepot_filesubmissions')
+      ->condition('id', $id)
+      ->execute();
 
       // Send out notifications of update to all subscribed users
       filedepot_sendNotification($newfid, FILEDEPOT_NOTIFY_NEWFILE);
@@ -1369,7 +1387,9 @@ class filedepot {
           'time' => time(),
           'uid' => $user->uid));
 
-          db_query("DELETE FROM {filedepot_import_queue} WHERE id = :id", array('id' => $id));
+          db_delete('filedepot_import_queue')
+          ->condition('id', $id)
+          ->execute();
 
           // Update related folders last_modified_date
           $workspaceParentFolder = filedepot_getTopLevelParent($newcid);

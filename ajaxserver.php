@@ -10,7 +10,7 @@ function filedepot_dispatcher($action) {
   global $user;
 
   $filedepot = filedepot_filedepot();
-  $nexcloud =  filedepot_nexcloud();
+  $nexcloud = filedepot_nexcloud();
   module_load_include('php', 'filedepot', 'lib-theme');
   module_load_include('php', 'filedepot', 'lib-ajaxserver');
   module_load_include('php', 'filedepot', 'lib-common');
@@ -20,7 +20,6 @@ function filedepot_dispatcher($action) {
   }
   firelogmsg("AJAX Server code executing - action: $action");
   // watchdog('filedepot', "filedepot_dispatcher - action: $action");
-
   switch ($action) {
 
     case 'getfilelisting':
@@ -127,7 +126,7 @@ function filedepot_dispatcher($action) {
 
       if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
         $data['errmsg'] = t('Error creating Folder - invalid parent folder');
-        $data['retcode'] =  500;
+        $data['retcode'] = 500;
       }
       else {
         node_save($node);
@@ -137,7 +136,7 @@ function filedepot_dispatcher($action) {
         }
         else {
           $data['errmsg'] = t('Error creating Folder');
-          $data['retcode'] =  500;
+          $data['retcode'] = 500;
         }
       }
       break;
@@ -153,17 +152,17 @@ function filedepot_dispatcher($action) {
           node_delete($A['nid']);
           $filedepot->cid = $A['pid'];
           // Set the new active directory to the parent folder
-          $data['retcode'] =  200;
+          $data['retcode'] = 200;
           $data['activefolder'] = theme('filedepot_activefolder');
           $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
           $data = filedepotAjaxServer_generateLeftSideNavigation($data);
         }
         else {
-          $data['retcode'] =  403; // Forbidden
+          $data['retcode'] = 403; // Forbidden
         }
       }
       else {
-        $data['retcode'] =  404; // Not Found
+        $data['retcode'] = 404; // Not Found
       }
       break;
 
@@ -244,11 +243,11 @@ function filedepot_dispatcher($action) {
           }
           $folderorder += $stepnumber;
         }
-        $data['retcode'] =  200;
+        $data['retcode'] = 200;
         $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
       }
       else {
-        $data['retcode'] =  400;
+        $data['retcode'] = 400;
       }
       break;
 
@@ -306,7 +305,7 @@ function filedepot_dispatcher($action) {
       if ($filedepot->checkPermission($cid, 'view')) {
         $data['retcode'] = 200;
         $data['fid'] = $fid;
-        $data['displayhtml'] =  theme('filedepot_filedetail', array('fid' => $fid, 'reportmode' => $reportmode));
+        $data['displayhtml'] = theme('filedepot_filedetail', array('fid' => $fid, 'reportmode' => $reportmode));
       }
       else {
         $data['retcode'] = 400;
@@ -583,14 +582,14 @@ function filedepot_dispatcher($action) {
           ':uid' => $user->uid,
           ':fid' => $id,
         ))->fetchField() > 0) {
-          $data['favimgsrc'] =  base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('favorite-off');
+          $data['favimgsrc'] = base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('favorite-off');
           db_query("DELETE FROM {filedepot_favorites} WHERE uid=:uid AND fid=:fid", array(
             ':uid' => $user->uid,
             ':fid' => $id,
           ));
         }
         else {
-          $data['favimgsrc'] =  base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('favorite-on');
+          $data['favimgsrc'] = base_path() . drupal_get_path('module', 'filedepot') . '/css/images/' . $filedepot->getFileIcon('favorite-on');
           db_query("INSERT INTO {filedepot_favorites} (uid,fid) VALUES (:uid,:fid)", array(
             ':uid' => $user->uid,
             ':fid' => $id,
@@ -623,7 +622,7 @@ function filedepot_dispatcher($action) {
           }
         }
 
-        $data['retcode'] =  200;
+        $data['retcode'] = 200;
         $data['displayhtml'] = filedepot_displayFolderListing($cid);
       }
       break;
@@ -647,7 +646,7 @@ function filedepot_dispatcher($action) {
             ));
           }
         }
-        $data['retcode'] =  200;
+        $data['retcode'] = 200;
         $data['displayhtml'] = filedepot_displayFolderListing($cid);
       }
       break;
@@ -667,7 +666,7 @@ function filedepot_dispatcher($action) {
           $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array(
             ':uid' => $user->uid,
           ))->fetchField();
-          $data['message'] =  'File Locked successfully';
+          $data['message'] = 'File Locked successfully';
           $data['locked_message'] = '* ' . t('Locked by %name', array('%name' => $stat_user));
           $data['locked'] = TRUE;
         }
@@ -676,7 +675,7 @@ function filedepot_dispatcher($action) {
             ':uid' => $user->uid,
             ':fid' => $fid,
           ));
-          $data['message'] =  'File Un-Locked successfully';
+          $data['message'] = 'File Un-Locked successfully';
           $data['locked'] = FALSE;
         }
       }
@@ -799,7 +798,7 @@ function filedepot_dispatcher($action) {
             ));
           }
         }
-        $data['retcode'] =  200;
+        $data['retcode'] = 200;
         $data = filedepotAjaxServer_generateLeftSideNavigation($data);
         $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
       }
@@ -864,7 +863,7 @@ function filedepot_dispatcher($action) {
               }
             }
           }
-          $data['retcode'] =  200;
+          $data['retcode'] = 200;
           $data['currentsearchtags'] = $current_search_tags;
           $data['displayhtml'] = filedepot_displayTagSearchListing($tags);
           $data['tagcloud'] = theme('filedepot_tagcloud');
@@ -874,7 +873,7 @@ function filedepot_dispatcher($action) {
         else {
           unset($_POST['tags']);
           $filedepot->activeview = 'latestfiles';
-          $data['retcode'] =  200;
+          $data['retcode'] = 200;
           $data['currentsearchtags'] = '';
           $data['tagcloud'] = theme('filedepot_tagcloud');
           $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
@@ -884,7 +883,7 @@ function filedepot_dispatcher($action) {
       }
       else {
         $data['tagcloud'] = theme('filedepot_tagcloud');
-        $data['retcode'] =  203; // Partial Information
+        $data['retcode'] = 203; // Partial Information
       }
       break;
 
@@ -922,12 +921,12 @@ function filedepot_dispatcher($action) {
           }
         }
         if ($approved_files > 0) {
-          $data['retcode'] =  200;
+          $data['retcode'] = 200;
           $data = filedepotAjaxServer_generateLeftSideNavigation($data);
           $data['displayhtml'] = filedepot_displayFolderListing();
         }
         else {
-          $data['retcode'] =  400;
+          $data['retcode'] = 400;
         }
       }
       break;
@@ -952,12 +951,12 @@ function filedepot_dispatcher($action) {
           }
         }
         if ($deleted_files > 0) {
-          $data['retcode'] =  200;
+          $data['retcode'] = 200;
           $data = filedepotAjaxServer_generateLeftSideNavigation($data);
           $data['displayhtml'] = filedepot_displayFolderListing();
         }
         else {
-          $data['retcode'] =  400;
+          $data['retcode'] = 400;
         }
       }
       break;
@@ -998,12 +997,12 @@ function filedepot_dispatcher($action) {
             ':uid' => $user->uid,
           ), 0, 1)->fetchField();
         filedepot_sendNotification($fid, FILEDEPOT_NOTIFY_NEWFILE);
-        $data['retcode'] =  200;
+        $data['retcode'] = 200;
         $data = filedepotAjaxServer_generateLeftSideNavigation($data);
         $data['displayhtml'] = filedepot_displayFolderListing();
       }
       else {
-        $data['retcode'] =  500;
+        $data['retcode'] = 500;
       }
       break;
 

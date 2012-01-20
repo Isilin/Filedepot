@@ -19,7 +19,7 @@ function filedepot_dispatcher($action) {
     timer_start('filedepot_timer');
   }
   firelogmsg("AJAX Server code executing - action: $action");
-  //watchdog('filedepot', "filedepot_dispatcher - action: $action");
+  // watchdog('filedepot', "filedepot_dispatcher - action: $action");
 
   switch ($action) {
 
@@ -90,9 +90,7 @@ function filedepot_dispatcher($action) {
       $cid = intval($_POST['cid']);
       $level = intval($_POST['level']);
       // Need to remove the last part of the passed in foldernumber as it's the incremental file number
-
       // Which we recalculate in template_preprocess_filelisting()
-
       $x = explode('.', check_plain($_POST['foldernumber']));
       $x2 = array_pop($x);
       $foldernumber = implode('.', $x);
@@ -155,7 +153,6 @@ function filedepot_dispatcher($action) {
           node_delete($A['nid']);
           $filedepot->cid = $A['pid'];
           // Set the new active directory to the parent folder
-
           $data['retcode'] =  200;
           $data['activefolder'] = theme('filedepot_activefolder');
           $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
@@ -163,12 +160,10 @@ function filedepot_dispatcher($action) {
         }
         else {
           $data['retcode'] =  403; // Forbidden
-
         }
       }
       else {
         $data['retcode'] =  404; // Not Found
-
       }
       break;
 
@@ -181,7 +176,6 @@ function filedepot_dispatcher($action) {
       $filedepot->cid = intval($_POST['listingcid']);
       if ($filedepot->checkPermission($cid, 'admin')) {
         // Check and see if any subfolders don't yet have a order value - if so correct
-
         $maxorder = 0;
         $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
         array(':cid' => $cid))->fetchField();
@@ -264,7 +258,6 @@ function filedepot_dispatcher($action) {
       $notifychange = intval($_POST['filechanged_notify']);
       if ($user->uid > 0 AND $cid >= 1) {
         // Update the personal folder notifications for user
-
         if (db_query("SELECT count(*) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", array(
           ':cid' => $cid,
           ':uid' => $user->uid,
@@ -370,7 +363,6 @@ function filedepot_dispatcher($action) {
           array(':accid' => $id));
           db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
           // For this folder - I need to update the access metrics now that a permission has been removed
-
           $nexcloud->update_accessmetrics($A['catid']);
           if ($filedepot->ogenabled) {
             $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $A['catid']));
@@ -430,7 +422,6 @@ function filedepot_dispatcher($action) {
       }
       else {
         $data['retcode'] = 403; // Forbidden
-
       }
       break;
 
@@ -463,7 +454,6 @@ function filedepot_dispatcher($action) {
           $data = filedepotAjaxServer_generateLeftSideNavigation($data);
           $data['displayhtml'] = filedepot_displayFolderListing();
         }
-
       }
       elseif ($fid > 0) {
         $filemoved = FALSE;
@@ -487,7 +477,6 @@ function filedepot_dispatcher($action) {
           ));
           list($fname, $cid, $current_version, $submitter) = array_values($query->fetchAssoc());
           // Allow updating the category, title, description and image for the current version and primary file record
-
           if ($version == $current_version) {
             db_query("UPDATE {filedepot_files} SET title=:title,description=:desc,date=:time WHERE fid=:fid", array(
               ':title' => $filetitle,
@@ -496,7 +485,6 @@ function filedepot_dispatcher($action) {
               ':fid' => $fid,
             ));
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
-
             if ($folder_id > 0) {
               $newcid = $folder_id;
               if ($cid != $newcid) {
@@ -511,7 +499,6 @@ function filedepot_dispatcher($action) {
               $data['cid'] = $cid;
             }
             unset($_POST['tags']); // Format tags will check this to format tags in case we are doing a search which we are not in this case.
-
             $data['tags'] = filedepot_formatfiletags($tags);
           }
 
@@ -521,7 +508,6 @@ function filedepot_dispatcher($action) {
             ':version' => $version,
           ));
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
-
           if ($filedepot->checkPermission($folder_id, 'view', 0, FALSE)) {
             if ($filedepot->checkPermission($folder_id, 'admin', 0, FALSE) OR $user->uid == $submitter) {
               $admin = TRUE;
@@ -873,7 +859,6 @@ function filedepot_dispatcher($action) {
           if (count($atags) >= 1) {
             foreach ($atags as $tag) {
               $tag = trim($tag); // added to handle extra space thats added when removing a tag - thats between 2 other tags
-
               if (!empty($tag)) {
                 $current_search_tags .= theme('filedepot_searchtag', array('searchtag' => addslashes($tag), 'label' => check_plain($tag)));
               }
@@ -900,7 +885,6 @@ function filedepot_dispatcher($action) {
       else {
         $data['tagcloud'] = theme('filedepot_tagcloud');
         $data['retcode'] =  203; // Partial Information
-
       }
       break;
 
@@ -927,10 +911,8 @@ function filedepot_dispatcher($action) {
         $filedepot->activeview = 'approvals';
         foreach ($files as $id) {
           // Check if this is a valid submission record
-
           if ($id > 0 AND db_query("SELECT COUNT(*) FROM {filedepot_filesubmissions} WHERE id=:id", array(':id' => $id))->fetchField() == 1) {
             // Verify that user has Admin Access to approve this file
-
             $cid = db_query("SELECT cid FROM {filedepot_filesubmissions} WHERE id=:id", array(':id' => $id))->fetchField();
             if ($cid > 0 AND $filedepot->checkPermission($cid, array('admin', 'approval'), 0, FALSE)) {
               if ($filedepot->approveFileSubmission($id)) {
@@ -947,7 +929,6 @@ function filedepot_dispatcher($action) {
         else {
           $data['retcode'] =  400;
         }
-
       }
       break;
 
@@ -960,10 +941,8 @@ function filedepot_dispatcher($action) {
         $filedepot->activeview = 'approvals';
         foreach ($files as $id) {
           // Check if this is a valid submission record
-
           if ($id > 0 AND db_query("SELECT COUNT(*) FROM {filedepot_filesubmissions} WHERE id=:id", array(':id' => $id))->fetchField() == 1) {
             // Verify that user has Admin Access to approve this file
-
             $cid = db_query("SELECT cid FROM {filedepot_filesubmissions} WHERE id=:id", array(':id' => $id))->fetchField();
             if ($cid > 0 AND $filedepot->checkPermission($cid, array('admin', 'approval'), 0, FALSE)) {
               if ($filedepot->deleteSubmission($id)) {
@@ -980,7 +959,6 @@ function filedepot_dispatcher($action) {
         else {
           $data['retcode'] =  400;
         }
-
       }
       break;
 

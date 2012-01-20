@@ -1516,19 +1516,6 @@ function makeAJAXBroadcastNotification () {
 }
 
 
-
-
-function onCategorySelect(elm) {
-  if (document.frmNewFile.op.value == 'savefile') {
-    if ( fileID != null && elm.options[elm.selectedIndex].value > 0) {
-      document.getElementById('btnNewFileSubmit').disabled=false;
-    } else {
-      document.getElementById('btnNewFileSubmit').disabled=true;
-    }
-  }
-}
-
-
 function doAJAXEditVersionNote(fobj) {
   var surl = ajax_post_handler_url + '/updatenote';
   var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value;

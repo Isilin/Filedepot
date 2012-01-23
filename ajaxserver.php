@@ -357,9 +357,12 @@ function filedepot_dispatcher($action) {
         ));
         $A = $query->fetchAssoc();
         if ($filedepot->checkPermission($A['catid'], 'admin')) {
-          db_query("DELETE FROM {filedepot_access} WHERE accid=:accid",
-          array(':accid' => $id));
-          db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+           db_delete('filedepot_access')
+            ->condition('accid', $id)
+            ->execute();
+           db_update('filedepot_usersettings')
+            ->fields(array('allowable_view_folders' => ''))
+            ->execute();
           // For this folder - I need to update the access metrics now that a permission has been removed
           $nexcloud->update_accessmetrics($A['catid']);
           if ($filedepot->ogenabled) {
@@ -390,7 +393,8 @@ function filedepot_dispatcher($action) {
         $_POST['selusers'],             // Array of site members
         $_POST['selgroups'],            // Array of group members
         $_POST['selroles'])            // Array of roles
-      ) {
+        )
+      {
         if (is_array($_POST['selroles']) AND count($_POST['selroles']) > 0) {
           foreach ($_POST['selroles'] as $roleid) {
             $roleid = intval($roleid);

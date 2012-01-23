@@ -1495,7 +1495,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
 
   $roleids = implode(',', array_keys($user->roles));
   if ($filedepot->ogenabled) {
-    $groupids = implode(',', array_keys($user->og_groups));
+    $groupids = implode(',', array_keys(og_get_entity_groups('user', $user)));
   }
   else {
     $groupids = '';
@@ -1764,6 +1764,7 @@ function filedepot_newfile_submit($form, &$form_state) {
 
     if (isset($form_state['values']['filedepot_file']) AND $form_state['values']['filedepot_file'] > 0) {
 
+      $tags = check_plain($form_state['values']['filedepot_filetags']);
       $file = file_load($form_state['values']['filedepot_file']);
       $ext = end(explode(".", $file->filename));
       list($scheme, $target) = explode('://', $file->uri, 2);
@@ -1824,12 +1825,15 @@ function filedepot_newfile_submit($form, &$form_state) {
             'tags' => 'TODO',
             'notify' => 1,
           ));
-          $query->execute();
-
-          // Get id for the new file record
-          $newrecid = db_query_range("SELECT id FROM {filedepot_filesubmissions} WHERE cid=:cid AND submitter=:uid ORDER BY id DESC", 0, 1,
-          array(':cid' => $node->folder, ':uid' => $user->uid))->fetchField();
-          filedepot_sendNotification($newrecid, FILEDEPOT_NOTIFY_ADMIN);
+          $newrecid = $query->execute();
+          if ($newrecid > 0) {
+            // Get id for the new file record
+            $newrecid = db_query_range("SELECT id FROM {filedepot_filesubmissions} WHERE cid=:cid AND submitter=:uid ORDER BY id DESC", 0, 1,
+            array(':cid' => $node->folder, ':uid' => $user->uid))->fetchField();
+            filedepot_sendNotification($newrecid, FILEDEPOT_NOTIFY_ADMIN);
+          } else {
+            drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
+          }
 
         }
         else {
@@ -1882,30 +1886,46 @@ function filedepot_newfile_submit($form, &$form_state) {
             'status' => 1,
             'date' => time(),
           ));
-          $query->execute();
+          $newrecid = $query->execute();
+          if ($newrecid > 0) {
+            $query = db_insert('filedepot_fileversions');
+            $query->fields(array('fid', 'fname', 'drupal_fid', 'version', 'notes', 'size', 'date', 'uid', 'status'));
+            $query->values(array(
+              'fid' => $newrecid,
+              'fname' => $filename,
+              'drupal_fid' => $file->fid,
+              'version' => 1,
+              'notes' => check_plain($form_state['values']['filedepot_version_note']),
+              'size' => $file->filesize,
+              'date' => time(),
+              'uid' => $user->uid,
+              'status' => 1,
+            ));
+            $query->execute();
 
-          // Get fileid for the new file record
-          $newrecid = db_query_range("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", 0, 1,
-          array(':cid' => $node->folder, ':uid' => $user->uid))->fetchField();
+            // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
+            if ($filedepot->checkPermission($node->folder, 'view', 0, FALSE)) {
+              if ($filedepot->checkPermission($node->folder, 'admin', 0, FALSE) OR $user->uid == $submitter) {
+                $admin = TRUE;
+              }
+              else {
+                $admin = FALSE;
+              }
+              $nexcloud = filedepot_nexcloud();
+              if (!$nexcloud->update_tags($newrecid, $tags, $admin)) {
+                drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
+              }
+            }
+            else {
+                drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
+            }
 
-          $query = db_insert('filedepot_fileversions');
-          $query->fields(array('fid', 'fname', 'drupal_fid', 'version', 'notes', 'size', 'date', 'uid', 'status'));
-          $query->values(array(
-            'fid' => $newrecid,
-            'fname' => $filename,
-            'drupal_fid' => $file->fid,
-            'version' => 1,
-            'notes' => check_plain($form_state['values']['filedepot_version_note']),
-            'size' => $file->filesize,
-            'date' => time(),
-            'uid' => $user->uid,
-            'status' => 1,
-          ));
-          $query->execute();
-
-          // Update related folders last_modified_date
-          $workspaceParentFolder = filedepot_getTopLevelParent($node->folder);
-          filedepot_updateFolderLastModified($workspaceParentFolder);
+            // Update related folders last_modified_date
+            $workspaceParentFolder = filedepot_getTopLevelParent($node->folder);
+            filedepot_updateFolderLastModified($workspaceParentFolder);
+          } else {
+            drupal_set_message('error','Invalid id returned from insert new file record');
+          }
 
         }
 

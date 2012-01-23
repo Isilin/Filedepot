@@ -1191,6 +1191,12 @@ $schema['nextag_items'] = array(
 $schema['nextag_metrics'] = array(
   'description' => ('TODO: please describe this table!'),
   'fields' => array(
+    'id' => array(
+      'description' => ('TODO: please describe this field!'),
+      'type' => 'serial',
+      'size' => 'medium',
+      'not null' => TRUE,
+    ),
     'tagid' => array(
       'description' => ('TODO: please describe this field!'),
       'type' => 'int',
@@ -1227,6 +1233,7 @@ $schema['nextag_metrics'] = array(
       'default' => 0,
     ),
   ),
+  'primary key' => array('id'),
   'indexes' => array(
     'tagid' => array('tagid'),
     'type' => array('type'),

@@ -264,13 +264,10 @@ class filedepot {
 
       if ($this->ogenabled) {
         // Retrieve all the Organic Groups this user is a member of
-        $sql = "SELECT node.nid AS nid FROM {node} node LEFT JOIN {og_uid} og_uid ON node.nid = og_uid.nid "
-        . "INNER JOIN {users} users ON node.uid = users.uid "
-        . "WHERE (node.status <> 0) AND (og_uid.uid = :uid) ";
-        $groupquery = db_query($sql, array('uid' => $uid));
-        while ($grouprec = $groupquery->fetchAssoc()) {
-          $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:uid";
-          $query = db_query($sql, array('cid' => $cid, 'uid' => $grouprec['nid']));
+        $groupids = og_get_entity_groups('user', $user);
+        foreach ($groupids as $gid) {
+          $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
+          $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
           while ($rec = $query->fetchAssoc()) {
             list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
             if (is_array($rights)) {
@@ -424,78 +421,66 @@ class filedepot {
         foreach ($users as $uid ) {
           $uid = intval($uid);
           $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid", array(
-            'cid' => $id,
-            'uid' => $uid,
+            ':cid' => $id,
+            ':uid' => $uid,
           ));
           if ($query->fetchField() === FALSE) {
-            $sql = "INSERT INTO {filedepot_access} "
-            . "(catid,permid,permtype,view,upload,upload_direct,upload_ver,approval,admin) "
-            . "VALUES (:id,:uid,'user',:view,:upload,:direct,:versions,:approval,:admin)";
-            db_query($sql, array(
-              'id' => $id,
-              'uid' => $uid,
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'versions' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+            $query = db_insert('filedepot_access');
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->values(array(
+                'catid' => $id,
+                'permid' => $uid,
+                'permtype' => 'user',
+                'view' => $view,
+                'upload' => $upload,
+                'upload_direct' => $direct,
+                'upload_ver' => $versions,
+                'approval' => $approval,
+                'admin' => $admin,
             ));
+            $query->execute();
           }
           else {
-            $sql = "UPDATE {filedepot_access} SET view=:view, upload=:upload, "
-            . "upload_direct=:direct, upload_ver=:versions, approval=:approval, "
-            . "admin=:admin WHERE catid=:cid AND permtype='user' AND permid=:uid";
-            db_query($sql, array(
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'versions' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
-              'id' => $id,
-              'uid' => $uid,
-            ));
-          }
+              db_update('filedepot_access')
+              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->condition('catid', $id)
+              ->condition('permtype', 'user')
+              ->condition('permid', $uid)
+              ->execute();
+           }
         }
       }
 
       if (!empty($groups)) {
         foreach ($groups as $gid ) {
           $gid = intval($gid);
-          $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:uid", array(
-            'id' => $id,
-            'uid' => $gid,
+          $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid", array(
+            ':cid' => $id,
+            ':gid' => $gid,
           ));
           if ($query->fetchField() === FALSE) {
-            $sql = "INSERT INTO {filedepot_access} "
-            . "(catid,permid,permtype,view,upload,upload_direct,upload_ver,approval,admin) "
-            . "VALUES (:id,:uid,'group',:view,:upload,:direct,:versions,:approval,:admin)";
-            db_query($sql, array(
-              'id' => $id,
-              'uid' => $uid,
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'versions' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+            $query = db_insert('filedepot_access');
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->values(array(
+                'catid' => $id,
+                'permid' => $gid,
+                'permtype' => 'group',
+                'view' => $view,
+                'upload' => $upload,
+                'upload_direct' => $direct,
+                'upload_ver' => $versions,
+                'approval' => $approval,
+                'admin' => $admin,
             ));
+            $query->execute();
           }
           else {
-            $sql = "UPDATE {filedepot_access} SET view=:view, upload=:upload, "
-            . "upload_direct=:direct, upload_ver=:version, approval=:approval, "
-            . "admin=:admin WHERE catid=:cid AND permtype='group' AND permid=:uid";
-            db_query($sql, array(
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'version' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
-              'cid' => $id,
-              'uid' => $gid,
-            ));
+              db_update('filedepot_access')
+              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->condition('catid', $id)
+              ->condition('permtype', 'group')
+              ->condition('permid', $gid)
+              ->execute();
           }
         }
       }
@@ -508,34 +493,28 @@ class filedepot {
             'uid' => $rid,
           ));
           if ($query->fetchField() === FALSE) {
-            $sql = "INSERT INTO {filedepot_access} "
-            . "(catid,permid,permtype,view,upload,upload_direct,upload_ver,approval,admin) "
-            . "VALUES (:id,:uid,'role',:view,:upload,:direct,:version,:approval,:admin)";
-            db_query($sql, array(
-              'id' => $id,
-              'uid' => $rid,
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'version' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+            $query = db_insert('filedepot_access');
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->values(array(
+                'catid' => $id,
+                'permid' => $rid,
+                'permtype' => 'role',
+                'view' => $view,
+                'upload' => $upload,
+                'upload_direct' => $direct,
+                'upload_ver' => $versions,
+                'approval' => $approval,
+                'admin' => $admin,
             ));
+            $query->execute();
           }
           else {
-            $sql = "UPDATE {filedepot_access} SET view=:view, upload=:upload, "
-            . "upload_direct=:direct, upload_ver=:version, approval=:approval, "
-            . "admin=:admin WHERE catid=:cid AND permtype='role' AND permid=:uid";
-            db_query($sql, array(
-              'view' => $view,
-              'upload' => $upload,
-              'direct' => $direct,
-              'version' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
-              'cid' => $id,
-              'uid' => $rid,
-            ));
+              db_update('filedepot_access')
+              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->condition('catid', $id)
+              ->condition('permtype', 'role')
+              ->condition('permid', $rid)
+              ->execute();
           }
         }
       }
@@ -547,7 +526,9 @@ class filedepot {
        Distributing the load to update the cached setting.
        This cached setting will really only benefit when there are many thousand access records like portal23
        */
-      db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+      db_update('filedepot_usersettings')
+      ->fields(array('allowable_view_folders' => ''))
+      ->execute();
 
       return TRUE;
 

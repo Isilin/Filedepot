@@ -41,7 +41,7 @@ function template_preprocess_filedepot_header(&$variables) {
   }
 
   if ($filedepot->cid > 0) {
-    $variables['rightpadding'] = '10';
+    $variables['rightpadding'] = '35';
     $variables['show_folder'] = 'none';
     $variables['show_folderexpandlink'] = '';
   }
@@ -735,7 +735,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $group_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => $permrec, 'group'));
+    $group_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'group'));
   }
   if ($i > 0) {
     $variables['group_perm_records'] = $group_perm_records;
@@ -750,7 +750,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => $permrec, 'role'));
+    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role'));
   }
   if ($i > 0) {
     $variables['role_perm_records'] = $role_perm_records;
@@ -767,7 +767,8 @@ function template_preprocess_filedepot_folderperm_rec(&$variables) {
     $variables['name'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $permid))->fetchField();
   }
   else if ($variables['mode'] == 'group') {
-    $variables['name'] = db_query("SELECT title FROM {node} WHERE nid=:uid", array(':uid' => $permid))->fetchField();
+    $group = og_get_group('group', $permid);
+    $variables['name'] = $group->label;
   }
   else {
     $variables['name'] = db_query("SELECT name FROM {role} WHERE rid=:uid", array(':uid' => $permid))->fetchField();

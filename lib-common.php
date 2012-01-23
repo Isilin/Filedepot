@@ -295,10 +295,12 @@ function filedepot_getRoleOptions() {
 }
 
 function filedepot_getGroupOptions() {
+  global $user;
   $retval = '';
-  $groups = og_all_groups_options();
-  foreach ($groups as $grpid => $grpname) {
-    $retval .= '<option value="' . $grpid . '">' . $grpname . '</option>';
+  $groups = og_get_entity_groups('user', $user);
+  foreach ($groups as $grpid) {
+    $group = og_get_group('group', $grpid);
+    $retval .= '<option value="' . $grpid . '">' . $group->label . '</option>';
   }
   return $retval;
 }

@@ -10,7 +10,7 @@
     <ul class="yui-nav">
       <li class="selected"><a href="#tab1"><em><div style="width:75px;"><?php print $LANG_files_menuitem ?></div></em></a></li>
       <li><a href="#tab2"><em><div style="width:75px;"><?php print $LANG_folder_menuitem ?></div></em></a></li>
-      <li><a href="#tab3"><em><div style="width:110px;"><?php print $LANG_history_menuitem ?></div></em></a></li>
+      <li><a href="#tab3"><em><div style="width:135px;"><?php print $LANG_history_menuitem ?></div></em></a></li>
       <li><a href="#tab4"><em><div style="width:75px;"><?php print $LANG_settings_menuitem ?></div></em></a></li>
     </ul>
     <div class="yui-content">
@@ -19,7 +19,7 @@
           <div class="floatleft"><input id="chkallfiles" type="checkbox" value="all" onclick="toggleCheckedNotificationItems(this);"></div>
           <div class="floatleft" style="width:80%;padding-left:5px;">
             <div class="floatleft" style="width:35%"><?php print $LANG_filename ?></div>
-            <div class="floatleft" style="width:24%"><?php print $LANG_folder ?></div>
+            <div class="floatleft" style="width:23%"><?php print $LANG_folder ?></div>
             <div class="floatright" style="padding-right:140px;"><?php print $LANG_dateadded ?></div>
           </div>
           <div class="floatright" style="width:10%;padding-right:10px;"><?php print $LANG_action ?></div>
@@ -29,13 +29,13 @@
       <div id="tab2">
         <div class="filedepotheading">
           <div class="floatleft"><input id="chkallfolders" type="checkbox" value="all" onclick="toggleCheckedNotificationItems(this);"></div>
-          <div class="floatleft" style="width:80%;padding-left:5px;">
-            <div class="floatleft" style="width:60%"> <?php print $LANG_folder ?> </div>
-            <div class="floatleft" style="width:15%"><?php print $LANG_dateadded ?></div>
-            <div class="floatright" style="width:5%;padding-left:5px;padding-right:5px;"><?php print $LANG_changes ?></div>
-            <div class="floatright" style="width:10%;white-space:nowrap;"><?php print $LANG_newfiles ?></div>
+          <div class="floatleft" style="width:70%;padding-left:5px;">
+            <div class="floatleft" style="width:50%"> <?php print $LANG_folder ?> </div>
+            <div class="floatleft" style="width:15%;white-space:nowrap;"><?php print $LANG_dateadded ?></div>
+            <div class="floatright" style="width:15%;padding-left:5px;padding-right:5px;white-space:nowrap;"><?php print $LANG_changes ?></div>
+            <div class="floatright" style="width:15%;white-space:nowrap;"><?php print $LANG_newfiles ?></div>
           </div>
-          <div class="floatright" style="width:5%;padding-right:10px;"><?php print $LANG_action ?></div>
+          <div class="floatright" style="width:10%;padding-right:10px;"><?php print $LANG_action ?></div>
         </div>
         <?php print $folder_records ?>
       </div>

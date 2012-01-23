@@ -6,23 +6,17 @@
  * Tag Cloud class for the fildepot module
  */
 
-
-
 class nexcloud {
-
   public $_tagwords;
   public $_tagitems;
   public $_tagmetrics;
   public $_filter;
   public $_newtags;
   public $_activetags; // Active search tags - don't show in tag cloud
-
   public $_type;
   public $_fontmultiplier = 160; // Used as a multiplier in displaycloud() function - Increase to see a wider range of font sizes
-
   public $_maxclouditems = 200;
   public $_allusers = 1; // Role Id that includes all users (including anonymous)
-
 
   function __construct() {
     global $user;
@@ -66,11 +60,12 @@ class nexcloud {
   function get_itemperms($fid, $sitewide = FALSE) {
     global $user;
 
-    $perms = array();
+    $perms = array('groups' => array(), 'roles' => array());
     $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
     if ($cid > 0) {
-      if ($user->og_groups != NULL) {
-        $groupids = implode(',', array_keys($user->og_groups));
+      $groups = og_get_entity_groups('user', $user);
+      if (!empty($groups)) {
+        $groupids = implode(',', array_keys($groups));
         if (!empty($groupids) OR $sitewide === TRUE) {
           $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='group' AND view = 1 AND permid > 0 ";
           $sql .= "AND permid in ($groupids) ";
@@ -83,7 +78,6 @@ class nexcloud {
         }
       }
       // Determine all the roles the active user has and test for view permission.
-
       $roleids = implode(',', array_keys($user->roles));
       if (!empty($roleids) OR $sitewide === TRUE) {
         $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='role' AND view = 1 AND permid > 0 ";
@@ -108,14 +102,12 @@ class nexcloud {
     if (!empty($tagwords)) {
       $tagwords = explode(',', $tagwords);
       // Build a comma separated list of tagwords that we can use in a SQL statements below
-
       $allTagWords = array();
       foreach ($tagwords as $word) {
         $tag = "'" . addslashes($word) . "'";
         $allTagWords[] = $tag;
       }
       $tagwords = implode(',', $allTagWords); // build a comma separated list of words
-
 
       if (!empty($tagwords)) {
         $query = db_query("SELECT id FROM {nextag_words} where tagword in ($tagwords)");
@@ -143,29 +135,22 @@ class nexcloud {
   private function add_accessmetrics($itemid, $tagids) {
 
     // Test that a valid array of tag id's is passed in
-
     if (is_array($tagids) AND count($tagids) > 0) {
       // Test that a valid item record exist
-
       if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:iid", array(':type' => $this->_type, ':iid' => $itemid))->fetchField() > 0) {
         // Get item permissions to determine what rights to use for tag metrics record
-
         $perms = $this->get_itemperms($itemid, true);
 
         // Add any new tags
-
         foreach ($tagids as $id) {
           if (!empty($id)) {
             // For each role or group with view access to this item - create or update the access metric record count.
-
             $haveGroupsToUpdate = count($perms['groups']) > 0;
             $haveRolesToUpdate = count($perms['roles']) > 0;
             if ($haveGroupsToUpdate OR $haveRolesToUpdate) {
               db_query("UPDATE {nextag_words} SET metric=metric+1 WHERE id=:id", array(':id' => $id));
               // use an array to handle the logic of whether to process groups, roles, or both
-
               // use the key to track the field to update and the value to track the values
-
               $permAccessMetric = array();
               if ($haveGroupsToUpdate) {
                 $permAccessMetric['groupid'] = $perms['groups'];
@@ -241,11 +226,10 @@ class nexcloud {
               foreach ($permAccessMetric as $permKey => $permValue) {
                 foreach ($permValue as $permid) {
                   // Delete the tag metric access record if metric = 1 else decrement the metric count
-
-                  db_query("DELETE FROM {nextag_metrics} WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey AND metric=1", array(':id' => $id, ':type' => $this->_type, ':permkey' => $permid));
+                  db_query("DELETE FROM {nextag_metrics} WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey AND metric=1", array(':tid' => $id, ':type' => $this->_type, ':permkey' => $permid));
                   $sql  = "UPDATE {nextag_metrics} SET metric=metric-1, last_updated=:time "
                             . "WHERE tagid=:tid AND type=:type AND " . $permKey . "=:permkey";
-                  db_query($sql, array(':time' => time(), ':id' => $id, ':type' => $this->_type, ':permkey' => $permid));
+                  db_query($sql, array(':time' => time(), ':tid' => $id, ':type' => $this->_type, ':permkey' => $permid));
                 }
               }
             }
@@ -275,21 +259,18 @@ class nexcloud {
     }
 
     // Test that we now have a valid array of tag id's
-
     if (is_array($tagids) AND count($tagids) > 0) {
       // Test that a valid item record exist
-
       if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField() > 0) {
+
         // Get item permissions to determine what rights to use for tag metrics record
-
         $perms = $this->get_itemperms($itemid, true);
-        // For each role or group with view access to this item - create or update the access metric record count.
 
+        // For each role or group with view access to this item - create or update the access metric record count.
         $haveGroupsToUpdate = count($perms['groups']) > 0;
         $haveRolesToUpdate = count($perms['roles']) > 0;
 
         // For each tag word - we need to update (add new or remove any un-used tag metric associated with this permission and tagword
-
         $metricRecords = array(); // Will contain the processed metric records
 
         foreach ($tagids as $id) {
@@ -297,9 +278,7 @@ class nexcloud {
             if ($haveGroupsToUpdate OR $haveRolesToUpdate) {
 
               // An array to handle the logic of whether to process groups, roles, or both
-
               // Use the key to track the field to update and the value to track the values
-
               $permAccessMetric = array();
               if ($haveGroupsToUpdate) {
                 $permAccessMetric['groupid'] = $perms['groups'];
@@ -321,10 +300,19 @@ class nexcloud {
                       }
                     }
                     if ($numrecs == 0) {
-                      $sql  = "INSERT INTO {nextag_metrics} (tagid,type," . $permKey . ",metric,last_updated) "
-                                . "VALUES (:id,:type,:permid,:alias,:time)";
-                      db_query($sql, array(':id' => $id, ':type' => $this->_type, ':permid' => $permid, ':alias' => 1, ':time' => time()));
-                      $metricRecords[] = db_last_insert_id('nextag_metrics', 'id');
+                      $metric = db_query("SELECT metric FROM {nextag_words} WHERE id=:id",
+                        array(':id' => $id))->fetchField();
+                      $query = db_insert('nextag_metrics');
+                      $query->fields(array('tagid', 'type', $permKey, 'metric', 'last_updated'));
+                      $query->values(array(
+                        'tagid' => $id,
+                        'type' => $this->_type,
+                        $permKey => $permid,
+                        'metric' => $metric,
+                        'last_updated' => time(),
+                      ));
+                      $newrecid = $query->execute();
+                      $metricRecords[] = $newrecid;
                     }
                   }
                 }
@@ -337,18 +325,20 @@ class nexcloud {
            */
           if (count($metricRecords) > 0) {
             $recids = implode(',', $metricRecords);
-            db_query("DELETE FROM {nextag_metrics} WHERE tagid = :tid and id NOT IN (:rec)", array(':tid' => $id, ':rec' => $recids));
+            $query = db_delete('nextag_metrics')
+              ->condition('tagid', $id, '=')
+              ->condition('id', $metricRecords, 'NOT IN')
+              ->execute();
           }
           else {
             db_query("DELETE FROM {nextag_metrics} WHERE tagid = :tid ", array(':tid' => $id));
           }
 
           // Delete any tagword records that are no longer used
-
           $result = db_query("SELECT id FROM {nextag_words} WHERE metric = 0");
           if ($result) {
-            // Let's do one more test and make sure no items are using this tagword
 
+            // Let's do one more test and make sure no items are using this tagword
             while ($A = $result->fetchAssoc()) {
               /* REGEX - search for id that is the first id or has a leading comma
                *  must then have a trailing , or be the end of the field
@@ -357,7 +347,6 @@ class nexcloud {
               $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
               if (db_query($sql)->fetchField() == 0) {
                 //TODO: FIX THIS, THIS STRING MIGHT MESS UP
-
                 db_query("DELETE FROM {nextag_words} WHERE id=", $A['id']);
               }
             }
@@ -388,12 +377,10 @@ class nexcloud {
     if (count($perms['groups']) > 0 OR count($perms['roles']) > 0) {
       if (!empty($this->_newtags)) {
         // If item record does not yet exist - create it.
-
         if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField() == 0) {
           db_query("INSERT INTO {nextag_items} (itemid,type) VALUES (:item,:type)", array(':item' => $itemid, ':type' => $this->_type));
         }
         // Need to build list of tagid's for these tag words and if tagword does not yet exist then add it
-
         $tagwords = explode(',', $this->_newtags);
         $tags = array();
         foreach ($tagwords as $word) {
@@ -407,7 +394,6 @@ class nexcloud {
         }
 
         // Retrieve the current assigned tags to compare against new tags
-
         $currentTags = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField();
         $currentTags = explode(',', $currentTags);
 
@@ -435,21 +421,17 @@ class nexcloud {
     }
   }
 
-
   /* Clear the tags used for this item and update tag access metrics
    * Typically called when item is deleted
    * @param string $itemid    - Example Story ID (sid) relates to itemid in the tagitems table
    */
   public function clear_tags($itemid) {
     // Retrieve the current assigned tags - these are the tags to update
-
     $currentTags = db_query("SELECT tags FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField();
     $currentTags = explode(',', $currentTags);
     $this->remove_accessmetrics($itemid, $currentTags);
     db_query("DELETE FROM {nextag_items} WHERE itemid = :item", array(':item' => $itemid));
   }
-
-
 
   public function set_newtags($newtags) {
     $newtags = $this->filtertag($newtags);
@@ -492,7 +474,6 @@ class nexcloud {
     $matches = array();
     $query = drupal_strtolower(strip_tags($query));
     // User may be looking for more then 1 tag - pull of the last word in the query to search against
-
     $tags = explode(',', $query);
     $lookup = addslashes(array_pop($tags));
     $sql = "SELECT tagword FROM {nextag_words} WHERE tagword REGEXP '^$lookup' ORDER BY metric DESC";
@@ -509,7 +490,6 @@ class nexcloud {
     $query = addslashes($query);
     $itemids = array();
     // Get a list of Tag ID's for the tag words in the query
-
     $sql = "SELECT id,tagword FROM {nextag_words} ";
     $asearchtags = explode(',', stripslashes($query));
     if (count($asearchtags) > 1) {
@@ -536,10 +516,7 @@ class nexcloud {
     $i = 1;
     while ($A = $query->fetchAssoc()) {
       $tagids[] = $A['id'];
-      // REGEX - search for id that is the first id or has a leading comma
-
-//         must then have a trailing , or be the end of the field
-
+      // REGEX - search for id that is the first id or has a leading comma must then have a trailing , or be the end of the field
       if ($i > 1) {
         $sql .= "AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
       }
@@ -565,7 +542,6 @@ class nexcloud {
       return FALSE;
     }
   }
-
 }
 
 
@@ -584,8 +560,7 @@ class filedepotTagCloud extends nexcloud {
     $query->condition('b.cid', $cid, '=');
     $results = $query->execute();
     foreach ($results as $record) {
-      parent::update_accessmetrics($record['itemid'], $tagids = '');
+      parent::update_accessmetrics($record->itemid, $tagids = '');
     }
   }
-
 }

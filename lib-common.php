@@ -483,7 +483,7 @@ function filedepot_sendNotification($id, $type=1) {
           $lastuser = $target_uid;
         }
       }
-      if (count($distribtion >= 1)) {
+      if (count($distribution >= 1)) {
         $message['to'] = 'Filedepot Distribution';
         $message['headers']['Bcc'] = implode(',', $distribution);
         drupal_mail_send($message);

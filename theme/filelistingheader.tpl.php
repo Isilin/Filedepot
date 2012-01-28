@@ -20,7 +20,7 @@
   </div>
   <div class="floatright" style="padding-right: <?php print $rightpadding ?>px;">
     <div class="floatright"><?php print $LANG_action ?></div>
-    <div class="floatright" style="padding-right:65px;"><?php print $LANG_date ?></div>
+    <div class="floatright" style="padding-right:55px;"><?php print $LANG_date ?></div>
     <div class="floatright" style="display: <?php print $show_folder ?>;padding-right:25px"><?php print $LANG_folder ?></div>
   </div>
 </div>

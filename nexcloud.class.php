@@ -13,10 +13,13 @@ class nexcloud {
   public $_filter;
   public $_newtags;
   public $_activetags; // Active search tags - don't show in tag cloud
+
   public $_type;
   public $_fontmultiplier = 160; // Used as a multiplier in displaycloud() function - Increase to see a wider range of font sizes
+
   public $_maxclouditems = 200;
   public $_allusers = 1; // Role Id that includes all users (including anonymous)
+
 
   function __construct() {
     global $user;
@@ -60,31 +63,37 @@ class nexcloud {
   function get_itemperms($fid, $sitewide = FALSE) {
     global $user;
 
-    $perms = array('groups' => array(), 'roles' => array());
+    $perms = array(
+      'groups' => array(),
+      'roles' => array(),
+    );
     $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
     if ($cid > 0) {
-      $groups = og_get_entity_groups('user', $user);
-      if (!empty($groups)) {
-        $groupids = implode(',', array_keys($groups));
-        if (!empty($groupids) OR $sitewide === TRUE) {
-          $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='group' AND view = 1 AND permid > 0 ";
-          $sql .= "AND permid in ($groupids) ";
-          $query = db_query($sql, array('cid' => $cid));
-          if ($query) {
-            while ($A = $query->fetchAssoc()) {
-              $perms['groups'][] = $A['permid'];
+      if (module_exists('og') AND module_exists('og_access')) {
+        $groups = og_get_entity_groups('user', $user);
+        if (!empty($groups)) {
+          $groupids = implode(',', array_keys($groups));
+          if (!empty($groupids) OR $sitewide === TRUE) {
+            $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='group' AND view = 1 AND permid > 0 ";
+            $sql .= "AND permid in ($groupids) ";
+            $query = db_query($sql, array(':cid' => $cid));
+            if ($query) {
+              while ($A = $query->fetchAssoc()) {
+                $perms['groups'][] = $A['permid'];
+              }
             }
           }
         }
       }
       // Determine all the roles the active user has and test for view permission.
+
       $roleids = implode(',', array_keys($user->roles));
       if (!empty($roleids) OR $sitewide === TRUE) {
         $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='role' AND view = 1 AND permid > 0 ";
         if (!$sitewide) {
           $sql .= "AND permid in ($roleids) ";
         }
-        $query = db_query($sql, array('cid' => $cid));
+        $query = db_query($sql, array(':cid' => $cid));
         if ($query) {
           while ($A = $query->fetchAssoc()) {
             $perms['roles'][] = $A['permid'];
@@ -97,17 +106,20 @@ class nexcloud {
 
   // Return an array of tagids for the passed in comma separated list of tagwords
 
+
   private function get_tagids($tagwords) {
 
     if (!empty($tagwords)) {
       $tagwords = explode(',', $tagwords);
       // Build a comma separated list of tagwords that we can use in a SQL statements below
+
       $allTagWords = array();
       foreach ($tagwords as $word) {
         $tag = "'" . addslashes($word) . "'";
         $allTagWords[] = $tag;
       }
       $tagwords = implode(',', $allTagWords); // build a comma separated list of words
+
 
       if (!empty($tagwords)) {
         $query = db_query("SELECT id FROM {nextag_words} where tagword in ($tagwords)");
@@ -135,6 +147,7 @@ class nexcloud {
   private function add_accessmetrics($itemid, $tagids) {
 
     // Test that a valid array of tag id's is passed in
+
     if (is_array($tagids) AND count($tagids) > 0) {
       // Test that a valid item record exist
       if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:iid", array(':type' => $this->_type, ':iid' => $itemid))->fetchField() > 0) {
@@ -192,30 +205,22 @@ class nexcloud {
   private function remove_accessmetrics($itemid, $tagids) {
 
     // Test that a valid array of tag id's is passed in
-
     if (is_array($tagids) AND count($tagids) > 0) {
       // Test that a valid item record exist
-
       if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField() > 0) {
         // Get item permissions to determine what rights to use for tag metrics record
-
         $perms = $this->get_itemperms($itemid, true);
-
         // Remove if required unused tag related records for this item
-
         foreach ($tagids as $id) {
           if (!empty($id)) {
             // For each role or group with view access to this item - decrement and if need delete the access metric record count.
-
             $haveGroupsToRemove = count($perms['groups']) > 0;
             $haveRolesToRemove = count($perms['roles']) > 0;
             if ($haveGroupsToRemove OR $haveRolesToRemove) {
               db_query("UPDATE {nextag_words} SET metric=metric-1 WHERE id=:id", array(':id' => $id));
               db_query("DELETE FROM {nextag_words} WHERE id=:id and metric=1", array(':id' => $id));
               // use an array to handle the logic of whether to process groups, roles, or both
-
               // use the key to track the field to update and the value to track the values
-
               $permAccessMetric = array();
               if ($haveGroupsToRemove) {
                 $permAccessMetric['groupid'] = $perms['groups'];
@@ -337,7 +342,6 @@ class nexcloud {
           // Delete any tagword records that are no longer used
           $result = db_query("SELECT id FROM {nextag_words} WHERE metric = 0");
           if ($result) {
-
             // Let's do one more test and make sure no items are using this tagword
             while ($A = $result->fetchAssoc()) {
               /* REGEX - search for id that is the first id or has a leading comma
@@ -346,7 +350,6 @@ class nexcloud {
               $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
               $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
               if (db_query($sql)->fetchField() == 0) {
-                //TODO: FIX THIS, THIS STRING MIGHT MESS UP
                 db_query("DELETE FROM {nextag_words} WHERE id=", $A['id']);
               }
             }
@@ -377,6 +380,7 @@ class nexcloud {
     if (count($perms['groups']) > 0 OR count($perms['roles']) > 0) {
       if (!empty($this->_newtags)) {
         // If item record does not yet exist - create it.
+
         if (db_query("SELECT count(itemid) FROM {nextag_items} WHERE type=:type AND itemid=:item", array(':type' => $this->_type, ':item' => $itemid))->fetchField() == 0) {
           db_query("INSERT INTO {nextag_items} (itemid,type) VALUES (:item,:type)", array(':item' => $itemid, ':type' => $this->_type));
         }

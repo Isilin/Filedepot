@@ -5,7 +5,7 @@
  * filedepot.module
  * Filedepot: File Management Module developed by Nextide www.nextide.ca
  * Full featured document managment module with a desktop application feel.
- * Integrated role and user permissions to secure folders, automated notifications,
+ * Integrated Organic Group, Role and User permissions to secure folders, automated notifications,
  * Tag Cloud integrated search, version managment, user flagged favorite files and more.
  */
 
@@ -14,7 +14,7 @@ global $_numfolders2create, $_numfiles2create, $_maxrecordsperfolder, $_validfol
 
 // Permissions used when category directories are auto created and files uploaded
 define('FILEDEPOT_CHMOD_FILES', 0666);
-define('FILEDEPOT_CHMOD_DIRS',   0777);
+define('FILEDEPOT_CHMOD_DIRS',    0777);
 
 define('FILEDEPOT_UNAPPROVED_STATUS', 0);
 define('FILEDEPOT_APPROVED_STATUS', 1);
@@ -29,6 +29,8 @@ define('FILEDEPOT_BROADCAST_MESSAGE', 5);
 
 define('FILEDEPOT_FILTER_EXCLUDEMODE', 0);
 define('FILEDEPOT_FILTER_INCLUDEMODE', 1);
+
+define('FILEDEPOT_CLIENT_SUPPORT', FALSE);  // No Client Support presenly in D7 version
 
 if (!defined('LB')) {
   define('LB', "\n");
@@ -77,10 +79,6 @@ function filedepot_permission() {
       'title' => t('Administer Fildepot'),
       'description' => t('Provides the user with overall admin rights including folder admin rights to all folders.'),
     ),
-    'filedepot upload' => array(
-      'title' => t('Fildepot Upload'),
-      'description' => t('Users need this permission to be able to upload files from within filedepot regardless what folder permissions are set. If the user has this permission, the upload permissions per folder are set from that folder permission settings.'),
-    ),
   );
 }
 
@@ -93,6 +91,7 @@ function filedepot_menu() {
   $items['filedepot'] = array(
     'title' => 'Filedepot',
     'page callback' => 'filedepot_main',
+    'page arguments' => array(1),   // optional group context
     'access callback' => 'user_access',
     'access arguments' => array('access filedepot'),
     'type' => MENU_NORMAL_ITEM,
@@ -116,10 +115,46 @@ function filedepot_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  // Menu hooks for ctools modal to work if OG is passed in as the 2nd parm
+  $items['filedepot/%/%ctools_js/newfile'] = array(
+    'title' => 'Add new file',
+    'page callback' => 'filedepot_newfile_dialog',
+    'page arguments' => array(2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access filedepot'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['filedepot/%/%ctools_js/newfolder'] = array(
+    'title' => 'Add new file',
+    'page callback' => 'filedepot_newfolder_dialog',
+    'page arguments' => array(2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access filedepot'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Menu hooks for ctools modal to work if OG is passed in as the 2nd parm
+  $items['filedepot/folder/%/%ctools_js/newfile'] = array(
+    'title' => 'Add new file',
+    'page callback' => 'filedepot_newfile_dialog',
+    'page arguments' => array(3),
+    'access callback' => 'user_access',
+    'access arguments' => array('access filedepot'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['filedepot/folder/%/%ctools_js/newfolder'] = array(
+    'title' => 'Add new file',
+    'page callback' => 'filedepot_newfolder_dialog',
+    'page arguments' => array(3),
+    'access callback' => 'user_access',
+    'access arguments' => array('access filedepot'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['filedepot/folder/%'] = array(
     'title' => 'Filedepot',
     'page callback' => 'filedepot_main',
-    'page arguments' => array(2),
+    'page arguments' => array(1,2),
     'access callback' => 'user_access',
     'access arguments' => array('access filedepot'),
     'type' => MENU_NORMAL_ITEM,
@@ -154,22 +189,6 @@ function filedepot_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['filedepot_client_upload'] = array(
-    'title' => 'filedepot',
-    'access callback' => 'filedepot_user_access',
-    'access arguments' => array('filedepot desktop client'),
-    'page callback' => 'filedepot_client_upload',
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['filedepot_createtestrecords'] = array(
-    'title' => 'Create Test Records',
-    'page callback' => 'filedepot_createtestrecords',
-    'page arguments' => array(),
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'file' => 'lib-test.php',
-  );
 
   return $items;
 
@@ -395,10 +414,6 @@ function filedepot_theme() {
     ),
   );
 
-  // Now add the views related template files
-  if (module_exists('views')) {
-    //$theme_hooks = array_merge($theme_hooks, filedepot_add_views_templates());
-  }
   return $theme_hooks;
 
 }
@@ -490,8 +505,67 @@ function filedepot_access($op, $node) {
 
 /**
  * Implementation of hook_main().
+ *
+ * If user passes in a valid group id or group name as the argument 1 then
+ * the group context will be set. After that you will only see folders
+ * that are sub-folders of the Group Root level folder
+ *
+ * If you don't pass in any arguments, no group or folder id, then
+ * the group context will be reset and all folders available to
+ * user will be displayed
+ *
+ *
  */
-function filedepot_main($id = 0) {
+function filedepot_main() {
+  $cid = 0;
+  $filedepot = filedepot_filedepot();
+  $grpid = 0;
+  $arg1 = arg(1);
+  $arg2 = arg(2);
+
+  if ($arg1 === 'folder' AND $arg2 > 0) {
+    $cid = intval($arg2);
+  } elseif ($filedepot->ogenabled AND !empty($arg1)) {
+    $grpcontext = $arg1;
+    if (intval($grpcontext) > 0) {
+      // Verify this is a valid group id
+      $query = new EntityFieldQuery();
+      $entity = $query
+      ->entityCondition('entity_type', 'group', '=')
+      ->entityCondition('bundle', 'group')
+      ->entityCondition('entity_id', $grpcontext)
+      ->execute();
+      if (isset($entity['group']) AND key($entity['group']) == $grpcontext) {
+        $grpid = $grpcontext;
+      }
+    }
+    else {
+      // Get the gid from the group name
+      $grpcontext = strtolower($grpcontext);
+      $query = new EntityFieldQuery();
+      $entity = $query
+      ->entityCondition('entity_type', 'group', '=')
+      ->entityCondition('bundle', 'group')
+      ->execute();
+      foreach($entity['group'] as $key => $obj) {
+        $x = og_get_group('group',$obj->gid);
+        if(strtolower($x->label) == $grpcontext) {
+          $grpid = $x->gid;
+          break;
+        }
+      }
+    }
+
+    if ($grpid > 0) {
+      ctools_include('object-cache');
+      $cache = ctools_object_cache_set('filedepot', 'grpid', $grpid);
+    }
+
+  } else {
+    $grpid = 0;
+    ctools_include('object-cache');
+    $cache = ctools_object_cache_set('filedepot', 'grpid', $grpid);
+  }
 
   $yui_base_url = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $modulepath = drupal_get_path('module', 'filedepot');
@@ -508,9 +582,16 @@ function filedepot_main($id = 0) {
   drupal_add_js(libraries_get_path('jquery.blockui.js'));
   drupal_add_js(libraries_get_path('html_encoder.js'));
 
-  drupal_set_breadcrumb('');
+  drupal_set_breadcrumb();
 
-  return theme('filedepot_main_page', array('cid' => $id));
+  // Check that private file stream is setup
+  $streams = file_get_stream_wrappers();
+  if (!array_key_exists('private',$streams)) {
+    drupal_set_message('Warning: Your private file system path is not setup and is required - admin/config/media/file-system');
+    watchdog('Warning','Your private file system path is not setup and is required for the filedepot module');
+  }
+
+  return theme('filedepot_main_page', array('cid' => $cid));
 
 }
 
@@ -652,7 +733,7 @@ function filedepot_native_submit($form, &$form_state) {
           drupal_set_message("moving file to: {$private_uri} - {$ret->uri}");
 
           $unapprovedfile = FALSE;
-          $filedepot_fid = db_query("SELECT fid FROM {filedepot_files} WHERE drupal_fid=:fid",   array(':fid' => $file->fid))->fetchField();
+          $filedepot_fid = db_query("SELECT fid FROM {filedepot_files} WHERE drupal_fid=:fid",    array(':fid' => $file->fid))->fetchField();
           if ($filedepot_fid === FALSE) { // If not, check if there is a record in the submissions table that has just not been approved
             $id = db_query("SELECT id FROM {filedepot_filesubmissions} WHERE drupal_fid=:fid", array(':fid' => $file->fid))->fetchField();
             if ($id > 0) {
@@ -812,11 +893,7 @@ function filedepot_update($node) {
 
 
 /**
- * Call modules that implement hook_file_download() to find out if a file is
- * accessible and what headers it should be transferred with. If a module
- * returns -1 drupal_access_denied() will be returned. If one or more modules
- * returned headers the download will start with the returned headers. If no
- * modules respond drupal_not_found() will be returned.
+ * Implementation of hook_download().
  *
  * $mode:  default is for normal files,
  *         'edit' for the download for edit operation
@@ -862,6 +939,10 @@ function filedepot_download($node, $fid, $version, $mode = '') {
             $disposition = 'inline';
           }
         }
+
+        watchdog('filedepot', "Download of incoming file: @file (!fid) by user @user",
+          array('@file' => $filetitle, '!fid' => $fid, '@user' => $user->name));
+
         $headers = array(
           'Content-Type: ' . $type . '; name="' . $filetitle . '"',
           'Content-Length: ' . $file->filesize,
@@ -964,6 +1045,10 @@ function filedepot_download($node, $fid, $version, $mode = '') {
           $type = mime_header_encode($file->filemime);
         }
 
+        watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user",
+          array('@file' => $filetitle, '!fid' => $fid, '!version' => $version, '@user' => $user->name));
+
+
         /* We can assume the repository is setup using Drupal's private filesystem
          * The file_download function will invole all modules with a hook_file_download()
          * We need to add our hook to test if this is a download for edit and add
@@ -977,6 +1062,62 @@ function filedepot_download($node, $fid, $version, $mode = '') {
   }
 
 }
+
+/**
+ * Implementation of hook_entity_insert().
+ *
+ * If OG Mode enabled, create a new top level filedepot folder
+ */
+function filedepot_entity_insert($entity, $type) {
+  global $user;
+
+  if ($type == 'group' AND $entity->gid > 0) {
+    if (variable_get('filedepot_auto_create_group_rootfolder_enabled', 0) == 1) {
+      /* Admin is being added to the OG Group. This happens when the group is first created but
+       * will also occur if another admin is added so we need to test for this.
+       * If first Admin - new Group being created then create a new ROOT level filedepot folder */
+      if (db_query("SELECT count(*) FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $entity->gid))->fetchField() == 0) {
+        $node = new stdClass();
+        $node->type = 'filedepot_folder';
+        node_object_prepare($node);
+        $node->language = LANGUAGE_NONE;
+        $node->uid = $user->uid;
+        $node->name = $user->name;
+        $node->title = check_plain($entity->label);
+        $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'] = 'Group Root Folder';
+        $node->parentfolder = 0;
+        $node->inherit = 0;
+        $node->gid = $entity->gid;
+        node_save($node);
+        watchdog('filedepot',"New Organic Group created @name - new filedepot folder created.", array('@name' => $entity->label));
+      }
+    }
+  }
+
+}
+
+/**
+ * Implementation of hook_entity_insert().
+ *
+ * If OG Mode enabled, delete any folder access perms and tag access records
+ */
+function filedepot_entity_delete($entity, $type) {
+  if ($type == 'group' AND $entity->gid > 0) {
+    $result = db_query("SELECT accid, catid FROM {filedepot_access} WHERE permtype = 'group' AND permid = :id", array(':id' => $entity->gid));
+    if ($result) {
+      module_load_include('php', 'filedepot', 'nexcloud.class');
+      $nexcloud = new filedepotTagCloud();
+      foreach ($result as $rec) {
+        db_query("DELETE FROM {filedepot_access} WHERE accid=:recid", array(':recid' => $rec->accid));
+        db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+        // For this folder - update the access metrics now that a permission has been removed
+        $nexcloud->update_accessmetrics($rec->catid);
+      }
+    }
+  }
+}
+
+
 
 /**
  * Implements hook_file_delete().
@@ -1222,6 +1363,9 @@ function filedepot_file_download() {
           }
         }
 
+        watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user",
+          array('@file' => $file->filename, '!fid' => $fid, '!version' => $version, '@user' => $user->name));
+
         $type = mime_header_encode($file->filemime);
         $headers = array(
           'Content-Type' => $type . '; name="' . $filetitle . '"',
@@ -1246,108 +1390,155 @@ function filedepot_file_download() {
 }
 
 
-
-
-
-
-
 function filedepot_node_delete($node) {
   if ($node->type == 'filedepot_folder') {
     $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
     array('nid' => $node->nid))->fetchField();
     if ($cid) {
-      //watchdog('filedepot', "filedepot_node_delete - folder record exists {$node->nid}");
       $filedepot = filedepot_filedepot();
       $filedepot->deleteFolder($cid);
     }
-    else {
-      //watchdog('filedepot', "filedepot_node_delete - folder no longer exists {$node->nid}");
-    }
   }
 }
 
 
 /**
- * Implementation of hook_views_api().
- */
-function filedepot_views_api() {
-  return array(
-    'api' => 2.0,
-    'path' => drupal_get_path('module', 'filedepot') . '/views',
-  );
-}
+* Implements hook_mail().
+*/
+function filedepot_mail($key, &$message, $params) {
+  global $user;
 
-function filedepot_add_views_templates() {
-  $templates_path = drupal_get_path('module', 'filedepot') . '/views';
-  $templates = array();
-
-  $views_templates_types = views_theme();
-
-  $files = file_scan_directory($templates_path, '^views.*\.tpl\.php$');
-
-  foreach ($files as $file) {
-
-    $template_name = str_replace('.tpl.php', '', $file->basename);
-
-    $template_info = explode('--', $template_name);
-
-    $views_hook = str_replace('-', '_', $template_info[0]);
-
-    $file_path = str_replace('/' . $file->basename, '', $file->filename);
-
-    $templates[str_replace('-', '_', $template_name)] = array(
-      'variables' => $views_templates_types[$views_hook]['variables'],
-      'path' => $file_path,
-      'template' => $template_name,
-      'original hook' => $views_hook,
-      'preprocess functions' => array(
-        'template_preprocess',
-        'template_preprocess_' . $views_hook,
-      ),
-    );
-
-  }
-
-  return $templates;
-}
-
-
-
-
-/**
- * Function called by the menu handler callback that is used only by the windows desktop client.
- */
-function filedepot_client_upload() {
   $filedepot = filedepot_filedepot();
+  $target_users = $params['target_users'];  // Array of user id's the email will be sent to
 
-  switch ($_POST['op']) {
+  $domain = preg_replace('`^www.`', '', $_SERVER['HTTP_HOST']);
+  $default_to_email = "noreply@$domain";
+  $message['to'] =  variable_get('filedepot_email_to', $default_to_email);
 
-    case 'testconnection':
-      // Function should only execute if the access permission has been verified in filedepot_user_access()
-      // Return success XML record to the desktop client
-      header("Cache-Control: no-store, no-cache, must-revalidate");
-      header("content-type: application/xml");
-      echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
-      echo "<data>";
-      echo "<status>success</status>";
-      echo "<statusid>1</statusid>";
-      echo "</data>";
+  $id = $params['fid'];
+  if (intval($id) == 0 OR count($target_users) == 0) {
+    watchdog('filedepot', "Error in filedepot_mail: invalid item id or empty distribution list");
+    return FALSE;
+  }
+
+  switch ($key) {
+    case FILEDEPOT_NOTIFY_NEWFILE: // New File added where $id = file id. Send to all subscribed users
+      $sql = "SELECT file.fid,file.fname,file.cid,file.submitter,category.name FROM {filedepot_files} file, "
+      . "{filedepot_categories} category WHERE file.cid=category.cid and file.fid=:fid";
+      $query = db_query($sql, array(':fid' => $id));
+      list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
+      $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
+      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => true));
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New Document Management Update');
+      $message_args = array(
+        '@@name' => $submitter_name,
+        '!file' => $fname,
+        '!folder' => $catname,
+        '!link' => url($link, array('absolute' => TRUE)),
+      );
+      $message_body = t('Site member @@name has submitted a new file (!file)!bp Folder: !folder. The file can be accessed at !link', $message_args);
+      $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
+      $message['body'][] = $message_body;
       break;
 
-    default:
-      if (isset($_FILES['file']) AND is_array($_FILES['file'])) {
-        $ret = $filedepot->clientUploadFile($_FILES['file'], $_POST['username'], $_POST['password']);
-      }
+    case FILEDEPOT_NOTIFY_APPROVED: // File submission being approved by admin where $id = file id. Send only to user
+      $sql = "SELECT file.fid,file.fname,file.cid,file.submitter,category.name FROM {filedepot_files} file, "
+      . "{filedepot_categories} category WHERE file.cid=category.cid and file.fid=:fid";
+      $query = db_query($sql, array(':fid' => $id));
+      list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
+      $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
+      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => true));
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');
+      $message_args = array(
+        '@@name' => $submitter_name,
+        '!file' => $fname,
+        '!folder' => $catname,
+        '!link' => url($link, array('absolute' => TRUE)),
+      );
+      $message_body = t('Site member @@name: your file (!file) in folder: !folder has been approved and can be accessed !link', $message_args);
+      $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
+      $message['body'][] = $message_body;
+      break;
 
+    case FILEDEPOT_NOTIFY_REJECT: // File submission being declined by admin where $id = new submission record id. Send only to user
+      $fname = db_query("SELECT fname FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid' => $id))->fetchField();
+      $submitter = db_query("SELECT submitter FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid' => $id))->fetchField();
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Cancelled');
+      $message_body = t('Your recent file submission: !file, was not accepted',  array('!file' => $fname)) . "\n\n";
+      $message_body .= t('Thank You') . "\n";
+      $message['body'][] = $message_body;
+      break;
+
+    case FILEDEPOT_NOTIFY_ADMIN: // New File Submission in queue awaiting approval
+      $sql = "SELECT file.fname,file.cid,file.submitter,category.name FROM {filedepot_filesubmissions} file , "
+      . "{filedepot_categories} category WHERE file.cid=category.cid and file.id=:fid";
+      $query = db_query($sql, array(':fid' => $id));
+      list($fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
+      $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
+      $message_args = array(
+        '@@name' => $submitter_name,
+        '!file' => $fname,
+        '!folder' => $catname,
+      );
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission requires Approval');
+      $message_body = t('Site member @@name has submitted a new file (!file) for folder !folder that requires approval', $message_args);
+      $message_body .= "\n\n" . t('Thank You') . "\n";
+      $message['body'][] = $message_body;
+      break;
+
+    case FILEDEPOT_BROADCAST_MESSAGE:
+      $submitter = $user->uid;
+      $sql = "SELECT file.title,file.cid FROM {filedepot_files} file WHERE file.fid=:fid";
+      $query = db_query($sql, array(':fid' => $id));
+      list($fname, $cid) = array_values($query->fetchAssoc());
+      $message['subject'] = variable_get('site_name', '') . ' - ' . t('Broadcast Notification');
+      $message_body = $params['comment'] . "\n\n";
+      $link = url('filedepot', array('query' => array('cid' => $cid), 'absolute' => true));
+      $message_body .= t('The file: !filename can be accessed at !link', array('!filename' => $fname, '!link' => $link)) . "\n\n";
+      $message_body .= t('You are receiving this broadcast alert, because your notification setting is enabled.');
+      $message['body'][] = $message_body;
+    break;
+
+  }
+
+  $lastuser = '';
+  $distribution = array();
+  /* Send out Notifications to all users on distribution using Bcc - Blind copy to hide the distribution
+   * To send to complete distribution as one email and not loop thru distribution sending individual emails
+   */
+  foreach ($target_users as $target_uid) {
+    if ($target_uid != $lastuser) {
+      $query = db_query("SELECT name, mail FROM {users} WHERE uid=:uid", array(':uid' => $target_uid));
+      $rec = $query->fetchObject();
+      if (!empty($rec->mail)) {
+        $distribution[] = $rec->mail;
+        $sql = "INSERT INTO {filedepot_notificationlog} (target_uid,submitter_uid,notification_type,fid,cid,datetime) "
+        . "VALUES (:tuid,:uid,:type,:id,:cid,:time )";
+        db_query($sql, array(':tuid' => $target_uid, ':uid' => $submitter, ':type' => $key, ':id' => $id, ':cid' => $cid, ':time' => time()));
+      }
+      $lastuser = $target_uid;
+    }
+  }
+  if (count($distribution >= 1)) {
+    $message['headers']['Bcc'] = implode(',', $distribution);
+    $filedepot->message = count($distribution);
+    return TRUE;
+  }
+  else {
+    return FALSE;
   }
 
 }
 
-
-/* Theme functions that need to be available for initial loading of the module view or native Drupal views */
-
+/* Theme functions that need to be available for initial loading of the module view */
 function template_preprocess_filedepot_main_page(&$variables) {
   global $base_url, $user;
+
+  $filedepot = filedepot_filedepot();
+  if ($filedepot->ogmode_enabled AND $filedepot->ogrootfolder > 0 AND !$filedepot->checkPermission($filedepot->ogrootfolder, 'view')) {
+    drupal_set_message('You do not have access to this groups documents');
+    drupal_goto();
+  }
 
   module_load_include('php', 'filedepot', 'lib-common');
 
@@ -1419,14 +1610,16 @@ function template_preprocess_filedepot_main_page(&$variables) {
   array(':uid' => $user->uid))->fetchField();
 
   $variables['tagcloud'] = theme('filedepot_tagcloud');
-
   $adminFolders = filedepot_recursiveAccessOptions('admin');
   $uploadFolders = filedepot_recursiveAccessOptions(array('upload', 'upload_dir'));
-  if (empty($adminFolders)) {
-    $variables['show_newfolder'] = 'false';
+  if (!empty($adminFolders)) {
+    $variables['show_newfolder'] = 'true';
+  }
+  elseif ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
+    $variables['show_newfolder'] = 'true';
   }
   else {
-    $variables['show_newfolder'] = 'true';
+    $variables['show_newfolder'] = 'false';
   }
   if (empty($uploadFolders)) {
     $variables['show_upload'] = 'false';
@@ -1440,7 +1633,6 @@ function template_preprocess_filedepot_main_page(&$variables) {
 /**
  * Theme function that is used when displaying the files via the native Drupal node view.
  */
-
 function theme_filedepot_files($node) {
   $filedepot = filedepot_filedepot();
 
@@ -1675,7 +1867,8 @@ function filedepot_newfile_form($form, &$form_state) {
   $form['filedepot_email_notification'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Email Notification'),
-    '#options' => drupal_map_assoc(array(t('Yes'))),
+    '#options' => array('yes' => t('Yes')),
+    '#default_value' => array('yes' => 'yes')
   );
 
   $form['buttons'] = array(
@@ -1729,205 +1922,202 @@ function filedepot_newfile_submit($form, &$form_state) {
   $filedepot = filedepot_filedepot();
   module_load_include('php', 'filedepot', 'lib-common');
 
-  if ($form_state['values']['filedepot_parentfolder'] > 0) {
+  $cid = $form_state['values']['filedepot_parentfolder'];
+  // Retrieve the upload location - parent folder node id
+  $folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
+  $node = node_load($folder_nid);
 
-    $cid = $form_state['values']['filedepot_parentfolder'];
-    // Retrieve the upload location - parent folder node id
-    $folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
-    $node = node_load($folder_nid);
+  $upload_direct = $filedepot->checkPermission($cid, 'upload_dir');
+  $upload_moderated = $filedepot->checkPermission($cid, 'upload');
+  $upload_new_versions = $filedepot->checkPermission($cid, 'upload_ver');
+  if (!$upload_direct AND $upload_moderated) { // Admin's have all perms so test for users with upload moderated approval only
+    $moderated = TRUE;
+    $private_destination = 'private://filedepot/' . $node->folder . '/submissions/';
+  }
+  else {
+    $moderated = FALSE;
+    $private_destination = 'private://filedepot/' . $node->folder . '/';
+  }
 
-    $upload_direct = $filedepot->checkPermission($cid, 'upload_dir');
-    $upload_moderated = $filedepot->checkPermission($cid, 'upload');
-    $upload_new_versions = $filedepot->checkPermission($cid, 'upload_ver');
-    if (!$upload_direct AND $upload_moderated) { // Admin's have all perms so test for users with upload moderated approval only
-      $moderated = TRUE;
-      $private_destination = 'private://filedepot/' . $node->folder . '/submissions/';
-    }
-    else {
-      $moderated = FALSE;
-      $private_destination = 'private://filedepot/' . $node->folder . '/';
-    }
+  // Best to call file_prepare_directory() - even if you believe directory exists
+  file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
 
-    // Best to call file_prepare_directory() - even if you believe directory exists
-    file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
+  if (isset($form_state['values']['filedepot_file']) AND $form_state['values']['filedepot_file'] > 0) {
 
-    if (isset($form_state['values']['filedepot_file']) AND $form_state['values']['filedepot_file'] > 0) {
+    $tags = check_plain($form_state['values']['filedepot_filetags']);
+    $file = file_load($form_state['values']['filedepot_file']);
+    $ext = end(explode(".", $file->filename));
+    list($scheme, $target) = explode('://', $file->uri, 2);
 
-      $tags = check_plain($form_state['values']['filedepot_filetags']);
-      $file = file_load($form_state['values']['filedepot_file']);
-      $ext = end(explode(".", $file->filename));
-      list($scheme, $target) = explode('://', $file->uri, 2);
+    // The new file should still be in the temporary location so we need to move it
+    if ($scheme == 'temporary') {
+      $original_filename = $file->filename;
+      if ($moderated) { // Save record in submission table and set status to 0 -- not online
+        // Generate random file name for newly submitted file to hide it until approved
+        $charset = "abcdefghijklmnopqrstuvwxyz";
+        $moderated_tmpname = '';
+        for ($i = 0; $i < 12; $i++) {
+          $moderated_tmpname .= $charset[(mt_rand(0, (drupal_strlen($charset) -1)))];
+        }
+        $moderated_tmpname .= '.' . $ext;
 
-      // The new file should still be in the temporary location so we need to move it
-      if ($scheme == 'temporary') {
-        $original_filename = $file->filename;
-        if ($moderated) { // Save record in submission table and set status to 0 -- not online
-          // Generate random file name for newly submitted file to hide it until approved
-          $charset = "abcdefghijklmnopqrstuvwxyz";
-          $moderated_tmpname = '';
-          for ($i = 0; $i < 12; $i++) {
-            $moderated_tmpname .= $charset[(mt_rand(0, (drupal_strlen($charset) -1)))];
+        $private_uri = $private_destination . $moderated_tmpname;
+        $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+        $file->filename = $original_filename;
+
+        if (isset($form_state['values']['filedepot_filename']) AND !empty($form_state['values']['filedepot_filename'])) {
+          $filetitle = check_plain($form_state['values']['filedepot_filename']);
+          if (strpos('.', $filetitle) === FALSE) {
+            $filetitle = "{$filetitle}.{$ext}";
           }
-          $moderated_tmpname .= '.' . $ext;
+        }
+        else {
+          $filetitle = $original_filename;
+        }
 
-          $private_uri = $private_destination . $moderated_tmpname;
-          $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
-          $file->filename = $original_filename;
+        // Get name of new file in case it was renamed after the file_move()
+        list($scheme, $target) = explode('://', $file->uri, 2);
+        $filename = str_replace("filedepot/{$node->folder}/", '', $target);
 
-          if (isset($form_state['values']['filedepot_filename']) AND !empty($form_state['values']['filedepot_filename'])) {
-            $filetitle = check_plain($form_state['values']['filedepot_filename']);
-            if (strpos('.', $filetitle) === FALSE) {
-              $filetitle = "{$filetitle}.{$ext}";
+        // Update folder node - add the file as an attachment
+        $file->display = 1;
+        $file->description = '';
+
+        // Doing node_save changes the file status to permanent in the file_managed table
+        $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
+        node_save($node);
+
+        $query = db_insert('filedepot_filesubmissions');
+        $query->fields(array('cid', 'fname', 'tempname', 'title', 'description', 'drupal_fid', 'version_note', 'size', 'mimetype', 'extension', 'submitter', 'date', 'tags', 'notify'));
+        $query->values(array(
+          'cid' => $node->folder,
+          'fname' => $file->filename,
+          'tempname' => $moderated_tmpname,
+          'title' => $filetitle,
+          'description' => check_plain($form_state['values']['filedepot_description']),
+          'drupal_fid' => $file->fid,
+          'version_note' => check_plain($form_state['values']['filedepot_version_note']),
+          'size' => $file->filesize,
+          'mimetype' => $file->filemime,
+          'extension' => $ext,
+          'submitter' => $user->uid,
+          'date' => time(),
+          'tags' => 'TODO',
+          'notify' => 1,
+        ));
+        $newrecid = $query->execute();
+        if ($newrecid > 0) {
+          // Get id for the new file record
+          $newrecid = db_query_range("SELECT id FROM {filedepot_filesubmissions} WHERE cid=:cid AND submitter=:uid ORDER BY id DESC", 0, 1,
+          array(':cid' => $node->folder, ':uid' => $user->uid))->fetchField();
+          filedepot_sendNotification($newrecid, FILEDEPOT_NOTIFY_ADMIN);
+        }
+        else {
+          drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
+        }
+
+      }
+      else {
+        $private_uri = $private_destination . $file->filename;
+        $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+        $ext = end(explode(".", $file->filename));
+
+        // Get name of new file in case it was renamed after the file_move()
+        list($scheme, $target) = explode('://', $file->uri, 2);
+        $filename = str_replace("filedepot/{$node->folder}/", '', $target);
+
+        if (isset($form_state['values']['filedepot_filename']) AND !empty($form_state['values']['filedepot_filename'])) {
+          $filetitle = check_plain($form_state['values']['filedepot_filename']);
+          if (strpos('.', $filetitle) === FALSE) {
+            $filetitle = "{$filetitle}.{$ext}";
+          }
+        }
+        else {
+          $filetitle = $original_filename;
+        }
+
+        // Update folder node - add the file as an attachment
+        $file->display = 1;
+        $file->description = '';
+
+        // Doing node_save changes the file status to permanent in the file_managed table
+        $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
+        node_save($node);
+
+        // Update the file usage table
+        file_usage_add($file, 'filedepot', 'node', $node->nid);
+        file_usage_delete($file, 'file');
+
+        // filedepot_description
+
+        // Create filedepot record for file and set status of file to 1 - online
+        $query = db_insert('filedepot_files');
+        $query->fields(array('cid', 'fname', 'title', 'description', 'version', 'drupal_fid', 'size', 'mimetype', 'extension', 'submitter', 'status', 'date'));
+        $query->values(array(
+          'cid' => $node->folder,
+          'fname' => $filename,
+          'title' => $filetitle,
+          'description' => check_plain($form_state['values']['filedepot_description']),
+          'version' => 1,
+          'drupal_fid' => $file->fid,
+          'size' => $file->filesize,
+          'mimetype' => $file->filemime,
+          'extension' => $ext,
+          'submitter' => $user->uid,
+          'status' => 1,
+          'date' => time(),
+        ));
+        $newrecid = $query->execute();
+        if ($newrecid > 0) {
+          $query = db_insert('filedepot_fileversions');
+          $query->fields(array('fid', 'fname', 'drupal_fid', 'version', 'notes', 'size', 'date', 'uid', 'status'));
+          $query->values(array(
+            'fid' => $newrecid,
+            'fname' => $filename,
+            'drupal_fid' => $file->fid,
+            'version' => 1,
+            'notes' => check_plain($form_state['values']['filedepot_version_note']),
+            'size' => $file->filesize,
+            'date' => time(),
+            'uid' => $user->uid,
+            'status' => 1,
+          ));
+          $query->execute();
+
+          // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
+          if ($filedepot->checkPermission($node->folder, 'view', 0, FALSE)) {
+            $nexcloud = filedepot_nexcloud();
+            if (!$nexcloud->update_tags($newrecid, $tags)) {
+              drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
             }
           }
           else {
-            $filetitle = $original_filename;
+            drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
           }
 
-          // Get name of new file in case it was renamed after the file_move()
-          list($scheme, $target) = explode('://', $file->uri, 2);
-          $filename = str_replace("filedepot/{$node->folder}/", '', $target);
+          // Update related folders last_modified_date
+          $workspaceParentFolder = filedepot_getTopLevelParent($node->folder);
+          filedepot_updateFolderLastModified($workspaceParentFolder);
 
-          // Update folder node - add the file as an attachment
-          $file->display = 1;
-          $file->description = '';
-
-          // Doing node_save changes the file status to permanent in the file_managed table
-          $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
-          node_save($node);
-
-          $query = db_insert('filedepot_filesubmissions');
-          $query->fields(array('cid', 'fname', 'tempname', 'title', 'description', 'drupal_fid', 'version_note', 'size', 'mimetype', 'extension', 'submitter', 'date', 'tags', 'notify'));
-          $query->values(array(
-            'cid' => $node->folder,
-            'fname' => $file->filename,
-            'tempname' => $moderated_tmpname,
-            'title' => $filetitle,
-            'description' => check_plain($form_state['values']['filedepot_description']),
-            'drupal_fid' => $file->fid,
-            'version_note' => check_plain($form_state['values']['filedepot_version_note']),
-            'size' => $file->filesize,
-            'mimetype' => $file->filemime,
-            'extension' => $ext,
-            'submitter' => $user->uid,
-            'date' => time(),
-            'tags' => 'TODO',
-            'notify' => 1,
-          ));
-          $newrecid = $query->execute();
-          if ($newrecid > 0) {
-            // Get id for the new file record
-            $newrecid = db_query_range("SELECT id FROM {filedepot_filesubmissions} WHERE cid=:cid AND submitter=:uid ORDER BY id DESC", 0, 1,
-            array(':cid' => $node->folder, ':uid' => $user->uid))->fetchField();
-            filedepot_sendNotification($newrecid, FILEDEPOT_NOTIFY_ADMIN);
-          } else {
-            drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
+          // Send out email notifications of new file added to all users subscribed
+          if ($form_state['values']['filedepot_email_notification']['yes'] === 'yes') {
+            filedepot_sendNotification($newrecid);
           }
 
         }
         else {
-          $private_uri = $private_destination . $file->filename;
-          $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
-          $ext = end(explode(".", $file->filename));
-
-          // Get name of new file in case it was renamed after the file_move()
-          list($scheme, $target) = explode('://', $file->uri, 2);
-          $filename = str_replace("filedepot/{$node->folder}/", '', $target);
-
-          if (isset($form_state['values']['filedepot_filename']) AND !empty($form_state['values']['filedepot_filename'])) {
-            $filetitle = check_plain($form_state['values']['filedepot_filename']);
-            if (strpos('.', $filetitle) === FALSE) {
-              $filetitle = "{$filetitle}.{$ext}";
-            }
-          }
-          else {
-            $filetitle = $original_filename;
-          }
-
-          // Update folder node - add the file as an attachment
-          $file->display = 1;
-          $file->description = '';
-
-          // Doing node_save changes the file status to permanent in the file_managed table
-          $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
-          node_save($node);
-
-          // Update the file usage table
-          file_usage_add($file, 'filedepot', 'node', $node->nid);
-          file_usage_delete($file, 'file');
-
-          // filedepot_description
-
-          // Create filedepot record for file and set status of file to 1 - online
-          $query = db_insert('filedepot_files');
-          $query->fields(array('cid', 'fname', 'title', 'description', 'version', 'drupal_fid', 'size', 'mimetype', 'extension', 'submitter', 'status', 'date'));
-          $query->values(array(
-            'cid' => $node->folder,
-            'fname' => $file->filename,
-            'title' => $filetitle,
-            'description' => check_plain($form_state['values']['filedepot_description']),
-            'version' => 1,
-            'drupal_fid' => $file->fid,
-            'size' => $file->filesize,
-            'mimetype' => $file->filemime,
-            'extension' => $ext,
-            'submitter' => $user->uid,
-            'status' => 1,
-            'date' => time(),
-          ));
-          $newrecid = $query->execute();
-          if ($newrecid > 0) {
-            $query = db_insert('filedepot_fileversions');
-            $query->fields(array('fid', 'fname', 'drupal_fid', 'version', 'notes', 'size', 'date', 'uid', 'status'));
-            $query->values(array(
-              'fid' => $newrecid,
-              'fname' => $filename,
-              'drupal_fid' => $file->fid,
-              'version' => 1,
-              'notes' => check_plain($form_state['values']['filedepot_version_note']),
-              'size' => $file->filesize,
-              'date' => time(),
-              'uid' => $user->uid,
-              'status' => 1,
-            ));
-            $query->execute();
-
-            // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
-            if ($filedepot->checkPermission($node->folder, 'view', 0, FALSE)) {
-              if ($filedepot->checkPermission($node->folder, 'admin', 0, FALSE) OR $user->uid == $submitter) {
-                $admin = TRUE;
-              }
-              else {
-                $admin = FALSE;
-              }
-              $nexcloud = filedepot_nexcloud();
-              if (!$nexcloud->update_tags($newrecid, $tags, $admin)) {
-                drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
-              }
-            }
-            else {
-                drupal_set_message('warning', t('Tags not added - Group or Role assigned view perms required'));
-            }
-
-            // Update related folders last_modified_date
-            $workspaceParentFolder = filedepot_getTopLevelParent($node->folder);
-            filedepot_updateFolderLastModified($workspaceParentFolder);
-          } else {
-            drupal_set_message('error','Invalid id returned from insert new file record');
-          }
-
+          drupal_set_message('error', 'Invalid id returned from insert new file record');
         }
 
       }
 
-      // Need to clear the cache as the node will still have the original file name
-      field_cache_clear();
-
     }
+
+    // Need to clear the cache as the node will still have the original file name
+    field_cache_clear();
+
   }
-  else {
-    drupal_set_message(t('Invalid upload folder selected'), 'error');
-  }
+
 
 }
 
@@ -1981,7 +2171,9 @@ function filedepot_newfolder_form($form, &$form_state) {
     '#size' => 34,
   );
 
-  if (user_access('administer filedepot', $user)) {
+  if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
+    $parentFolders = array($filedepot->ogrootfolder => 'Top Level Folder');
+  } elseif (user_access('administer filedepot', $user)) {
     $parentFolders = array(0 => 'Top Level Folder');
   }
   else {
@@ -2006,7 +2198,7 @@ function filedepot_newfolder_form($form, &$form_state) {
   $form['filedepot_inherit_permissions'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Inherit Parent Permission'),
-    '#options' => drupal_map_assoc(array(t('Yes'))),
+    '#options' => array('yes' => t('Yes')),
   );
 
   $form['buttons'] = array(
@@ -2038,6 +2230,9 @@ function filedepot_newfolder_validate($form, &$form_state) {
   if (empty($form_state['values']['filedepot_foldername'])) {
     form_set_error('filedepot_foldername', t('Folder must have a valid name'));
   }
+  if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
+    form_set_error('filedepot_foldername', t('Invalid parent folder'));
+  }
 }
 
 
@@ -2056,23 +2251,17 @@ function filedepot_newfolder_submit($form, &$form_state) {
   $node->description = check_plain($form_state['values']['filedepot_foldername']);
   $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'] = $form_state['values']['filedepot_description'];
   $node->parentfolder = $form_state['values']['filedepot_parentfolder'];
-  if ($form_state['values']['filedepot_inherit_permissions']['Yes'] == 'Yes') {
+  if ($form_state['values']['filedepot_inherit_permissions']['yes'] == 'yes') {
     $node->inherit = 1;
   }
   else {
     $node->inherit = 0;
   }
+  node_save($node);
+  if (!$node) {
+    drupal_set_message(t('Error creating Folder'), 'error');
+  }
 
-  if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
-    $data['errmsg'] = t('Error creating Folder - invalid parent folder');
-    $data['retcode'] =  500;
-  }
-  else {
-    node_save($node);
-    if (!$node) {
-      drupal_set_message(t('Error creating Folder'), 'error');
-    }
-  }
 }
 
 
@@ -2121,7 +2310,8 @@ function filedepot_newversion_form($form, &$form_state) {
   $form['filedepot_email_notification'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Email Notification'),
-    '#options' => drupal_map_assoc(array(t('Yes'))),
+    '#options' => array('yes' => t('Yes')),
+    '#default_value' => array('yes' => 'yes'),
   );
 
   $form['buttons'] = array(
@@ -2251,7 +2441,7 @@ function filedepot_newversion_submit($form, &$form_state) {
         }
 
         // Send out email notifications of new file added to all users subscribed
-        if ($form_state['values']['filedepot_email_notification']['Yes'] == 1) {
+        if ($form_state['values']['filedepot_email_notification']['yes'] === 'yes') {
           filedepot_sendNotification($fid);
         }
 

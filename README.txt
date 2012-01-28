@@ -3,22 +3,22 @@
 
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
- - Documents can be saved outside the Drupal public directory to protect corporate documents for safe access and distribution.
- - Intuitive and convenient combination of features and modern AJAX driven Web 2.0 design provides the users with the google docs like interface
+ - Documents are saved to a directory under the Drupal Private file system to protect corporate documents for safe access and distribution.
  - Flexible permission model allows you to delegate folder administration to other users.
- - Setup, view, download and upload access for selected users or roles. Any combination of permissions can be setup per folder.
- - Integrated MS Windows desktop client is available from Nextide and allows users to easily upload one or 100's of files directly to the remote web-based document repository.
-   Simply drag and drop files from their local desktop and they are uploaded.
-   Files will appear in an Incoming Queue inside the filedepot module allowing the user to move them one at a time or in batches to their target folder.
+ - Define view, download and upload access for selected users, roles or groups (If OG module installed) - any combination of permissions can be setup per folder.
+ - Organic Group support and options to auto-create a new top level folder for each new group.
+   If you access the main filedepot link with the group id or group name passed in as an argument,
+   the user will only see the folders and files under the OG created Top Level folder
  - Cloud Tag and File tagging support to organize and search your files.
    Document tagging allows users to search the repository by popular tags.
    Users can easily see what tags have been used and select one of multiple tags to display a filtered view of files in the document repository.
  - Users can upload new versions of files and the newer file will automatically be versioned. Previous versions are still available.
-   When used with the desktop client, users can have the hosted file in filedepot automatically updated each time the user saves the file - online editing.
  - Users can selectively receive notification of new files being added or changed.
    Subscribe to individual file updates or complete folders. File owner can use the Broadcast feature to send out a personalized notification.
  - Convenient reports to view latest files, most recent folders, bookmarked files, locked or un-read files.
  - Users can flag document as 'locked' to alert users that it is being updated.
+ - File Downloads are logged to the Druapl Recent Log messages
+ - Check the Drupal Recent Log messages for any module errors and other module events - type: filedepot
 
 The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine Lang (blainelang)
 
@@ -32,11 +32,11 @@ Dependencies
  then you will be able to manage folder access via organic groups.
  The module will automatically detect if both modules are enabled and will only
  show the group options for permissions once both 'og' and 'og_access' modules are enabled.
+ Review the module configuration settings once OG is enabled to enable OG Mode settings
 
 Requirements
 ------------
  PHP 5.2+ and PHP JSON library enabled.
- Flash 10.x Addon installed in the browser.
 
  As of PHP 5.2.0, the JSON extension is bundled and compiled into PHP by default.
 
@@ -49,23 +49,25 @@ Install
 2) The filedepot module now requires the libraries module be installed.
    We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
 
-   You will now need to create a sites/all/libraries folder if you don't already have the libraies module installed.
+   You will now need to create a sites/all/libraries folder if you don't already have the libraries module installed.
    PLEASE rename the files as noted below
 
-   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraies folder.
+   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraries folder.
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
    > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js
 
-3) Enable the module using admin/modules
+3) Check that your site has the Private file system path setup. Filedepot uses the private file system for it fiile repository is is required so that filedepot can
+
+4) Enable the module using admin/modules
    The module will create a new content type called 'filedepot_folder'
 
-4) Review the module settings using admin/settings/filedepot
+5) Review the module settings using admin/settings/filedepot
    Save your settings and at a minium, reset to defaults and save settings.
 
-5) Access the module and run create some initial folders and upload files
+6) Access the module and run create some initial folders and upload files
    {siteurl}/index.php?q=filedepot    (/fildepot - with clean-urls on)
 
-6) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
+7) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.
 
 Notes:

@@ -9,7 +9,7 @@
 <div id="folder_options_container" class="clearboth" style="padding:5px 50px 5px 60px;display:none;">
     <div><?php print $folder_description ?></div>
     <fieldset style="width:300px;margin-top:10px;"><legend><?php print $LANG_folderoptions ?></legend>
-    <form name="frm_foldersettings" method="post">
+    <form name="frm_foldersettings" method="post" style="padding-top:15px;">
         <input type="hidden" name="cid" value="<?php print $active_category_id ?>">
         <table cellpadding="0" cellspacing="1" width="100%">
             <tr>

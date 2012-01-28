@@ -29,16 +29,19 @@ function firelogmsg($message) {
 function filedepot_recursiveAccessArray($perms, $id = 0, $level = 1) {
   $filedepot = filedepot_filedepot();
   $options_tree = array();
+  if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+    if ($id == 0) {
+      $id = $filedepot->ogrootfolder;
+    }
+  }
   $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=:pid ORDER BY cid",
     array(':pid' => $id));
   while ($A = $query->fetchAssoc()) {
     list($cid, $pid, $name) = array_values($A);
     $indent = ' ';
     // Check if user has access to this category
-
     if ($filedepot->checkPermission($cid, 'view')) {
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
-
       $tempcid = db_query("SELECT cid FROM {filedepot_categories} WHERE pid=:cid", array(':cid' => $cid))->fetchField();
       if ($tempcid > 0) {
         if ($level > 1) {
@@ -56,10 +59,8 @@ function filedepot_recursiveAccessArray($perms, $id = 0, $level = 1) {
         }
         else {
           // Need to check for any folders with admin even subfolders of parents that user does not have access
-
           $options_tree += filedepot_recursiveAccessArray($perms, $cid, $level + 1);
         }
-
       }
       else {
         if ($level > 1) {
@@ -95,8 +96,17 @@ function filedepot_recursiveAccessArray($perms, $id = 0, $level = 1) {
 function filedepot_recursiveAccessOptions($perms, $selected = '', $id = '0', $level = '1', $addRootOpt = TRUE) {
   $filedepot = filedepot_filedepot();
   $selectlist = '';
-  if ($addRootOpt AND $level == 1 AND user_access('administer filedepot')) {
-    $selectlist = '<option value="0">' . t('Top Level Folder') . '</option>' . LB;
+  if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+    if ($id == 0) {
+      $id = $filedepot->ogrootfolder;
+    }
+    if ($addRootOpt AND $level == 1 AND user_access('administer filedepot')) {
+      $selectlist = '<option value="'.$filedepot->ogrootfolder.'">' . t('Top Level Folder') . '</option>' . LB;
+    }
+  } else {
+    if ($addRootOpt AND $level == 1 AND user_access('administer filedepot')) {
+      $selectlist = '<option value="0">' . t('Top Level Folder') . '</option>' . LB;
+    }
   }
   $query = db_query("SELECT cid,pid,name FROM {filedepot_categories} WHERE pid=:cid ORDER BY cid", array(':cid' => $id));
   while ($A = $query->fetchAssoc()) {
@@ -105,8 +115,10 @@ function filedepot_recursiveAccessOptions($perms, $selected = '', $id = '0', $le
     $indent = ' ';
     // Check if user has access to this category
 
+
     if ($filedepot->checkPermission($cid, 'view')) {
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
+
 
       $tempcid = db_query("SELECT cid FROM {filedepot_categories} WHERE pid=:cid", array(':cid' => $cid))->fetchField();
       if ($tempcid > 0) {
@@ -132,6 +144,7 @@ function filedepot_recursiveAccessOptions($perms, $selected = '', $id = '0', $le
         else {
           // Need to check for any folders with admin even subfolders of parents that user does not have access
 
+
           $selectlist .= filedepot_recursiveAccessOptions($perms, $selected, $cid, $level + 1, $addRootOpt);
         }
 
@@ -143,6 +156,7 @@ function filedepot_recursiveAccessOptions($perms, $selected = '', $id = '0', $le
           }
           $indent .= ' ';
         }
+
         if ($filedepot->checkPermission($cid, $perms)) {
           if ($indent != '') {
             $name = " $name";
@@ -231,6 +245,7 @@ function filedepot_formatfiletags($tags) {
     }
     foreach ($atags as $tag) {
       $tag = trim($tag); // added to handle extra space thats added when removing a tag - thats between 2 other tags
+
       if (!empty($tag)) {
         if (in_array($tag, $asearchtags)) {
           $retval .= theme('filedepot_taglinkoff', array('label' => check_plain($tag)));
@@ -264,7 +279,6 @@ function filedepot_formatFileSize($size) {
 function filedepot_getSubmissionCnt() {
   $filedepot = filedepot_filedepot();
   // Determine if this user has any submitted files that they can approve
-
   $query = db_query("SELECT cid from {filedepot_filesubmissions}");
   $submissions = 0;
   while ($A = $query->fetchAssoc()) {
@@ -318,84 +332,52 @@ function filedepot_getGroupOptions() {
  * @return       Boolean     Returns TRUE if atleast 1 message was sent out
  */
 function filedepot_sendNotification($id, $type = 1) {
-  return TRUE;
   global $user;
-  $filedepot = filedepot_filedepot();
 
   /* If notifications have been disabled via the module admin settings - return TRUE */
   if (variable_get('filedepot_notifications_enabled', 1) == 0) {
     return TRUE;
   }
 
-  $target_users = array();
-  $message = array();
-  $message['headers'] = array('From' => variable_get('site_mail', ''));
-  $messagetext = '';
-  $messagetext2ary = array();
-  switch ( $type ) {
-    case FILEDEPOT_NOTIFY_NEWFILE: // New File added where $id = file id. Send to all subscribed users
-      $sql = "SELECT file.fid,file.fname,file.cid,file.submitter,category.name FROM "
-      . "{filedepot_files} file, {filedepot_categories} category "
-      . "WHERE file.cid=category.cid and file.fid=:fid";
-      $query = db_query($sql, array(':fid' => $id));
-      list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
-      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $cid, 'fid' => $fid)), 'absolute' => true));
-      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New Document Management Update');
-      $messagetext2ary = array(
-        '!file' => $fname,
-        '!bp' => '<p>',
-        '!ep' => '</p>',
-        '!folder' => $catname,
-        '!link' => url($link, array('absolute' => TRUE)),
-      );
-      break;
-
-    case FILEDEPOT_NOTIFY_APPROVED: // File submission being approved by admin where $id = file id. Send only to user
-      $sql = "SELECT file.fid,file.fname,file.cid,file.submitter,category.name FROM {filedepot_files} file, "
-      . "{filedepot_categories} category WHERE file.cid=category.cid and file.fid=:fid";
-      $query = db_query($sql, array(':fid' => $id));
-      list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
-      // Just need to create this SQL record for this user - to fake out logic below
-
-      $target_users[] = $submitter;
-      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $cid, 'fid' => $fid)), 'absolute' => true));
-      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');
-      $messagetext = t('Site member %@name: your file in folder: !folder',
-      array('!folder' => $catname)) . '<p>';
-      $messagetext .= t('The file: !filename has been approved and can be accessed !link',
-      array('!filename' => $fname, '!link' => $link)) . '</p><p>';
-      $messagetext .= t('You are receiving this because you requested to be notified.') . '</p><p>';
-      $messagetext .= t('Thank You') . '</p>';
-      break;
-
-    case FILEDEPOT_NOTIFY_REJECT: // File submission being declined by admin where $id = new submission record id. Send only to user
-      $fname = db_query("SELECT fname FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid' => $id))->fetchField();
-      $submitter = db_query("SELECT submitter FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid' => $id))->fetchField();
-      // Just need to create this SQL record for this user - to fake out logic below
-
-      $target_users[] = $submitter;
-      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Cancelled');
-      $messagetext = t('Your recent file submission: !filename, was not accepted',
-      array('!filename' => $fname)) . '<p>';
-      $messagetext .= t('Thank You') . '</p>';
-      break;
-
-    case FILEDEPOT_NOTIFY_ADMIN: // New File Submission in queue awaiting approval
-      $sql = "SELECT file.fname,file.cid,file.submitter,category.name FROM {filedepot_filesubmissions} file , "
-      . "{filedepot_categories} category WHERE file.cid=category.cid and file.id=:fid";
-      $query = db_query($sql, array(':fid' => $id));
-      list($fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
-      $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
-      $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission requires Approval');
-      $messagetext2ary = array(
-        '!filename' => $fname,
-        '!bp' => '<p>',
-        '!ep' => '</p>',
-        '!folder' => $catname,
-      );
-      break;
+  if (intval($id) > 0) {
+    $target_users = filedepot_build_notification_distribution($id, $type);
+    if (count($target_users) > 0) {
+      $values = array('fid' => $id, 'target_users' => $target_users);
+      drupal_mail('filedepot', $type, $user, language_default(), $values);
+    } else {
+      watchdog('filedepot', "filedepot_sendNotification ($type) - no target users");
+    }
   }
+}
 
+
+
+/* Common function to generate an array of users that email notification
+ * will be sent to. Return an empty array if none
+ */
+function filedepot_build_notification_distribution($id, $type = 1) {
+  global $user;
+
+  $filedepot = filedepot_filedepot();
+
+  $target_users = array();
+  if ($type == FILEDEPOT_NOTIFY_NEWFILE OR $type == FILEDEPOT_NOTIFY_APPROVED) {
+    $sql = "SELECT file.cid,file.submitter,category.name FROM {filedepot_files} file, "
+      . "{filedepot_categories} category WHERE file.cid=category.cid and file.fid=:fid";
+    $query = db_query($sql, array(':fid' => $id));
+    list($cid, $submitter) = array_values($query->fetchAssoc());
+  }
+   elseif ($type == FILEDEPOT_NOTIFY_ADMIN) {
+    $sql = "SELECT file.cid,file.submitter FROM {filedepot_filesubmissions} file , "
+    . "{filedepot_categories} category WHERE file.cid=category.cid and file.id=:fid";
+    $query = db_query($sql, array(':fid' => $id));
+    list($cid, $submitter) = array_values($query->fetchAssoc());
+  }
+   elseif ($type == FILEDEPOT_NOTIFY_REJECT) {
+     $submitter = db_query("SELECT submitter FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid' => $id))->fetchField();
+   }
+
+  // Generate the distribution
   if ($type == FILEDEPOT_NOTIFY_NEWFILE ) {
     if (variable_get('filedepot_default_notify_newfile', 0) == 1) { // Site default to notify all users on new files
       $query_users = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
@@ -404,25 +386,20 @@ function filedepot_sendNotification($id, $type = 1) {
           $personal_exception = FALSE;
           if (db_query("SELECT uid FROM {filedepot_usersettings} WHERE uid=:uid AND notify_newfile=0", array(':uid' => $A->uid))->fetchField() == $A->uid) {
             $personal_setting = FALSE; // User preference record exists and set to not be notified
-
           }
           else {
             $personal_setting = TRUE; // Either record does not exist or user preference is to be notified
-
           }
           // Check if user has any notification exceptions set for this folder
-
           if (db_query("SELECT count(*) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid AND cid_newfiles=0", array(':cid' => $cid, ':uid' => $A->uid))->fetchField() > 0) {
             $personal_exception = TRUE;
           }
           // Only want to notify users that don't have setting disabled or exception record
-
           if ($personal_setting == TRUE AND $personal_exception == FALSE AND $A->uid != $submitter) {
             $target_users[] = $A->uid;
           }
         }
       }
-
     }
     else {
       $sql = "SELECT a.uid FROM {filedepot_usersettings} a LEFT JOIN {users} b on b.uid=a.uid WHERE a.notify_newfile = 1 and b.status=1";
@@ -434,122 +411,90 @@ function filedepot_sendNotification($id, $type = 1) {
             $personal_exception = TRUE;
           }
           // Only want to notify users that have notifications enabled but don't have an exception record
-
           if ($personal_exception === FALSE) {
             $target_users[] = $A->uid;
           }
         }
       }
+      // Check the folder specific notification options as well
+      $sql = "SELECT a.uid FROM {filedepot_notifications} a LEFT JOIN {users} b on b.uid=a.uid WHERE a.cid=:cid AND a.cid_newfiles = 1 and b.status=1";
+      $query_users = db_query($sql, array(':cid' => $cid));
+      while ( $A = $query_users->fetchObject()) {
+        if (!in_array($A->uid, $target_users) AND $filedepot->checkPermission($cid, 'view', $A->uid)) {
+            $target_users[] = $A->uid;
+        }
+      }
+
     }
   }
-  elseif ($type == FILEDEPOT_NOTIFY_ADMIN) {
+   elseif ($type == FILEDEPOT_NOTIFY_APPROVED) { // File submission being approved by admin where $id = file id. Send only to user
+      $target_users[] = $submitter;
+  }
+   elseif ($type == FILEDEPOT_NOTIFY_REJECT) { // File submission being approved by admin where $id = file id. Send only to user
+      $target_users[] = $submitter;
+  }
+   elseif ($type == FILEDEPOT_NOTIFY_ADMIN) {
     $query_users = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
     while ( $A = $query_users->fetchObject()) {
       if ($filedepot->checkPermission($cid, 'approval', $A->uid)) {
         $personal_exception = FALSE;
         if (db_query("SELECT uid FROM {filedepot_usersettings} WHERE uid=:uid AND notify_newfile=0", array(':fid' => $A->uid))->fetchField() == $A->uid) {
           $personal_setting = FALSE; // User preference record exists and set to not be notified
-
         }
         else {
           $personal_setting = TRUE; // Either record does not exist or user preference is to be notified
-
         }
         // Check if user has any notification exceptions set for this folder
-
         if (db_query("SELECT count(*) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid AND cid_newfiles=0", array(':cid' => $cid, ':uid' => $A->uid))->fetchField() > 0) {
           $personal_exception = TRUE;
         }
         // Only want to notify users that don't have setting disabled or exception record
-
         if ($personal_setting == TRUE AND $personal_exception == FALSE AND $A->uid != $submitter) {
           $target_users[] = $A->uid;
         }
       }
     }
   }
+   elseif ($type == FILEDEPOT_BROADCAST_MESSAGE) {
 
-  $messagetext = drupal_html_to_text($messagetext);
-
-  if (is_array($target_users) AND count($target_users) > 0) {
-
-    if ($type == FILEDEPOT_NOTIFY_APPROVED OR $type == FILEDEPOT_NOTIFY_REJECT ) { // Only send this type of notification to user that submitted the file
-      $query = db_query("SELECT name,mail FROM {users} WHERE uid=:uid", array(':uid' => $submitter));
-      $rec = $query->fetchObject();
-      if ($type == FILEDEPOT_NOTIFY_APPROVED) {
-        $messagetext = sprintf($messagetext, $rec->name);
-      }
-
-      $message['body'] = t('Hello @username', array('@username' => $rec->name)) . ",\n\n";
-      $message['body'] .= $messagetext;
-      $message['body'] .= variable_get('site_name', '') . "\n";
-      $message['to'] = $rec->mail;
-      drupal_mail_send($message);
-      $sql = "INSERT INTO {filedepot_notificationlog} (target_uid,submitter_uid,notification_type,fid,cid,datetime) "
-      . "VALUES (:tuid,:uid,:type,:id,:cid,:time )";
-      db_query($sql, array(':tuid' => $submitter, ':uid' => $submitter, ':type' => $type, ':id' => $id, ':cid' => $cid, ':time' => time()));
-      return TRUE;
-    }
-    elseif ($type == FILEDEPOT_NOTIFY_NEWFILE OR $type == FILEDEPOT_NOTIFY_ADMIN) {
-      $name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
-      $messagetext2ary['@@name'] = $name;
-
-      switch ( $type ) {
-        case FILEDEPOT_NOTIFY_NEWFILE:
-          $messagetext = t('Site member @@name has submitted a new file (!file)!bp Folder: !folder !ep!bp The file can be accessed at !link !ep!bp You are receiving this because you requested to be notified of updates.!ep!bp Thank You !ep',
-                       $messagetext2ary);
-          break;
-        case FILEDEPOT_NOTIFY_ADMIN:
-          $messagetext = t('Site member @@name has submitted a new file !filename for folder !folder that requires approval !bp Thank You !ep', $messagetext2ary);
-          break;
-        default:
-          break;
-      }
-      $messagetext = drupal_html_to_text($messagetext);
-      $message['body'] = $messagetext . variable_get('site_name', '') . "\n";
-
-      // Sort the array so that we can check for duplicate user notification records
-
-      sort($target_users);
-      reset($target_users);
-      $lastuser = '';
-      $distribution = array();
-
-      /* Send out Notifications to all users on distribution using Bcc - Blind copy to hide the distribution
-       * To send to complete distribution as one email and not loop thru distribution sending individual emails
-       */
-      foreach ($target_users as $target_uid) {
-        if ($target_uid != $lastuser) {
-          $query = db_query("SELECT name,mail FROM {users} WHERE uid=:uid", array(':uid' => $target_uid));
-          $rec = $query->fetchObject();
-          if (!empty($rec->mail)) {
-            $distribution[] = $rec->mail;
-            $sql = "INSERT INTO {filedepot_notificationlog} (target_uid,submitter_uid,notification_type,fid,cid,datetime) "
-            . "VALUES (:tuid,:uid,:type,:id,:cid,:time )";
-            db_query($sql, array(':tuid' => $target_uid, ':uid' => $submitter, ':type' => $type, ':id' => $id, ':cid' => $cid, ':time' => time()));
+    if (variable_get('filedepot_default_allow_broadcasts', 1) == 1) { // Site default set to allow broadcast enabled
+      $uquery = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
+      while ( $A = $uquery->fetchObject()) {
+        if ($A->uid != $user->uid) {
+          if (db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=:uid",
+            array(':uid' => $A->uid))->fetchField() == 0) {
+            $personal_setting = FALSE; // Found user setting to not be notified
           }
-          $lastuser = $target_uid;
+          else {
+            $personal_setting = TRUE;
+          }
+          // Only want to notify users that don't have setting disabled or exception record
+          if ($personal_setting == TRUE) {
+            $target_users[] = $A->uid;
+          }
         }
       }
-      if (count($distribtion >= 1)) {
-        $message['to'] = 'Filedepot Distribution';
-        $message['headers']['Bcc'] = implode(',', $distribution);
-        drupal_mail_send($message);
-        return TRUE;
-      }
-      else {
-        return FALSE;
-      }
-
     }
     else {
-      return FALSE;
+      $sql = "SELECT a.uid FROM {filedepot_usersettings} a LEFT JOIN {users} b on b.uid=a.uid "
+      . "WHERE a.allow_broadcasts=1 and b.status=1";
+      $uquery = db_query($sql);
+      while ($B  = $uquery->fetchObject()) {
+        if ($user->uid != $B->uid) {
+          $target_users[] = $B->uid;
+        }
+      }
     }
+  }
 
+  if (count($target_users) > 0) {
+      // Sort the array so that we can check for duplicate user notification records
+      sort($target_users);
+      reset($target_users);
   }
-  else {
-    return FALSE;
-  }
+
+  return $target_users;
+
 }
 
 

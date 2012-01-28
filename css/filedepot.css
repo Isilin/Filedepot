@@ -343,7 +343,7 @@ body.layout-left-main .outer { margin-left:0px !important; }
 }
 
 #filelisting_container div.oneaction {
-  padding-right:60px;
+  padding-right:50px;
   white-space:nowrap
 }
 
@@ -708,7 +708,6 @@ a.cancelbutton:hover {
 
 
 #filedepot_newfolder_link {
-  padding-left:20px;
   padding-right:10px;
 }
 

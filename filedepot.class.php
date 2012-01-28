@@ -58,7 +58,13 @@ class filedepot {
   private $upload_prefix_character_count = 18;
   private $download_chunk_rate =   8192; //set to 8k download chunks
   public $ogenabled = FALSE;
+  public $ogmode_enabled = FALSE;        // SET true if OG installed and site admin has enabled OG Mode
+  public $ogrootfolder = 0;
+  public $allowableGroupViewFoldersSql = '';
   public $paddingsize = 5; // Number of pixels to indent each folder level
+  public $message = '';   // Temporary storage of message
+
+  static $ogmode_initialized = FALSE;   // SET true once we have intialized GroupViewFolders
 
   public $notificationTypes = array(
     1 => 'New File Added',
@@ -75,8 +81,6 @@ class filedepot {
 
     $this->tmp_storage_path  =  drupal_realpath('public://') . '/filedepot/';
     $this->tmp_incoming_path  = drupal_realpath('public://') . '/filedepot/incoming/';
-    $this->root_storage_path = variable_get('filedepot_storage_path', str_replace('\\', '/', getcwd()) . '/filedepot_private/');
-
     $this->root_storage_path = 'private://filedepot/';
 
     /* @TODO: Need to add logic that will only be executed once to test
@@ -118,10 +122,6 @@ class filedepot {
 
     $this->defRoleRights = $permsdata;
 
-    if (module_exists('og') AND module_exists('og_access')) {
-      $this->ogenabled = TRUE;
-    }
-
     if (user_is_logged_in()) {
 
       // This cached setting will really only benefit when there are many thousand access records like portal23
@@ -159,11 +159,34 @@ class filedepot {
           ));
         }
       }
-      else {
+
+      $this->allowableViewFolders = '';
+      if (module_exists('og') AND module_exists('og_access')) {
+        $this->ogenabled = TRUE;
+        if (variable_get('filedepot_organic_group_mode_enabled', 0) == 1) {
+          $this->ogmode_enabled = TRUE;
+        }
+        if (self::$ogmode_initialized === FALSE) {
+          self::$ogmode_initialized = TRUE;   // Only want to do this once.
+          // Using the ctools cache functionality to save which folder the user has selected
+          ctools_include('object-cache');
+          $gid = ctools_object_cache_get('filedepot', 'grpid');
+          if ($gid > 0) {
+            $this->ogrootfolder = db_query("SELECT cid FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $gid))->fetchfield();
+            if ($this->ogrootfolder !== FALSE and $this->ogrootfolder > 0) {
+              $this->allowableViewFolders = array();
+              array_push($this->allowableViewFolders, $this->ogrootfolder);
+              $folderlist = $this->getRecursiveCatIDs ($this->allowableViewFolders, $this->ogrootfolder, 'view');
+                $this->allowableGroupViewFoldersSql = implode(',', $folderlist);  // Format to use for SQL statement - test for allowable categories
+            }
+          }
+        }
+      }
+
+      if (empty($this->allowableViewFolders)) {
         $this->allowableViewFolders = unserialize($data);
       }
       $this->allowableViewFoldersSql = implode(',', $this->allowableViewFolders); // Format to use for SQL statement - test for allowable categories
-
     }
     else {
       $this->allowableViewFolders = $this->getAllowableCategories('view', FALSE);
@@ -369,13 +392,13 @@ class filedepot {
 
   public function updatePerms($id, $accessrights, $users = '', $groups = '', $roles = '') {
 
-    if ($users != ''   AND !is_array($users)) {
+    if ($users != ''    AND !is_array($users)) {
       $users  = array($users);
     }
     if ($groups != '' AND !is_array($groups)) {
       $groups = array($groups);
     }
-    if ($roles != ''   AND !is_array($roles)) {
+    if ($roles != ''    AND !is_array($roles)) {
       $roles  = array($roles);
     }
 
@@ -426,28 +449,28 @@ class filedepot {
           ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
-            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-                'catid' => $id,
-                'permid' => $uid,
-                'permtype' => 'user',
-                'view' => $view,
-                'upload' => $upload,
-                'upload_direct' => $direct,
-                'upload_ver' => $versions,
-                'approval' => $approval,
-                'admin' => $admin,
+              'catid' => $id,
+              'permid' => $uid,
+              'permtype' => 'user',
+              'view' => $view,
+              'upload' => $upload,
+              'upload_direct' => $direct,
+              'upload_ver' => $versions,
+              'approval' => $approval,
+              'admin' => $admin,
             ));
             $query->execute();
           }
           else {
-              db_update('filedepot_access')
+            db_update('filedepot_access')
               ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'user')
               ->condition('permid', $uid)
               ->execute();
-           }
+          }
         }
       }
 
@@ -460,22 +483,22 @@ class filedepot {
           ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
-            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-                'catid' => $id,
-                'permid' => $gid,
-                'permtype' => 'group',
-                'view' => $view,
-                'upload' => $upload,
-                'upload_direct' => $direct,
-                'upload_ver' => $versions,
-                'approval' => $approval,
-                'admin' => $admin,
+              'catid' => $id,
+              'permid' => $gid,
+              'permtype' => 'group',
+              'view' => $view,
+              'upload' => $upload,
+              'upload_direct' => $direct,
+              'upload_ver' => $versions,
+              'approval' => $approval,
+              'admin' => $admin,
             ));
             $query->execute();
           }
           else {
-              db_update('filedepot_access')
+            db_update('filedepot_access')
               ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'group')
@@ -494,22 +517,22 @@ class filedepot {
           ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
-            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver' ,'approval', 'admin'));
+            $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-                'catid' => $id,
-                'permid' => $rid,
-                'permtype' => 'role',
-                'view' => $view,
-                'upload' => $upload,
-                'upload_direct' => $direct,
-                'upload_ver' => $versions,
-                'approval' => $approval,
-                'admin' => $admin,
+              'catid' => $id,
+              'permid' => $rid,
+              'permtype' => 'role',
+              'view' => $view,
+              'upload' => $upload,
+              'upload_direct' => $direct,
+              'upload_ver' => $versions,
+              'approval' => $approval,
+              'admin' => $admin,
             ));
             $query->execute();
           }
           else {
-              db_update('filedepot_access')
+            db_update('filedepot_access')
               ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'role')
@@ -565,7 +588,12 @@ class filedepot {
     $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=:pid", array('pid' => $node->parentfolder));
     $maxorder = $query->fetchField() + 10;
 
-    db_query("INSERT INTO {filedepot_categories} (pid,name,description,folderorder,nid,vid) VALUES (:pfolder,:title,:folder,:maxorder,:nid,:vid)",
+    // Only used for top level OG folders
+    if (!isset($node->gid) OR empty($node->gid)) {
+      $node->gid = 0;
+    }
+
+    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid) VALUES (:pfolder, :title, :folder, :maxorder, :nid, :vid, :gid)",
     array(
       'pfolder' => $node->parentfolder,
       'title' => check_plain($node->title),
@@ -573,6 +601,7 @@ class filedepot {
       'maxorder' => $maxorder,
       'nid' => $node->nid,
       'vid' => $node->vid,
+      'gid' => $node->gid
     ));
 
     // Need to clear the cached user folder permissions
@@ -737,14 +766,11 @@ class filedepot {
       // Passing in permission check over-ride as noted above to filedepot_getRecursiveCatIDs()
       $list = $this->getRecursiveCatIDs($list, $filedepot_folder_id, 'admin', TRUE);
       foreach ($list as $cid) {
-        //watchdog('filedepot', "deleteFolder - processing cid: $cid");
-
         // Drupal will remove the file attachments automatically when folder node is deleted even if file usage is > 1
         $query = db_query("SELECT drupal_fid FROM {filedepot_files} WHERE cid=:cid", array(':cid' => $cid));
         while ($A = $query->fetchAssoc()) {
           $file = file_load($A['drupal_fid']);
           file_usage_delete($file, 'filedepot');
-          //file_delete($file);
         }
 
         $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
@@ -886,7 +912,7 @@ class filedepot {
             }
 
             // Remove the attached file from the original folder
-            $source_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",   array(':cid' => $orginalCid))->fetchField();
+            $source_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",    array(':cid' => $orginalCid))->fetchField();
             $node = node_load($source_folder_nid);
             // Remove the moved file now from the source folder
             foreach ($node->filedepot_folder_file[LANGUAGE_NONE] as $delta => $attachment) {
@@ -899,7 +925,7 @@ class filedepot {
 
             // Add the moved file to the target folder
             // Doing node_save changes the file status to permanent in the file_managed table
-            $target_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",   array(':cid' => $newcid))->fetchField();
+            $target_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",    array(':cid' => $newcid))->fetchField();
             $node = node_load($target_folder_nid);
             $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
             node_save($node);

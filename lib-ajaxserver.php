@@ -184,7 +184,13 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   // Setup the Most Recent folders for this user
   if (user_is_logged_in()) {
     $sql  = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
-    $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid WHERE uid=:uid ORDER BY id";
+    $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid ";
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+      $sql .= "WHERE a.cid in ({$filedepot->allowableGroupViewFoldersSql}) AND a.cid != {$filedepot->ogrootfolder} ";
+    } else {
+      $sql .= "WHERE 1=1 ";
+    }
+    $sql .= "AND uid=:uid ORDER BY id";
     $res = db_query($sql, array(':uid' => $user->uid));
     while ($A = $res->fetchAssoc()) {
       $data['recentfolders'][] = array(
@@ -196,7 +202,15 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
 
   }
 
-  $res = db_query("SELECT cid,pid,name,description from {filedepot_categories} WHERE pid='0' ORDER BY folderorder");
+  $sql = "SELECT cid,pid,name,description from {filedepot_categories} ";
+  if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+    $sql .= "WHERE cid in (:folders) AND cid != :cid ORDER BY folderorder";
+    $res = db_query($sql, array(':folders' => explode(',',$filedepot->allowableGroupViewFoldersSql), ':cid' => $filedepot->ogrootfolder));
+  } else {
+    $sql .= "WHERE pid=0 ORDER BY folderorder";
+    $res = db_query($sql);
+  }
+
   while ($A = $res->fetchAssoc()) {
     if ($filedepot->checkPermission($A['cid'], 'view')) {
       $data['topfolders'][] = array(
@@ -349,7 +363,7 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
         $filedepot->lastRenderedFiles[] = array($cid, $A['fid'], $folderprefix, $level);
         $more_records_message = 'moredata_msg';
       }
-      elseif ($filedepot->activeview == 'getmoredata'   AND $i >= $filedepot->recordCountPass2) {
+      elseif ($filedepot->activeview == 'getmoredata'    AND $i >= $filedepot->recordCountPass2) {
         $break = TRUE;
         // Check if there are more records - the SQL LIMIT statement allowed for one more record
         // If there are more - show the AJAX link to load more data - pass 2
@@ -394,7 +408,7 @@ function filedepot_displaySearchListing($query) {
     $query->condition('a.cid', explode(',', $filedepot->allowableViewFoldersSql), 'IN');
   }
   $query->condition(db_and()->condition(db_or()->
-      condition('title', db_like($keys) . '%', 'LIKE')->
+      condition('title', '%' . db_like($keys) . '%', 'LIKE')->
       condition('a.description', '%' . db_like($keys) . '%', 'LIKE')
   ));
   $result = $query->execute();
@@ -409,6 +423,7 @@ function filedepot_displaySearchListing($query) {
 function filedepot_displayTagSearchListing($query) {
   $filedepot = filedepot_filedepot();
   $nexcloud =  filedepot_nexcloud();
+
   $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
   $sql .= "file.description,category.name as foldername,category.pid,category.nid ";
   $sql .= "FROM {filedepot_files} file ";
@@ -456,18 +471,27 @@ function filedepot_getFileListingSQL($cid) {
   $sql .= "FROM {filedepot_files} file ";
   $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
   if ($filedepot->activeview == 'lockedfiles') {
-    $sql .= "WHERE file.status=2 AND status_changedby_uid={$user->uid} ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "WHERE file.status=2 AND status_changedby_uid={$user->uid} ";
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    }
+    $sql .= "ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
   }
   elseif ($filedepot->activeview == 'downloads') {
     // Will return multiple records for same file as we capture download records each time a user downloads it
     $sql .= "LEFT JOIN {filedepot_downloads} downloads on downloads.fid=file.fid ";
     $sql .= "WHERE uid={$user->uid} ";
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    }
     $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
   }
   elseif ($filedepot->activeview == 'unread') {
     $sql .= "LEFT OUTER JOIN {filedepot_downloads} downloads on downloads.fid=file.fid ";
     $sql .= "WHERE downloads.fid IS NULL ";
-    if (empty($filedepot->allowableViewFoldersSql)) {
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    } elseif (empty($filedepot->allowableViewFoldersSql)) {
       $sql .= "AND file.cid is NULL ";
     }
     else {
@@ -489,9 +513,17 @@ function filedepot_getFileListingSQL($cid) {
   elseif ($filedepot->activeview == 'flaggedfiles') {
     $sql .= "LEFT JOIN {filedepot_favorites} favorites on favorites.fid=file.fid ";
     $sql .= "WHERE uid={$user->uid} ";
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    }
   }
   elseif ($filedepot->activeview == 'myfiles') {
-    $sql .= "WHERE file.submitter={$user->uid} ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "WHERE file.submitter={$user->uid} ";
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    }
+    $sql .= "ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
+
   }
   elseif ($filedepot->activeview == 'approvals') {
     // Determine if this user has any submitted files that they can approve
@@ -506,6 +538,9 @@ function filedepot_getFileListingSQL($cid) {
       }
       else {
         $sql .= "WHERE file.cid in ($categories) ";
+      }
+      if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
       }
     }
     $sql .= "ORDER BY file.date DESC ";
@@ -557,7 +592,10 @@ function filedepot_getFileListingSQL($cid) {
 
   }
   else {
-    if (!user_access('administer filedepot', $user)) {
+    // Default view - latest files
+    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+        $sql .= "WHERE file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+    } elseif (!user_access('administer filedepot', $user)) {
       if (empty($filedepot->allowableViewFoldersSql)) {
         $sql .= "WHERE file.cid is NULL ";
       }
@@ -883,7 +921,7 @@ function filedepotAjaxServer_deleteCheckedFiles() {
     foreach ($files as $id) {
       $uid = db_query("SELECT uid FROM {filedepot_notifications} WHERE id=:id",
         array(':id' => $id))->fetchField();
-      if ($id > 0 AND   $uid == $user->uid) {
+      if ($id > 0 AND    $uid == $user->uid) {
         db_query("DELETE FROM {filedepot_notifications} WHERE id=:id",
           array(':id' => $id));
       }
@@ -1256,84 +1294,24 @@ function filedepotAjaxServer_updateFileSubscription($fid, $op = 'toggle') {
 
 function filedepotAjaxServer_broadcastAlert($fid, $comment) {
   global $user;
-  $filedepot = filedepot_filedepot();
+
   $retval = '';
-  $target_users = array();
-  if (variable_get('filedepot_default_allow_broadcasts', 1) == 1) { // Site default set to allow broadcast enabled
-    $uquery = db_query("SELECT uid FROM {users} WHERE uid > 0 AND status = 1");
-    while ( $A = $uquery->fetchObject()) {
-      if ($A->uid != $user->uid) {
-        if (db_query("SELECT allow_broadcasts FROM {filedepot_usersettings} WHERE uid=:uid",
-          array(':uid' => $A->uid))->fetchField() == 0) {
-          $personal_setting = FALSE; // Found user setting to not be notified
-        }
-        else {
-          $personal_setting = TRUE;
-        }
-        // Only want to notify users that don't have setting disabled or exception record
-        if ($personal_setting == TRUE) {
-          $target_users[] = $A->uid;
-        }
-      }
-    }
-
-  }
-  else {
-    $sql = "SELECT a.uid FROM {filedepot_usersettings} a "
-    . "LEFT JOIN {users} b on b.uid=a.uid "
-    . "WHERE a.allow_broadcasts=1 and b.status=1";
-    $uquery = db_query($sql);
-    while ($B  = $uquery->fetchObject()) {
-      if ($user->uid != $B->uid) {
-        $target_users[] = $B->uid;
-      }
-    }
-  }
-
+  $target_users = filedepot_build_notification_distribution($fid, FILEDEPOT_BROADCAST_MESSAGE);
   if (count($target_users) > 0) {
-
-    /* Send out Notifications to all users on distribution
-     * Use the Bcc feature of COM_mail (added June/2009)
-     * To send to complete distribution as one email and not loop thru distribution sending individual emails
-     */
-    $distribution = array();
-    $lastuser = 0;
-    $type = FILEDEPOT_BROADCAST_MESSAGE;
-    $sql = "SELECT file.title,file.cid FROM {filedepot_files} file WHERE file.fid=:fid";
-    $query = db_query($sql, array(':fid' => $fid));
-    $frec = $query->fetchObject();
-    foreach ($target_users as $target_uid) {
-      // Check that user has view access to this folder
-      if ($target_uid != $lastuser AND $filedepot->checkPermission($frec->cid, 'view', $target_uid)) {
-        $query = db_query("SELECT name,mail FROM {users} WHERE uid=:uid", array(':uid' => $target_uid));
-        $urec = $query->fetchObject();
-        if (!empty($urec->mail)) {
-          $distribution[] = $urec->mail;
-          $sql = "INSERT INTO {filedepot_notificationlog} (target_uid,submitter_uid,notification_type,fid,cid,datetime) "
-          . "VALUES (:tuid,:uid,:type,:fid,:cid,:time)";
-          db_query($sql,
-            array(':tuid' => $target_uid, ':uid' => $user->uid, ':type' => $type, ':fid' => $fid, ':cid' => $frec->cid, ':time' => time()));
-        }
-        $lastuser = $target_uid;
-      }
-    }
-    if (count($distribution) > 0) {
-      $message['subject'] = variable_get('site_name', '') . ' - ' . t('Broadcast Notification');
-      $message['body'] = $comment . "\n\n";
-      $link = url('filedepot', array('query' => drupal_query_string_encode(array('cid' => $frec->cid)), 'absolute' => true));
-      $message['body'] .= t('The file: !filename can be accessed at !link',
-      array('!filename' => $frec->title, '!link' => $link)) . "\n\n";
-      $message['body'] .= t('You are receiving this broadcast alert, because your notification setting is enabled.');
-      $message['to'] = 'Filedepot Distribution';
-      $message['headers']['Bcc'] = implode(',', $distribution);
-      drupal_mail_send($message);
+    $values = array(
+      'fid' => $fid,
+      'comment' => filter_xss($comment),
+      'target_users' => $target_users,
+    );
+    $ret = drupal_mail('filedepot', FILEDEPOT_BROADCAST_MESSAGE, $user, language_default(), $values);
+    if ($ret) {
+      $filedepot = filedepot_filedepot();
       $retval['retcode'] = 200;
-      $retval['count'] = count($distribution);
+      $retval['count'] = $filedepot->message;
     }
     else {
       $retval['retcode'] = 205;
     }
-
   }
   else {
     $retval['retcode'] = 205;

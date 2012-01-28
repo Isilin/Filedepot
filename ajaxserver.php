@@ -19,7 +19,7 @@ function filedepot_dispatcher($action) {
     timer_start('filedepot_timer');
   }
   firelogmsg("AJAX Server code executing - action: $action");
-  // watchdog('filedepot', "filedepot_dispatcher - action: $action");
+
   switch ($action) {
 
     case 'getfilelisting':
@@ -36,7 +36,6 @@ function filedepot_dispatcher($action) {
       $filedepot->cid = $cid;
       ctools_include('object-cache');
       $cache = ctools_object_cache_set('filedepot', 'folder', $cid);
-
       $data = filedepotAjaxServer_getfilelisting();
       break;
 
@@ -357,12 +356,13 @@ function filedepot_dispatcher($action) {
         ));
         $A = $query->fetchAssoc();
         if ($filedepot->checkPermission($A['catid'], 'admin')) {
-           db_delete('filedepot_access')
+          db_delete('filedepot_access')
             ->condition('accid', $id)
             ->execute();
-           db_update('filedepot_usersettings')
+          db_update('filedepot_usersettings')
             ->fields(array('allowable_view_folders' => ''))
             ->execute();
+
           // For this folder - I need to update the access metrics now that a permission has been removed
           $nexcloud->update_accessmetrics($A['catid']);
           if ($filedepot->ogenabled) {
@@ -388,13 +388,12 @@ function filedepot_dispatcher($action) {
         $data['retcode'] = 204; // No permission options selected - return 'No content' statuscode
       }
       elseif ($filedepot->updatePerms(
-        $cid,                           // Category ID
-        $_POST['cb_access'],            // Array of permissions checked by user
-        $_POST['selusers'],             // Array of site members
-        $_POST['selgroups'],            // Array of group members
+        $cid,                          // Category ID
+        $_POST['cb_access'],           // Array of permissions checked by user
+        $_POST['selusers'],            // Array of site members
+        $_POST['selgroups'],           // Array of group members
         $_POST['selroles'])            // Array of roles
-        )
-      {
+        ) {
         if (is_array($_POST['selroles']) AND count($_POST['selroles']) > 0) {
           foreach ($_POST['selroles'] as $roleid) {
             $roleid = intval($roleid);
@@ -475,6 +474,7 @@ function filedepot_dispatcher($action) {
             ':fid' => $fid,
           ));
           list($fname, $cid, $current_version, $submitter) = array_values($query->fetchAssoc());
+
           // Allow updating the category, title, description and image for the current version and primary file record
           if ($version == $current_version) {
             db_query("UPDATE {filedepot_files} SET title=:title,description=:desc,date=:time WHERE fid=:fid", array(
@@ -483,6 +483,7 @@ function filedepot_dispatcher($action) {
               ':time' => time(),
               ':fid' => $fid,
             ));
+
             // Test if user has selected a different directory and if they have perms then move else return FALSE;
             if ($folder_id > 0) {
               $newcid = $folder_id;
@@ -498,6 +499,7 @@ function filedepot_dispatcher($action) {
               $data['cid'] = $cid;
             }
             unset($_POST['tags']); // Format tags will check this to format tags in case we are doing a search which we are not in this case.
+
             $data['tags'] = filedepot_formatfiletags($tags);
           }
 
@@ -506,6 +508,7 @@ function filedepot_dispatcher($action) {
             ':fid' => $fid,
             ':version' => $version,
           ));
+
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
           if ($filedepot->checkPermission($folder_id, 'view', 0, FALSE)) {
             if ($filedepot->checkPermission($folder_id, 'admin', 0, FALSE) OR $user->uid == $submitter) {
@@ -868,6 +871,7 @@ function filedepot_dispatcher($action) {
           if (count($atags) >= 1) {
             foreach ($atags as $tag) {
               $tag = trim($tag); // added to handle extra space thats added when removing a tag - thats between 2 other tags
+
               if (!empty($tag)) {
                 $current_search_tags .= theme('filedepot_searchtag', array('searchtag' => addslashes($tag), 'label' => check_plain($tag)));
               }
@@ -894,6 +898,7 @@ function filedepot_dispatcher($action) {
       else {
         $data['tagcloud'] = theme('filedepot_tagcloud');
         $data['retcode'] = 203; // Partial Information
+
       }
       break;
 
@@ -1003,9 +1008,9 @@ function filedepot_dispatcher($action) {
         // Send out email notifications of new file added to all users subscribed  -  Get fileid for the new file record
         $fid = db_query("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC",
           array(
-            ':cid' => $newcid,
-            ':uid' => $user->uid,
-          ), 0, 1)->fetchField();
+          ':cid' => $newcid,
+          ':uid' => $user->uid,
+        ), 0, 1)->fetchField();
         filedepot_sendNotification($fid, FILEDEPOT_NOTIFY_NEWFILE);
         $data['retcode'] = 200;
         $data = filedepotAjaxServer_generateLeftSideNavigation($data);

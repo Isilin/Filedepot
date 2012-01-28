@@ -275,7 +275,6 @@ function filedepot_uninstall() {
   variable_del('filedepot_notifications_enabled');
   variable_del('filedepot_pass1_recordcount');
   variable_del('filedepot_pass2_recordcount');
-  variable_del('filedepot_storage_path');
   variable_del('filedepot_yui_baseurl');
   variable_del('filedepot_filter_mode');
   variable_del('filedepot_filetype_filter');
@@ -287,6 +286,9 @@ function filedepot_uninstall() {
   variable_del('filedepot_extension_data');
   variable_del('node_options_filedepot_folder');
   variable_del('comment_filedepot_folder');
+  variable_del('filedepot_auto_create_group_rootfolder_enabled');
+  variable_del('filedepot_organic_group_mode_enabled');
+  variable_del('filedepot_email_to');
 
 }
 
@@ -319,6 +321,12 @@ $schema['filedepot_categories'] = array(
     ),
     'vid' => array(
       'description' => ('TODO: please describe this field!'),
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    ),
+    'group_nid' => array(
+      'description' => t('Used with OG mode to set the group root folder'),
       'type' => 'int',
       'not null' => TRUE,
       'default' => 0,

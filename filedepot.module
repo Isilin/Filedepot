@@ -573,17 +573,6 @@ function filedepot_form_alter(&$form, &$form_state, $form_id) {
       '#maxlength' => 255,
     );
 
-
-    /*
-     $form['body_filter']['folderdesc'] = array(
-     '#type'     => 'textarea',
-     '#title'    => t('Folder Description'),
-     '#required' => FALSE,
-     '#rows'  => 2
-     );
-     */
-
-
     if (user_access('administer filedepot', $user)) {
       $parentFolders = array(0 => 'Top Level Folder');
     }

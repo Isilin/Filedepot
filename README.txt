@@ -1,4 +1,4 @@
-7.x-1.x RELEASE NOTE:
+7.x-1.x RELEASE NOTE
  (Jan 17 2012) The current 7.x branch is under development and is still unstable but core features are working.
 
 
@@ -52,7 +52,7 @@ Install
    You will now need to create a sites/all/libraries folder if you don't already have the libraries module installed.
    PLEASE rename the files as noted below
 
-   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraries folder.
+   The following javascript files then need to be retrieved and saved to the sites/all/libraries folder.
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
    > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js
 

@@ -71,9 +71,10 @@ Install
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.
 
 Notes:
-a)  You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.
-b)  A new content type is automatically created 'filedepot_folder'.
-c)  You can setup filedepot to not load the YUI libraries remotely from Yahoo via the module admin settings page.
+a)  Filedepot looks best and works best if you disable all side blocks
+b)  You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.
+c)  A new content type is automatically created 'filedepot_folder'.
+d)  You can setup filedepot to not load the YUI libraries remotely from Yahoo via the module admin settings page.
     Set the baseurl to be a local URL and download the YUI libraries from http://yuilibrary.com/downloads/#yui2
     Only version 2.7.0 of the libraries is supported at present.
 

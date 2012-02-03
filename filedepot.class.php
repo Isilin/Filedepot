@@ -221,6 +221,7 @@ class filedepot {
             return TRUE;
           }
           else {
+            watchdog('filedepot',"File upload not allowed for filename: $filename, mimetype: $mimetype");
             RETURN FALSE;
           }
         }
@@ -231,6 +232,7 @@ class filedepot {
       return TRUE;
     }
     else {
+      watchdog('filedepot',"File upload not allowed for filename: $filename, mimetype: $mimetype");
       return FALSE;
     }
 

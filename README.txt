@@ -22,8 +22,8 @@ The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine
 
 Dependencies
 ------------
- * Content, FileField
- * libraries
+ * Content (cck, FileField (filefield)
+ * libraries (libraries)
 
  Organic Groups is not required but if you install the modules 'og' and 'og_access',
  then you will be able to manage folder access via organic groups.
@@ -46,10 +46,10 @@ Install
 2) The filedepot module now requires the libraries module be installed.
    We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
 
-   You will now need to create a sites/all/libraries folder if you don't already have the libraies module installed.
+   You will now need to create a sites/all/libraries folder if you don't already have the libraries module installed.
    PLEASE rename the files as noted below
-   
-   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraies folder.
+
+   The following three javascript and support files then need to be retrieved and saved to the sites/all/libraries folder.
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
    > http://yuilibrary.com/support/2.8.2/dropin_patches/uploader-2.7.0.zip  - SAVE FILE as: yui_uploader.swf
    > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js

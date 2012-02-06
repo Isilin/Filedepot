@@ -692,6 +692,8 @@ function filedepot_download($node, $fid, $version, $mode='') {
         'Cache-Control: private',
         );
         if (count($headers)) {
+          watchdog('filedepot', 'Transferring incoming file %name (filedepot fid %fid, CCK fid %cckfid)',
+            array('%name' => $filetitle, '%fid' => $fid, '%cckfid' => $cckfid), WATCHDOG_INFO);
           file_transfer($filepath, $headers);
         }
 
@@ -814,8 +816,8 @@ function filedepot_download($node, $fid, $version, $mode='') {
         );
 
         if (count($headers)) {
-          watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user",
-            array('@file' => $file->filename, '!fid' => $fid, '!version' => $version, '@user' => $user->name));
+          watchdog('filedepot', 'Transferring file %name (filedepot fid %fid, CCK fid %cckfid)',
+            array('%name' => $name, '%fid' => $fid, '%cckfid' => $file->fid), WATCHDOG_INFO);
           file_transfer($filepath, $headers);
         }
       }

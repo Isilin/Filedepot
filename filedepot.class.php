@@ -1003,7 +1003,12 @@ class filedepot {
           // Get id for the new file record
           $args = array($file->folder, $user->uid);
           $id = db_result(db_query("SELECT id FROM {filedepot_filesubmissions} WHERE cid=%d AND submitter=%d ORDER BY id DESC", $args, 0, 1));
-          filedepot_sendNotification($id, FILEDEPOT_NOTIFY_ADMIN);
+          if ($id) {
+            watchdog('filedepot', 'Uploaded file %name as %tempname for moderation (filedepot id %id, CCK fid %cckfid)',
+              array('%name' => $nodefile['realname'], '%tempname' => $nodefile['moderated_tmpname'],
+                '%id' => $id, '%cckfid' => $nodefile['fid']), WATCHDOG_INFO);
+            filedepot_sendNotification($id, FILEDEPOT_NOTIFY_ADMIN);
+          }
 
         }
         else {
@@ -1018,6 +1023,9 @@ class filedepot {
 
           db_query("INSERT INTO {filedepot_fileversions} (fid,cckfid,fname,version,notes,size,date,uid,status)
           VALUES (%d,%d,'%s','1','%s',%d,%d,%d,1)", $fid, $nodefile['fid'], $file->name, $file->vernote, $file->size, time(), $user->uid);
+
+          watchdog('filedepot', 'Uploaded file %name (filedepot fid %fid, CCK fid %cckfid)',
+            array('%name' => $file->name, '%fid' => $fid, '%cckfid' => $nodefile['fid']), WATCHDOG_INFO);
 
           if (!empty($file->tags) AND $this->checkPermission($file->folder, 'view', 0, FALSE)) {
             $nexcloud->update_tags($fid, $file->tags);
@@ -1100,6 +1108,10 @@ class filedepot {
         db_query($sql, $file->fid, $nodefile['fid'], $filename, $newVersion, $file->vernote, $file->size, time(), $user->uid);
         $sql  = "UPDATE {filedepot_files} SET fname='%s',version='%s',size=%d,date=%d,cckfid=%d WHERE fid=%d";
         db_query($sql, $filename, $newVersion, $file->size, time(), $nodefile['fid'], $file->fid);
+
+        watchdog('filedepot', 'Uploaded file %name as filedepot fid %fid, version %version (CCK fid %cckfid)',
+          array('%name' => $filename, '%version' => $newVersion,
+            '%fid' => $file->fid, '%cckfid' => $nodefile['fid']), WATCHDOG_INFO);
 
         // Update tags for this file
         if (!empty($file->tags) AND $this->checkPermission($file->folder, 'view', 0, FALSE)) {
@@ -1287,6 +1299,8 @@ class filedepot {
           $sql .= "values ('%s','%s',%d,%d,%d,%d,'%s','%s')";
           db_query($sql, $tempfilename, $filename, time(), $uid, $nodefile['fid'], $filesize, $mimetype, $description);
           $outputInformation .=  ("File: {$filename} has been updated...\n" );
+          watchdog('filedepot', 'Uploaded file %name with token to queue as %qname (CCK fid %cckfid)',
+            array('%name' => $tempfilename, '%qname' => $filename, '%cckfid' => $nodefile['fid']), WATCHDOG_INFO);
         }
         else {
             watchdog('filedepot', 'Client error 9001 uploading file @file', array('@file' => "$filename"));
@@ -1305,6 +1319,8 @@ class filedepot {
         $sql .= "values ('%s','%s',%d,%d,%d,%d,'%s','%s')";
         db_query($sql, $tempfilename, $filename, time(), $uid, $nodefile['fid'], $filesize, $mimetype, $description);
         $outputInformation .=  ("File: {$filename} has been added to incoming queue...\n" );
+        watchdog('filedepot', 'Uploaded file %name to queue as %qname (CCK fid %cckfid)',
+          array('%name' => $tempfilename, '%qname' => $filename, '%cckfid' => $nodefile['fid']), WATCHDOG_INFO);
       }
       else {
         watchdog('filedepot', 'Client error 9002 uploading file @file', array('@file' => "$filename"));

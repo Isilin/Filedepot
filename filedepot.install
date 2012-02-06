@@ -64,24 +64,32 @@ function filedepot_uninstall() {
 
   drupal_uninstall_schema('filedepot');
 
-  variable_del('filedepot_content_type_initialized');
+  variable_del('filedepot_storage_path');
+  variable_del('filedepot_yui_baseurl');
   variable_del('filedepot_allow_folder_duplicates');
+  variable_del('filedepot_pass1_recordcount');
+  variable_del('filedepot_pass2_recordcount');
+  variable_del('filedepot_notifications_enabled');
   variable_del('filedepot_default_allow_broadcasts');
   variable_del('filedepot_default_notify_filechange');
   variable_del('filedepot_default_notify_newfile');
-  variable_del('filedepot_notifications_enabled');
-  variable_del('filedepot_pass1_recordcount');
-  variable_del('filedepot_pass2_recordcount');
-  variable_del('filedepot_storage_path');
-  variable_del('filedepot_yui_baseurl');
+  variable_del('auto_create_group_rootfolder_enabled');
+  variable_del('organic_group_mode_enabled');
+  variable_del('filedepot_locked_file_download_enabled');
+  variable_del('filedepot_show_index_enabled');
+
   variable_del('filedepot_filter_mode');
   variable_del('filedepot_filetype_filter');
   variable_del('filedepot_filetype_filterdata');
   variable_del('filedepot_default_owner');
   variable_del('filedepot_default_perms_data');
   variable_del('filedepot_default_roles');
+  variable_del('filedepot_default_group')
   variable_del('filedepot_extensions');
   variable_del('filedepot_extension_data');
+
+  variable_del('filedepot_content_type_initialized');
+  variable_del('filedepot_allow_folder_duplicates');
 
 }
 

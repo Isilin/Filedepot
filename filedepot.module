@@ -707,9 +707,9 @@ function filedepot_download($node, $fid, $version, $mode='') {
 
   }
   else {
+
     $version = intval($version);
     if ($version > 0) {
-
       $filetitle = db_result(db_query("SELECT title FROM {filedepot_files} WHERE fid=%d", $fid));
       $fname = db_result(db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=%d AND version=%d", $fid, $version));
       $cid = db_result(db_query("SELECT cid FROM {filedepot_files} WHERE fid=%d", $fid));
@@ -724,16 +724,17 @@ function filedepot_download($node, $fid, $version, $mode='') {
       list($cid, $fname, $tempname, $filetitle) = array_values($rec);
     }
     else {
-      $query = db_query("SELECT cid,fname,title FROM {filedepot_files} WHERE fid=%d", $fid);
+      $query = db_query("SELECT cid,fname,title,version FROM {filedepot_files} WHERE fid=%d", $fid);
       $rec = db_fetch_array($query);
       if ($rec === FALSE) {
         watchdog('filedepot', "Download request - invalid file reference");
         return drupal_access_denied();
       }
       else {
-        list($cid, $fname, $filetitle) = array_values($rec);
+        list($cid, $fname, $filetitle,$version) = array_values($rec);
       }
     }
+
     if ($cid == 0) {
       watchdog('filedepot', "Download request - null category id");
       return drupal_access_denied();
@@ -813,6 +814,8 @@ function filedepot_download($node, $fid, $version, $mode='') {
         );
 
         if (count($headers)) {
+          watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user",
+            array('@file' => $file->filename, '!fid' => $fid, '!version' => $version, '@user' => $user->name));
           file_transfer($filepath, $headers);
         }
       }

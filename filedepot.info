@@ -1,5 +1,5 @@
 name = Filedepot
-version = 6.x-1.2
+version = 6.x-1.3
 description = Filedepot File Management System
 core = 6.x
 php = 5.x;

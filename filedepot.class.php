@@ -38,6 +38,7 @@ class filedepot {
   );
 
   public $defOwnerRights = array();
+  public $defGroupRights = array();
   public $defRoleRights = array();
 
   public $maxDefaultRecords = 30;
@@ -58,6 +59,15 @@ class filedepot {
   private $upload_prefix_character_count = 18;
   private $download_chunk_rate =   8192;  //set to 8k download chunks
   public $ogenabled = FALSE;
+  public $ogrootfolder = 0;
+  public $allowableGroupViewFoldersSql = '';
+  static $ogmode_initialized = FALSE;   // SET true once we have intialized GroupViewFolders
+  public $ogmode_enabled = FALSE;       // Set TRUE in __construct() if mode enabled in settings
+
+  /* Variables used in filedepot_file_insert() -- HOOK called from the filefield CCK module */
+  public $newfile_realname = '';
+  public $moderated = 0;
+  public $moderated_tmpname = '';
 
   public $notificationTypes = array(
   1   => 'New File Added',
@@ -105,12 +115,18 @@ class filedepot {
     if (isset($permsdata['owner'])) {
       unset($permsdata['owner']); // It has now been assigned to defOwnerRights variable
     }
+    if (isset($permsdata['group']) AND count($permsdata['group'] > 0)) {
+      $this->defGroupRights = $permsdata['group'];
+    }
+    else {
+      $this->defGroupRights = array('view');
+    }
+    if (isset($permsdata['group'])) {
+      unset($permsdata['group']); // It has now been assigned to defGroupRights variable
+    }
+
 
     $this->defRoleRights = $permsdata;
-
-    if (module_exists('og') AND module_exists('og_access')) {
-      $this->ogenabled = TRUE;
-    }
 
     if (user_is_logged_in()) {
 
@@ -145,6 +161,28 @@ class filedepot {
       }
       $this->allowableViewFoldersSql = implode(',', $this->allowableViewFolders);  // Format to use for SQL statement - test for allowable categories
 
+      // If we are in Organic Group Mode and present context is a group then determine the group's root folder and subfolders
+      if (module_exists('og') AND module_exists('og_access')) {
+        $this->ogenabled = TRUE;
+        if (variable_get('organic_group_mode_enabled', 0) == 1) {
+          $this->ogmode_enabled = TRUE;
+        }
+
+        if (self::$ogmode_initialized === FALSE) {
+          self::$ogmode_initialized = TRUE;   // Only want to do this once
+          // Check and see what group the user was in last - assume they want to see that group's root folder if set
+          if (isset($_SESSION['og_last']) AND $_SESSION['og_last'] > 0 ) {
+            $this->ogrootfolder = db_result(db_query("SELECT cid FROM {filedepot_categories} WHERE group_nid=%d AND pid=0", $_SESSION['og_last']));
+            if ($this->ogmode_enabled AND $this->ogrootfolder !== FALSE and $this->ogrootfolder > 0) {
+              $folderlist = array();
+              array_push($folderlist, $this->ogrootfolder);
+              $folderlist = $this->getRecursiveCatIDs ($folderlist, $this->ogrootfolder, 'view');
+              $this->allowableGroupViewFoldersSql = implode(',', $folderlist);  // Format to use for SQL statement - test for allowable categories
+            }
+          }
+        }
+      }
+
     }
     else {
       $this->allowableViewFolders = $this->getAllowableCategories('view', FALSE);
@@ -170,28 +208,13 @@ class filedepot {
   */
   function checkFilter($filename,$mimetype) {
     $ext = end(explode(".", $filename));
-    $filterdata = unserialize(variable_get('filedepot_filetype_filterdata', ''));
-    if (is_array($filterdata) AND !empty($filterdata)) {
-      if (array_key_exists($mimetype, $filterdata) AND is_array($filterdata[$mimetype])) {
-        if (in_array($ext, $filterdata[$mimetype])) {
-          // Match found - Mimetype and extension match defined settings
-          if (variable_get('filedepot_filter_mode',FILEDEPOT_FILTER_INCLUDEMODE) == FILEDEPOT_FILTER_INCLUDEMODE) {
-            return TRUE;
-          }
-          else {
-            RETURN FALSE;
-          }
-        }
-      }
-    }
-    // If we get here, no match found. Return depends on the filtering mode
-    if (variable_get('filedepot_filter_mode',FILEDEPOT_FILTER_EXCLUDEMODE) == FILEDEPOT_FILTER_EXCLUDEMODE) {
+
+    $allowed_upload_extensions = explode(' ',variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'));
+    if (is_array($allowed_upload_extensions) AND in_array($ext, $allowed_upload_extensions)) {
       return TRUE;
-    }
-    else {
+    } else {
       return FALSE;
     }
-
   }
 
   /* Function to check if user has a particular right or permission to a folder
@@ -501,8 +524,8 @@ class filedepot {
     $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=%d", $node->parentfolder);
     $maxorder = db_result($query) + 10;
 
-    db_query("INSERT INTO {filedepot_categories} (pid,name,description,folderorder,nid,vid) VALUES (%d,'%s','%s',%d,%d,%d)",
-    $node->parentfolder, $node->title, $node->folderdesc, $maxorder, $node->nid, $node->vid);
+    db_query("INSERT INTO {filedepot_categories} (pid,name,description,folderorder,nid,vid,group_nid) VALUES (%d,'%s','%s',%d,%d,%d,%d)",
+    $node->parentfolder, $node->title, $node->folderdesc, $maxorder, $node->nid, $node->vid, $node->group_nid);
 
     // Need to clear the cached user folder permissions
     db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
@@ -548,6 +571,11 @@ class filedepot {
 
       }
       else {
+
+        if ($node->group_nid > 0 AND $this->ogmode_enabled) {
+          // Create default permissions record for the group
+          $this->updatePerms($cid, $this->defGroupRights, '', $node->group_nid);
+        }
         // Create default permissions record for the user that created the category
         $this->updatePerms($cid, $this->defOwnerRights, $user->uid);
         if (is_array($this->defRoleRights) AND count($this->defRoleRights) > 0) {
@@ -897,11 +925,25 @@ class filedepot {
       * $nodefileObj = file_save_upload($file->tmp_name,array(), $this->tmp_storage_path);
       */
 
+      $this->cid = $file->folder;
+      $this->newfile_realname = $file->name;
       /* Attachment will be saved in the temporary directory with the PHPTMP filename
-      * Drupal files table record is created. The node_save API will move and rename the file
+      * Drupal files table record is created by the CCK filefield module.
+      *
+      * Setting the folder (node id) and file real name in the class so that we have access to it
+      * in the filefield module HOOK on insert filedepot_file_insert()
+      *
+      * The filedepot_file_insert() function will move the file from the temp directory
+      * under /sites/default/files/filedepot to the correct secure directory outside ROOT
       */
 
-      $nodefile = field_file_save_file($file->tmp_name, array(), $this->tmp_storage_path);
+      $node = node_load($file->nid, NULL, TRUE);
+      $content_type = content_types($node->type);
+      $field = content_fields('field_filedepot_file', 'filedepot_folder');
+      $validators = filefield_widget_upload_validators($field);
+
+      $nodefile = field_file_save_file($file->tmp_name, $validators, $this->tmp_storage_path);
+
       // Determine the Drupal Files record id that was just created for the new file.
       // The return array should have fid set which is the field value used in the CCK table record
       // that maintains the attachment info for the CCK Folder Content record.
@@ -924,14 +966,17 @@ class filedepot {
           $nodefile['moderated'] = FALSE;
         }
 
-        $node = node_load($file->nid);
-        $content_type = content_types($node->type);
+        $this->moderated = $nodefile['moderated'];
+        $this->moderated_tmpname = $nodefile['moderated_tmpname'];
 
-        $nodefileObj = new stdClass();
-        $nodefileObj->fid = $nodefile['fid'];   // file_set_status API expects an object but just needs fid
-        file_set_status($nodefileObj, 1);
+        $nodefile['status'] = FILE_STATUS_PERMANENT;
         $node->field_filedepot_file[] = $nodefile;
+
+
         node_save($node);
+
+        // Clear CCK data cache so the new value will be loaded for display purposes
+        cache_clear_all('content:' . $node->nid . ':' . $node->vid, 'cache_content');
 
         // After file has been saved and moved to the private filedepot folder via the HOOK_node_api function
         // Check and see what the final filename and use that to update the filedepot tables

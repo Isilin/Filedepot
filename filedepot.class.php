@@ -166,11 +166,16 @@ class filedepot {
         if (variable_get('filedepot_organic_group_mode_enabled', 0) == 1) {
           $this->ogmode_enabled = TRUE;
         }
+
         if (self::$ogmode_initialized === FALSE) {
           self::$ogmode_initialized = TRUE;   // Only want to do this once.
-          // Using the ctools cache functionality to save which folder the user has selected
+          // Using the ctools cache functionality to save which group the user has selected - set in filedepot_main()
           ctools_include('object-cache');
           $gid = ctools_object_cache_get('filedepot', 'grpid');
+          // Check if group context was passed into filedepot and if not check if OG was set by another site feature
+          if ($gid == 0 AND isset($_SESSION['og_last']) AND $_SESSION['og_last'] > 0) {
+            $gid = $_SESSION['og_last'];
+          }
           if ($gid > 0) {
             $this->ogrootfolder = db_query("SELECT cid FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $gid))->fetchfield();
             if ($this->ogrootfolder !== FALSE and $this->ogrootfolder > 0) {

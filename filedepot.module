@@ -522,7 +522,6 @@ function filedepot_main() {
   $grpid = 0;
   $arg1 = arg(1);
   $arg2 = arg(2);
-
   if ($arg1 === 'folder' AND $arg2 > 0) {
     $cid = intval($arg2);
   } elseif ($filedepot->ogenabled AND !empty($arg1)) {

@@ -186,7 +186,7 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
     $sql  = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
     $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
-      $sql .= "WHERE a.cid in ({$filedepot->allowableGroupViewFoldersSql}) AND a.cid != {$filedepot->ogrootfolder} ";
+      $sql .= "WHERE a.cid in ({$filedepot->allowableGroupViewFoldersSql}) AND a.cid != {$filedepot->ogrootfolder} AND b.pid != {$filedepot->ogrootfolder} ";
     } else {
       $sql .= "WHERE 1=1 ";
     }
@@ -204,8 +204,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
 
   $sql = "SELECT cid,pid,name,description from {filedepot_categories} ";
   if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
-    $sql .= "WHERE cid in (:folders) AND cid != :cid ORDER BY folderorder";
-    $res = db_query($sql, array(':folders' => explode(',',$filedepot->allowableGroupViewFoldersSql), ':cid' => $filedepot->ogrootfolder));
+    $sql .= "WHERE pid = :cid ORDER BY folderorder";
+    $res = db_query($sql, array(':cid' => $filedepot->ogrootfolder));
   } else {
     $sql .= "WHERE pid=0 ORDER BY folderorder";
     $res = db_query($sql);

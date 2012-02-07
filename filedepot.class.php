@@ -1035,6 +1035,10 @@ class filedepot {
             filedepot_sendNotification($fid, FILEDEPOT_NOTIFY_NEWFILE);
           }
 
+          // change file status to permanent - needs a file object
+          $fileobj = (object) $nodefile;
+          file_set_status($fileobj,FILE_STATUS_PERMANENT);
+
           // Update related folders last_modified_date
           $workspaceParentFolder = filedepot_getTopLevelParent($file->folder);
           filedepot_updateFolderLastModified($workspaceParentFolder);
@@ -1074,6 +1078,9 @@ class filedepot {
       * $nodefileObj = file_save_upload($file->tmp_name,array(), $this->tmp_storage_path);
       */
       $nodefile = field_file_save_file($file->tmp_name, array(), $this->tmp_storage_path);
+      // change file status to permanent - needs a file object
+      $fileobj = (object) $nodefile;
+      file_set_status($fileobj,FILE_STATUS_PERMANENT);
 
       $filedepot_private_directory_path = $this->root_storage_path . $file->folder;
 
@@ -1088,6 +1095,7 @@ class filedepot {
       // the variable $src will be updated with the resulting appended incremental number
       // Refer to the drupal file_move API
       if (file_move($src, $dest, FILE_EXISTS_RENAME)) {
+
         // update db with the filename and full name including directory after the successful move
         $filename = basename($src);
 
@@ -1187,7 +1195,7 @@ class filedepot {
       $rename = @rename($curfile, $newfile);
 
       // Need to update the filename path in the drupal files table
-      db_query("UPDATE {files} SET filename='%s', filepath='%s', filemime='%s' WHERE fid=%d", $rec->fname, $newfile, $rec->mimetype, $rec->cckfid);
+      db_query("UPDATE {files} SET filename='%s', filepath='%s', filemime='%s', status=%d WHERE fid=%d", $rec->fname, $newfile, $rec->mimetype, FILE_STATUS_PERMANENT, $rec->cckfid);
 
       $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,cckfid,size,mimetype,submitter,status,date,version_ctl,extension) "
       . "VALUES (%d,'%s','%s','%s',1,%d,%d,'%s',%d,1,%d,%d,'%s')";
@@ -1362,7 +1370,7 @@ class filedepot {
 
           $nodefileObj = new stdClass();
           $nodefileObj->fid = $file->cckfid;   // file_set_status API expects an object but just needs fid
-          file_set_status($nodefileObj, 1);
+          file_set_status($nodefileObj, FILE_STATUS_PERMANENT);
           $node->field_filedepot_file[] = $nodefile;
           node_save($node);
 

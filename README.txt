@@ -105,7 +105,7 @@ How to setup to use locally hosted YUI libraries or to load from another server
     Make sure you have changed the setting under admin/settings/filedepot under Base Setup - the Base URL should be something like: http://www.sitename.com/sites/all/libraries/yui_2.7.0/build/
 
     Debugging
-    Using Firefoxm, use firebug to see if there is a javascript loading error. If the URL is not correct to load yuiloader.js, you will see a 404 error.
+    Using Firefox, use firebug to see if there is a javascript loading error. If the URL is not correct to load yuiloader.js, you will see a 404 error.
     Possible reasons are: the YUI libraries are not in the correct location, the setting for Base URL is not correct, or the files are not accessible by the webserver.
     If the files are really in the correct directory, check your web server logs and web server security setup.
     Copy a test index.html containing basic html as a test in one of the YUI library directories and enter the URL in your browser to load it.

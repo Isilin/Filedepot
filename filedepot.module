@@ -1585,16 +1585,16 @@ function template_preprocess_filedepot_main_page(&$variables) {
   }
 
   $variables['yui_base_url'] = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
-  $variables['title']                 = '';
-  $variables['initialfid']            = intval($_GET['fid']);
-  $variables['initialcid']            = intval($folderid);
-  $variables['initialop']             = '';
-  $variables['initialparm']           = '';
-  $variables['site_url']              = $base_url;
-  $variables['ajax_server_url']       = url('filedepot_ajax');
-  $variables['actionurl_dir']         = base_path() . drupal_get_path('module', 'filedepot');
+  $variables['title']                    = '';
+  $variables['initialfid']               = intval($_GET['fid']);
+  $variables['initialcid']               = intval($folderid);
+  $variables['initialop']                = '';
+  $variables['initialparm']              = '';
+  $variables['site_url']                 = $base_url;
+  $variables['ajax_server_url']          = url('filedepot_ajax');
+  $variables['actionurl_dir']            = base_path() . drupal_get_path('module', 'filedepot');
   $variables['filedepot_javascript_url'] = base_path() . drupal_get_path('module', 'filedepot') . '/js/';
-  $variables['yui_uploader_url'] = libraries_get_path('yui_uploader.swf');
+
   if (!user_is_logged_in()) {
     $variables['alert_message']       = 'You are not Logged in';
   }

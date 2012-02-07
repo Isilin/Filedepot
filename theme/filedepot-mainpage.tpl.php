@@ -105,10 +105,8 @@
 </script>
 
 
-
 <!-- filedepot module wrapper div -->
 <div id="filedepotmodule">
-
 
   <div id="filedepot">
 
@@ -117,14 +115,14 @@
       <?php if ($show_newfolder == 'true') { ?>
         <span id="filedepot_newfolder_link">
           <span class="first-child">
-            <a class="ctools-use-modal ctools-modal-filedepot-newfolder-dialog-style" href="filedepot/nojs/newfolder">New Folder</a>
+            <a class="ctools-use-modal ctools-modal-filedepot-newfolder-dialog-style" href="<?php print url('filedepot/nojs/newfolder'); ?>">New Folder</a>
           </span>
         </span>
       <?php } ?>
       <?php if ($show_upload == 'true') { ?>
         <span id="filedepot_newfile_link">
           <span class="first-child">
-            <a class="ctools-use-modal ctools-modal-filedepot-newfile-dialog-style" href="filedepot/nojs/newfile">New File</a>
+            <a class="ctools-use-modal ctools-modal-filedepot-newfile-dialog-style" href="<?php print url('filedepot/nojs/newfile'); ?>">New File</a>
           </span>
         </span>
       <?php } ?>

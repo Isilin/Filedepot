@@ -84,7 +84,7 @@ function filedepot_uninstall() {
   variable_del('filedepot_default_owner');
   variable_del('filedepot_default_perms_data');
   variable_del('filedepot_default_roles');
-  variable_del('filedepot_default_group')
+  variable_del('filedepot_default_group');
   variable_del('filedepot_extensions');
   variable_del('filedepot_extension_data');
 

@@ -3,7 +3,7 @@
 /**
  * @file
  * nexcloud.class.php
- * Tag Cloud class for the fildepot module
+ * Tag Cloud class for the filedepot module
  */
 
 class nexcloud {

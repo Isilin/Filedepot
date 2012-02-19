@@ -65,7 +65,7 @@ Install
    Save your settings and at a minium, reset to defaults and save settings.
 
 6) Access the module and run create some initial folders and upload files
-   {siteurl}/index.php?q=filedepot    (/fildepot - with clean-urls on)
+   {siteurl}/index.php?q=filedepot    (/filedepot - with clean-urls on)
 
 7) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.

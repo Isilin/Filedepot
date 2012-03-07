@@ -349,7 +349,7 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'delfolderperms':
-      $id = intval($_GET['id']);
+      $id = intval($_POST['id']);
       if ($id > 0) {
         $query = db_query("SELECT catid, permtype, permid FROM  {filedepot_access} WHERE accid=:accid", array(
           ':accid' => $id,

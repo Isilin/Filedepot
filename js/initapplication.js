@@ -217,7 +217,8 @@ var init_filedepot = function() {
       Event.preventDefault(e);
       var params = target.getAttribute('href');
       var id = parseURL(params,'accid');
-      var surl = ajax_post_handler_url + '/delfolderperms&id=' + id;
+      var surl = ajax_post_handler_url + '/delfolderperms';
+      var postdata = '&id=' + id;
       var callback = {
         success: function(o) {
           var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -238,7 +239,7 @@ var init_filedepot = function() {
         timeout:55000
       }
       updateAjaxStatus(NEXLANG_activitymsg4);
-      YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+      YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     }
   });
 

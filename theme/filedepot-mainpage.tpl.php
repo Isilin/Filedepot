@@ -67,7 +67,7 @@ All the needed style sheets should be loaded automatically by the loader.
     // Instantiate and configure Loader:
     var loader = new YAHOO.util.YUILoader({
 
-      base: YUIBaseURL + '/',
+      base: YUIBaseURL,
       // Identify the components you want to load.  Loader will automatically identify
       // any additional dependencies required for the specified components.
       require: ["container","layout","resize","connection","dragdrop","menu","button","tabview","autocomplete","treeview","element","cookie","uploader","logger","animation"],

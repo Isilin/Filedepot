@@ -2229,7 +2229,7 @@ function filedepot_newfolder_validate($form, &$form_state) {
   if (empty($form_state['values']['filedepot_foldername'])) {
     form_set_error('filedepot_foldername', t('Folder must have a valid name'));
   }
-  if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
+  if ($form_state['values']['filedepot_parentfolder'] == 0 AND !user_access('administer filedepot')) {
     form_set_error('filedepot_foldername', t('Invalid parent folder'));
   }
 }

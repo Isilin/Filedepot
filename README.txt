@@ -56,7 +56,7 @@ Install
    > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder.js
    > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui.js
 
-3) Check that your site has the Private file system path setup. Filedepot uses the private file system for it fiile repository is is required so that filedepot can
+3) Check that your site has the Private file system path setup. Filedepot uses the private file system for it file repository and is required.
 
 4) Enable the module using admin/modules
    The module will create a new content type called 'filedepot_folder'

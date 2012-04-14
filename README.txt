@@ -88,7 +88,7 @@ Organic Group Mode and OG settings
 
 YUI Javascript Libraries
     The filedepot module uses the YUI javascript (Yahoo User Interface) libraries extensively for the layout manager, dialogs, AJAX, and various other UI and application purposes.
-    The javascript libraries are by default loaded from Yahoo at: http://yui.yahooapis.com/2.7.0/build/
+    The javascript libraries are by default loaded from Yahoo at: http://yui.yahooapis.com/combo?2.7.0/build/
     This BASE URL to load the libraries from is defined in the filedepot module online admin configuration settings: admin/settings/filedepot under the Base Setup
 
     You can setup filedepot to load the YUI libraries from your own site or another server.

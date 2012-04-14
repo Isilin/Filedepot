@@ -27,7 +27,7 @@ function filedepot_admin_settings() {
   '#type' => 'textfield',
   '#title'  => t('Base URL to load YUI Javascript Libraries'),
   '#description'  => t('Valid URL to load libraries - can be a local location or hosted CDN like Yahoo and Google.<br />Site URL needs to end in a /'),
-  '#default_value'  => variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/'),
+  '#default_value'  => variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/combo?2.7.0/build/'),
   '#size' => 60
   );
 

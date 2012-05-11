@@ -461,41 +461,54 @@ function filedepot_user_access($perm) {
 
 }
 
+/**
+ * Implementation of hook_node_access().
+ */
+function filedepot_node_access($node, $op) {
 
-function filedepot_access($op, $node) {
   $filedepot = filedepot_filedepot();
   module_load_include('php', 'filedepot', 'lib-common');
-
-  $ret = FALSE;
-  if (!isset($node->nid)) {
+  $ret = NODE_ACCESS_DENY;
+  if (!isset($node->nid) OR !isset($node->type) OR $node->type != 'filedepot_folder') {
     return $ret;
   }
+
   $res = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
   array(
     ':nid' => $node->nid,
   ));
   if (!$res) {
-    return $ret;
+    return NODE_ACCESS_DENY;
   }
   $cid = $res->fetchField();
   if ($cid > 0 ) {
     switch ($op) {
       case 'view':
-        $ret = $filedepot->checkPermission($cid, 'view');
+        if ($filedepot->checkPermission($cid, 'view')) {
+          $ret = NODE_ACCESS_ALLOW;
+        }
         break;
       case 'update':
-        $ret = $filedepot->checkPermission($cid, 'admin');
+        if ($filedepot->checkPermission($cid, 'admin')) {
+          $ret = NODE_ACCESS_ALLOW;
+        }
         break;
       case 'delete':
-        $ret = $filedepot->checkPermission($cid, 'admin');
+        if ($filedepot->checkPermission($cid, 'admin')) {
+          $ret = NODE_ACCESS_ALLOW;
+        }
         break;
       case 'create':
         $parent = filedepot_getTopLevelParent($cid);
         if ($parent == 0) {
-          $ret = user_access('administer filedepot');
+          if (user_access('administer filedepot')) {
+            $ret = NODE_ACCESS_ALLOW;
+          }
         }
         else {
-          $ret = $filedepot->checkPermission($parent, 'admin');
+          if ($filedepot->checkPermission($cid, 'admin')) {
+            $ret = NODE_ACCESS_ALLOW;
+          }
         }
     }
   }

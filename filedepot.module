@@ -760,37 +760,33 @@ function filedepot_native_submit($form, &$form_state) {
             $ext = end(explode(".", $file->filename));
 
             // Create filedepot record for file and set status of file to 1 - online
-            $sql = "INSERT INTO {filedepot_files} (cid,fname,title,description,version,drupal_fid,size,mimetype,extension,submitter,status,date) "
-            . "VALUES (:cid,:fname,:title,:desc,1,:fid,:size,:mime,:ext,:uid,1,:time)";
-            db_query($sql,
-            array(
-              ':cid' => $node->folder,
-              ':fname' => $file->filename,
-              ':title' => $file->filename,
-              ':desc' => 'TODO',
-              ':fid' => $file->fid,
-              ':size' => $file->filesize,
-              ':mime' => $file->filemime,
-              ':ext' => $ext,
-              ':uid' => $user->uid,
-              ':time' => time(),
+            $query = db_insert('filedepot_files');
+            $query->fields(array('cid', 'fname', 'title', 'description', 'version', 'drupal_fid', 'size', 'mimetype', 'extension', 'submitter', 'status', 'date'));
+            $query->values(array(
+              'cid' => $node->folder,
+              'fname' => $file->filename,
+              'title' => $file->filename,
+              'description' => 'TODO',
+              'version' => 1,
+              'drupal_fid' => $file->fid,
+              'size' => $file->filesize,
+              'mimetype' => $file->filemime,
+              'extension' => $ext,
+              'submitter' => $user->uid,
+              'status' => 1,
+              'date' => time(),
             ));
+            $newfid = $query->execute();
 
-            // Get fileid for the new file record
-            $args = array(
-              ':cid' => $node->folder,
-              ':uid' => $user->uid,
-            );
-            $newfid = db_query_range("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", 0, 1, $args)->fetchField();
-
-            db_query("INSERT INTO {filedepot_fileversions} (fid,fname,version,notes,size,date,uid,status)
-            VALUES (:fid,:fname,'1','',:size,:time,:uid,1)",
+            db_query("INSERT INTO {filedepot_fileversions} (fid,fname,version,notes,size,date,uid,status,drupal_fid)
+            VALUES (:fid,:fname,'1','',:size,:time,:uid,1,:drupal_fid)",
             array(
               ':fid' => $newfid,
               ':fname' => $file->filename,
               ':size' => $file->filesize,
               ':time' => time(),
               ':uid' => $user->uid,
+              ':drupal_fid' => $file->fid,
             ));
 
             // Update related folders last_modified_date

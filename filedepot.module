@@ -1140,29 +1140,25 @@ function filedepot_file_delete($file) {
     return;
   }
 
-  $filedepot = filedepot_filedepot();
-
-  watchdog('filedepot', "Deleting file {$file->fid}");
-
-  // Additional testing for the nexcloud instance because this method is also called from filedepot_uninstall()
-  if (function_exists('filedepot_nexcloud')) {
-    $nexcloud =  filedepot_nexcloud();
-  }
-  else {
-    module_load_include('php', 'filedepot', 'nexcloud.class');
-    $nexcloud = new filedepotTagCloud();
-  }
-
   $fid = db_query("SELECT fid FROM {filedepot_files} WHERE drupal_fid=:dfid", array(':dfid' => $file->fid))->fetchField();
 
   if ($user->uid > 0 AND $fid > 0) {
+    $filedepot = filedepot_filedepot();
+
     // Check if user is the owner or has category admin rights
     $query = db_query("SELECT cid,drupal_fid,title,version,submitter,size FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid));
     list($cid, $drupal_fid, $title, $version, $submitter, $fsize) = array_values($query->fetchAssoc());
     if ($submitter == $user->uid OR $filedepot->checkPermission($cid, 'admin')) {
 
       watchdog('filedepot', "Deleting file $fid from folder $cid");
-
+      // Additional testing for the nexcloud instance because this method is also called from filedepot_uninstall()
+      if (function_exists('filedepot_nexcloud')) {
+        $nexcloud =  filedepot_nexcloud();
+      }
+      else {
+        module_load_include('php', 'filedepot', 'nexcloud.class');
+        $nexcloud = new filedepotTagCloud();
+      }
       $nexcloud->clear_tags($fid); // Clear all tags and update metrics for this item
 
       /* Remove any file versions */

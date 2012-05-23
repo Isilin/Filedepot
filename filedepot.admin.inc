@@ -146,31 +146,14 @@ function filedepot_admin_settings() {
     '#collapsed' => TRUE,
   );
 
-  $form['filetype_filter']['filedepot_filter_mode'] = array(
-    '#type' => 'radios',
-    '#title' => t('Use inclusion or exclusion mode'),
-    '#default_value' => variable_get('filedepot_filter_mode', 1),
-    '#options' => array(
-      '0' => t('Exclude'),
-      '1' => t('Include'),
-    ),
-    '#description' => t('Choose the way Filedepot will filter for allowable file types during upload.<br />Use exclude to allow all but selected extension:mimetypes. Use include if you want to define each file type to allow and all others will be rejected.'),
-  );
-
-  $default_filter  = 'jpg,doc,docx,xls,xlsx : application/octet-stream' . "\n";
-  $default_filter .= 'xls,xlsx: application/vnd.ms-excel' . "\n";
-  $default_filter .= 'doc: application/msword' . "\n";
-  $default_filter .= 'jpg: image/jpg' . "\n";
-
+  $default_filter  = 'jpg png doc docx xls xlsx pdf ppt pptx';
   $form['filetype_filter']['filedepot_filetype_filter'] = array(
     '#type' => 'textarea',
-    '#title' => t('File types to exclude/include'),
+    '#title' => t('File types to allow'),
     '#cols' => 60,
     '#rows' => 5,
-    '#prefix' => '<div style="margin-left:20px">',
-    '#suffix' => '</div>',
     '#default_value' => variable_get('filedepot_filetype_filter', $default_filter),
-    '#description' => t('Enter the file extension or list of extension comma seperated and then : followed by the allowable mime type for that extension(s). ') . '<strong>' . t('Only one entry per line.') . '</strong>',
+    '#description' => t('Separate extensions with a space or comma and do not include the leading dot.'),
     '#wysiwyg' => FALSE,
   );
 
@@ -260,18 +243,7 @@ function filedepot_admin_settings_validate($form, $form_state) {
   $filterdata = array();
   $rawfilefilter = $form_state['values']['filedepot_filetype_filter'];
   $filterlines = preg_split( '/\r\n|\r|\n/', $rawfilefilter );
-  foreach ($filterlines as $line) {
-    if (!empty($line)) {
-      $data = explode(':', $line);
-      $data[0] = trim($data[0]); // list of extensions
-
-      $data[1] = trim($data[1]); // mimetype
-
-      $extensions = explode(',', $data[0]);
-      $filterdata[$data[1]] = $extensions;
-    }
-  }
-  variable_set('filedepot_filetype_filterdata', serialize($filterdata));
+  variable_set('filedepot_filetype_filterdata', $filterlines);
 
   $extensiondata = array();
   $rawextensions = $form_state['values']['filedepot_extensions'];

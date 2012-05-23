@@ -1824,10 +1824,15 @@ function filedepot_newfile_form($form, &$form_state) {
 
   module_load_include('php', 'filedepot', 'lib-common');
 
+  $default_filter  = 'jpg png doc docx xls xlsx pdf ppt pptx';
+  $filter = variable_get('filedepot_filetype_filter', $default_filter);
   $form['filedepot_file'] = array(
     '#type' => 'managed_file',
     '#title' => t('Choose a file'),
     '#size' => 22,
+    '#upload_validators' => array(
+      'file_validate_extensions' => array($filter),
+    ),
   );
 
   $form['filedepot_filename'] = array(
@@ -1909,9 +1914,6 @@ function filedepot_newfile_validate($form, &$form_state) {
   else {
     $filedepot = filedepot_filedepot();
     $file = file_load($form_state['values']['filedepot_file']);
-    if ($filedepot->checkFilter($file->filename, $file->filemime) === FALSE) {
-      form_set_error('filedepot_file', t('File type not allowed'));
-    }
   }
   if ($form_state['values']['filedepot_parentfolder'] == 0) {
     form_set_error('filedepot_parentfolder', t('You must select a valid folder'));

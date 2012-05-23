@@ -210,38 +210,6 @@ class filedepot {
     return self::$_instance;
   }
 
-  /* Function to check if passed in file extension and mimetype are in the allowed list
-   * @param        string          $ext            File extension to test
-   * @param        string          $mimetype       Mimetype to test if allowed for extension
-   * @return       Boolean                         Returns TRUE or FALSE and depends on the filter mode setting
-   */
-  function checkFilter($filename, $mimetype) {
-    $ext = end(explode(".", $filename));
-    $filterdata = unserialize(variable_get('filedepot_filetype_filterdata', ''));
-    if (is_array($filterdata) AND !empty($filterdata)) {
-      if (array_key_exists($mimetype, $filterdata) AND is_array($filterdata[$mimetype])) {
-        if (in_array($ext, $filterdata[$mimetype])) {
-          // Match found - Mimetype and extension match defined settings
-          if (variable_get('filedepot_filter_mode', FILEDEPOT_FILTER_INCLUDEMODE) == FILEDEPOT_FILTER_INCLUDEMODE) {
-            return TRUE;
-          }
-          else {
-            watchdog('filedepot',"File upload not allowed for filename: $filename, mimetype: $mimetype");
-            RETURN FALSE;
-          }
-        }
-      }
-    }
-    // If we get here, no match found. Return depends on the filtering mode
-    if (variable_get('filedepot_filter_mode', FILEDEPOT_FILTER_EXCLUDEMODE) == FILEDEPOT_FILTER_EXCLUDEMODE) {
-      return TRUE;
-    }
-    else {
-      watchdog('filedepot',"File upload not allowed for filename: $filename, mimetype: $mimetype");
-      return FALSE;
-    }
-
-  }
 
   /* Function to check if user has a particular right or permission to a folder
    *  Checks the access table for the user and any groups they belong to

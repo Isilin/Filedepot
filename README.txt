@@ -1,6 +1,9 @@
 7.x-1.x RELEASE NOTE
  (Jan 17 2012) The current 7.x branch is under development and is still unstable but core features are working.
 
+ (May 23/2012) Implemented the native drupal file upload filter. Removed the option to allow/disallow files by their extension and MIME type.
+               Only support the allow option now and filter just checks the extension type.
+
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
  - Documents are saved to a directory under the Drupal Private file system to protect corporate documents for safe access and distribution.
@@ -58,18 +61,19 @@ Install
 
 3) Check that your site has the Private file system path setup.
    Filedepot uses the private file system for it's file repository and is required.
-   Typically the private file system is located outside of the website's public_html directory 
-   and this provides for a far more secure file repository since the files can not be 
+   Typically the private file system is located outside of the website's public_html directory
+   and this provides for a far more secure file repository since the files can not be
    accessed directly by a URL and there is no need to use other filesystem security like .htaccess.
 
 4) Enable the module using admin/modules
    The module will create a new content type called 'filedepot_folder'
 
 5) Review the module settings using admin/settings/filedepot
-   Save your settings and at a minium, reset to defaults and save settings.
+   Save your settings and at a minimum, reset to defaults and save settings.
+   Review the file type filtering and extension mapping - this sets the allowable files that can be uploaded and the icon that appears in the listing to be associated with the file type.
 
 6) Access the module and run create some initial folders and upload files
-   {siteurl}/index.php?q=filedepot    (/filedepot - with clean-urls on)
+   {siteurl}/index.php?q=filedepot    ({siteurl}/filedepot - with clean-urls on)
 
 7) Review the permissions assigned to your site roles: {siteurl}/index.php?q=admin/user/permissions
    Users will need atleast 'access filedepot' permission to access filedepot and to view/download files.

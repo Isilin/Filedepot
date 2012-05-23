@@ -276,7 +276,6 @@ function filedepot_uninstall() {
   variable_del('filedepot_pass1_recordcount');
   variable_del('filedepot_pass2_recordcount');
   variable_del('filedepot_yui_baseurl');
-  variable_del('filedepot_filter_mode');
   variable_del('filedepot_filetype_filter');
   variable_del('filedepot_filetype_filterdata');
   variable_del('filedepot_default_owner');
@@ -1282,5 +1281,16 @@ function filedepot_requirements($phase) {
   return $requirements;
 }
 
+/**
+ * Update the system variables used
+ */
+function filedepot_update_7001() {
+  // Remove the filedepot_filter_mode variable
+  variable_del('filedepot_filter_mode');
 
+  // Change the format and set the default for the allowed file type filter
+  $default_filter  = 'jpg png doc docx xls xlsx pdf ppt pptx';
+  variable_set('filedepot_filetype_filter', $default_filter);
+
+}
 

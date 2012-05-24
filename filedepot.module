@@ -440,7 +440,12 @@ function filedepot_user_access($perm) {
 
     // We found the client's session record and they are an authenticated user
     if ($user && $user->uid > 0) {
-      // This is done to unserialize the data member of $user and restore their session
+      // The user_load function was over-writing the SESSION record and allowing IE to hijack the session
+      // Issue was only seen when uploading files with FF and using IE on the same desktop
+      // Adding the session_save_session(FALSE) skips the updating of the session table
+      session_save_session(FALSE);
+
+      // Reload the user object - this is done to unserialize the data member of $user and restore their session
       $user = user_load($user->uid);
     }
   }

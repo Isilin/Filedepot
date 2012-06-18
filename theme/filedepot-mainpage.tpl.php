@@ -235,7 +235,8 @@
           <input type="hidden" name="version" value="">
           <input type="hidden" name="tagstore" value="">
           <input type="hidden" name="approved" value="">
-
+          <input type="hidden" name="ftoken" id="frmFileDetails_ftoken" value="" />
+          
           <table width="100%" style="margin:10px;">
             <tr>
               <td width="100"><label><?php print t('File Name'); ?></label></td>

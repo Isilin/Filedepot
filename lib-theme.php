@@ -202,7 +202,7 @@ function template_preprocess_filedepot_activefolder(&$variables) {
       $variables['show_breadcrumbs'] = 'block';
     }
     if ($filedepot->checkPermission($filedepot->cid, 'admin')) {
-      $variables['active_folder_admin'] = theme('filedepot_activefolder_admin');
+      $variables['active_folder_admin'] = theme('filedepot_activefolder_admin', array('token' => $variables['token']));
     }
     else {
       $variables['show_nonadmin'] = '';
@@ -513,6 +513,7 @@ function template_preprocess_filedepot_moveincoming_form(&$variables) {
   $variables['LANG_newfolder'] = t('New Folder');
   $variables['LANG_submit'] = t('Submit');
   $variables['LANG_cancel'] = t('Cancel');
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT);
 }
 
 function template_preprocess_filedepot_filedetail(&$variables) {
@@ -671,6 +672,7 @@ function template_preprocess_filedepot_fileversion(&$variables) {
 function template_preprocess_filedepot_folderperms(&$variables) {
   $filedepot = filedepot_filedepot();
   $variables['catid'] = $variables['cid'];
+  $variables['token'] = $variables['token'];
   $variables['user_options'] = filedepot_getUserOptions();
   $variables['role_options'] = filedepot_getRoleOptions();
   $variables['LANG_viewcategory'] = t('View Folder');
@@ -695,7 +697,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $user_perm_records = '';
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $user_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'user'));
+    $user_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'user', 'token' => $variables['token']));
   }
   if ($i > 0) {
     $variables['user_perm_records'] = $user_perm_records;
@@ -710,7 +712,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $role_perm_records = '';
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role'));
+    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role', 'token' => $variables['token']));
   }
   if ($i > 0) {
     $variables['role_perm_records'] = $role_perm_records;
@@ -747,7 +749,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $user_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'user'));
+    $user_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'user', 'token' => $variables['token']));
   }
   if ($i > 0) {
     $variables['user_perm_records'] = $user_perm_records;
@@ -762,7 +764,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $group_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'group'));
+    $group_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'group', 'token' => $variables['token']));
   }
   if ($i > 0) {
     $variables['group_perm_records'] = $group_perm_records;
@@ -777,7 +779,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $i = 0;
   while ($permrec = $query->fetchAssoc()) {
     $i++;
-    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role'));
+    $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role', 'token' => $variables['token']));
   }
   if ($i > 0) {
     $variables['role_perm_records'] = $role_perm_records;

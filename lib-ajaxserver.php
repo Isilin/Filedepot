@@ -68,18 +68,18 @@ function filedepotAjaxServer_getfilelisting() {
       $data['lastrenderedfiles'] = json_encode($filedepot->lastRenderedFiles);
     }
     firelogmsg("Completed generating FileListing");
-    $data['activefolder'] = theme('filedepot_activefolder');
+    $data['activefolder'] = theme('filedepot_activefolder', array('token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT)));
     $data['moreactions'] = filedepotAjaxServer_getMoreActions($filedepot->activeview);
-    $data['header'] = theme('filedepot_header');
+    $data['header'] = theme('filedepot_header', array('token' => drupal_get_token(FILEDEPOT_TOKEN_LISTING)));
 
   }
   elseif ($filedepot->cid == 0) {
     $data['retcode'] = 200;
     $data['cid'] = $filedepot->cid;
     $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
-    $data['activefolder'] = theme('filedepot_activefolder');
+    $data['activefolder'] = theme('filedepot_activefolder', array('token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT)));
     $data['moreactions'] = filedepotAjaxServer_getMoreActions($filedepot->activeview);
-    $data['header'] = theme('filedepot_header');
+    $data['header'] = theme('filedepot_header', array('token' => drupal_get_token(FILEDEPOT_TOKEN_LISTING)));
 
   }
   else {
@@ -620,6 +620,7 @@ function filedepotAjaxServer_loadFileDetails() {
   $reportmode = check_plain($_POST['reportmode']);
   $retval = array();
   $retval['editperm'] = FALSE;
+  $retval['token'] = drupal_get_token(FILEDEPOT_TOKEN_FILEDETAILS);
   $retval['deleteperm'] = FALSE;
   $retval['addperm'] = FALSE;
   $retval['lockperm'] = FALSE;

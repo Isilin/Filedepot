@@ -210,15 +210,15 @@ function filedepot_theme() {
     ),
     'filedepot_header' => array(
       'template' => 'theme/filelistingheader',
-      'variables' => array(),
+      'variables' => array('token' => NULL),
     ),
     'filedepot_activefolder' => array(
       'template' => 'theme/activefolder',
-      'variables' => array('layout_url' => base_path() . drupal_get_path('module', 'filedepot')),
+      'variables' => array('layout_url' => base_path() . drupal_get_path('module', 'filedepot'), 'token' => NULL),
     ),
     'filedepot_activefolder_admin' => array(
       'template' => 'theme/activefolder_admin',
-      'variables' => array(),
+      'variables' => array('token' => NULL),
     ),
     'filedepot_activefolder_nonadmin' => array(
       'template' => 'theme/activefolder_nonadmin',
@@ -330,12 +330,14 @@ function filedepot_theme() {
       'template' => 'theme/folderperms',
       'variables' => array(
         'cid' => NULL,
+        'token' => NULL,
       ),
     ),
     'filedepot_folderperms_ogenabled' => array(
       'template' => 'theme/folderperms_ogenabled',
       'variables' => array(
         'cid' => NULL,
+        'token' => NULL,
       ),
     ),
     'filedepot_folderperm_rec' => array(
@@ -343,6 +345,7 @@ function filedepot_theme() {
       'variables' => array(
         'permRec' => NULL,
         'mode' => NULL,
+        'token' => NULL,
       ),
     ),
     'filedepot_notifications' => array(

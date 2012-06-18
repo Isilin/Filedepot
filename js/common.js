@@ -10,7 +10,7 @@
 function closeAlert() {
   Dom.setStyle('cancelalert', 'display', 'none'); // Hide the cancel icon
   // Note: Key to this working is having the div's overflow:auto set
-  var myAnim = new YAHOO.util.Anim('filedepot_alert', { height: { to: 0 }},1, YAHOO.util.Easing.easeOut);
+  var myAnim = new YAHOO.util.Anim('filedepot_alert', {height: {to: 0}},1, YAHOO.util.Easing.easeOut);
   myAnim.animate();
   timer = setTimeout("Dom.setStyle('filedepot_alert', 'display', 'none')", 1000);
 }
@@ -20,7 +20,7 @@ function showAlert(message,autoclose) {
   Dom.setStyle('filedepot_alert', 'display', '');
   Dom.setStyle('cancelalert', 'display', ''); // Show the cancel icon
   if (autoclose == undefined) {
-    var myAnim = new YAHOO.util.Anim('filedepot_alert', { height: { to: 30 }},1, YAHOO.util.Easing.easeOut);
+    var myAnim = new YAHOO.util.Anim('filedepot_alert', {height: {to: 30}},1, YAHOO.util.Easing.easeOut);
     myAnim.animate();
   }
 }
@@ -351,6 +351,8 @@ function checkMultiAction(selectoption) {
     }
     if (confirm(msg)) {
       var surl = ajax_post_handler_url + '/deletecheckedfiles';
+      var ltoken = document.getElementById("flistingltoken").value;
+      var postdata = '&ltoken=' + ltoken;
       var callback = {
         success : function(o) {
           var json = o.responseText.substring(o.responseText
@@ -400,7 +402,7 @@ function checkMultiAction(selectoption) {
       updateAjaxStatus(NEXLANG_activity);
       var formObject = document.frmtoolbar;
       YAHOO.util.Connect.setForm(formObject);
-      YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+      YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
       return false;
 
     } else {
@@ -438,6 +440,8 @@ function checkMultiAction(selectoption) {
 
   } else if (selectoption == 'markfavorite') {
     var surl = ajax_post_handler_url + '/markfavorite';
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -462,11 +466,13 @@ function checkMultiAction(selectoption) {
     updateAjaxStatus(NEXLANG_activity);
     var formObject = document.frmtoolbar;
     YAHOO.util.Connect.setForm(formObject);
-    YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+    YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
   } else if (selectoption == 'clearfavorite') {
     var surl = ajax_post_handler_url + '/clearfavorite';
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -491,11 +497,13 @@ function checkMultiAction(selectoption) {
     updateAjaxStatus(NEXLANG_activity);
     var formObject = document.frmtoolbar;
     YAHOO.util.Connect.setForm(formObject);
-    YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+    YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
   } else if (selectoption == 'approvesubmissions') {
     var surl = ajax_post_handler_url + '/approvesubmissions';
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -520,11 +528,14 @@ function checkMultiAction(selectoption) {
     updateAjaxStatus(NEXLANG_activity);
     var formObject = document.frmtoolbar;
     YAHOO.util.Connect.setForm(formObject);
-    YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+    YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
   } else if (selectoption == 'deletesubmissions') {
     var surl = ajax_post_handler_url + '/deletesubmissions';
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken;
+    
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -550,11 +561,13 @@ function checkMultiAction(selectoption) {
     updateAjaxStatus(NEXLANG_activity);
     var formObject = document.frmtoolbar;
     YAHOO.util.Connect.setForm(formObject);
-    YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+    YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
   } else if (selectoption == 'subscribe') {
     var surl = ajax_post_handler_url + '/multisubscribe';
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -579,7 +592,7 @@ function checkMultiAction(selectoption) {
     updateAjaxStatus(NEXLANG_activity);
     var formObject = document.frmtoolbar;
     YAHOO.util.Connect.setForm(formObject);
-    YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+    YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
   } else {
@@ -600,11 +613,13 @@ function postSubmitMultiactionResetIfNeed(selectoption) {
 
 function moveSelectedFiles() {
   var newcid = document.frmBatchMove.movebatchfiles.value;
+  var ltoken = document.getElementById("flistingltoken").value;
   document.frmtoolbar.newcid.value = newcid;
   // Since I am resetting the selectbox in checkMultiAction(), I need to now set it to the 'move' option
   Dom.get('multiaction').selectedIndex=2;
   YAHOO.container.batchfilemovedialog.hide();
   var surl = ajax_post_handler_url + '/movecheckedfiles';
+  var postdata = '&ltoken=' + ltoken;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -637,7 +652,7 @@ function moveSelectedFiles() {
   updateAjaxStatus(NEXLANG_activity);
   var formObject = document.frmtoolbar;
   YAHOO.util.Connect.setForm(formObject);
-  YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+  YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
 }
 
 
@@ -694,7 +709,8 @@ var makeAJAXLoadFileDetails = function(id) {
       var oResults = eval('(' + json + ')');
       if (oResults.error.length == 0) {
         Dom.get('displayfiledetails').innerHTML = oResults.displayhtml;
-
+        document.getElementById("frmFileDetails_ftoken").value = oResults.token;
+        
         if (!oResults.downloadperm) {
           YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", true);
           YAHOO.util.Event.removeListener("menubar_downloadlink", "click");
@@ -788,6 +804,9 @@ var makeAJAXLoadFileDetails = function(id) {
           document.frmFileDetails.approved.value = 1;
           Event.removeListener("approvefiledetailslink", "click");
         }
+        
+
+        
         document.frmBroadcast.fid.value = oResults.fid;
         document.frmBroadcast.message.value = '';
         document.frmFileDetails.id.value = oResults.fid;
@@ -1016,8 +1035,9 @@ function deleteFileSuccessConfirmAction() {
 function makeAJAXDeleteFile(fid) {
   var listingcid = document.frmtoolbar.cid.value;
   var reportmode = document.frmtoolbar.reportmode.value;
+  var ftoken = document.getElementById("frmFileDetails_ftoken").value;
   var surl = ajax_post_handler_url + '/deletefile';
-  var postdata = '&fid=' + fid + '&listingcid=' + listingcid + '&reportmode=' + reportmode;
+  var postdata = '&fid=' + fid + '&listingcid=' + listingcid + '&reportmode=' + reportmode + '&ftoken=' + ftoken;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1069,7 +1089,8 @@ function adminToggleFilelock() {
     ajaxactive = true;
     var fid = document.frmFileDetails.id.value;
     var surl = ajax_post_handler_url + '/togglelock';
-    var postdata = '&fid=' + fid;
+    var ftoken = document.getElementById("frmFileDetails_ftoken").value;
+    var postdata = '&fid=' + fid + '&ftoken=' + ftoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1108,7 +1129,8 @@ function adminToggleFilelock() {
 function adminApproveSubmission () {
   var id = document.frmFileDetails.id.value;
   var surl = ajax_post_handler_url + '/approvefile';
-  var postdata = '&id=' + id;
+  var ltoken = document.getElementById("flistingltoken").value;
+  var postdata = '&ltoken=' + ltoken + '&id=' + id;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1141,7 +1163,8 @@ function adminToggleNotification() {
     ajaxactive = true;
     var fid = document.frmFileDetails.id.value;
     var surl = ajax_post_handler_url + '/togglesubscribe';
-    var postdata = '&fid=' + fid;
+    var ftoken = document.getElementById("frmFileDetails_ftoken").value;
+    var postdata = '&fid=' + fid + '&ftoken=' + ftoken;
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1184,7 +1207,8 @@ function adminToggleNotification() {
 
 function makeAJAXToggleFavorite(id) {
   var surl = ajax_post_handler_url + '/togglefavorite';
-  var postdata = '&id=' + id;
+  var ltoken = document.getElementById("flistingltoken").value;
+  var postdata = '&id=' + id + '&ltoken=' + ltoken;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1271,8 +1295,10 @@ function makeAJAXGetFolderListing(cid) {
 
 function makeAJAXSetFolderOrder(cid,direction) {
   var listingcid = document.frmtoolbar.cid.value;
+  var ltoken = document.getElementById("flistingltoken").value;
+  
   var surl = ajax_post_handler_url + '/setfolderorder';
-  var postdata = '&direction=' + direction + '&cid=' + cid + '&listingcid=' + listingcid;
+  var postdata = '&direction=' + direction + '&cid=' + cid + '&listingcid=' + listingcid + '&ltoken=' + ltoken;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1349,7 +1375,8 @@ function makeAJAXSearchTags(searchtags,removetag) {
 
 function makeAJAXDeleteIncomingFile(id) {
   var surl = ajax_post_handler_url + '/deleteincomingfile'
-  var postdata = '&id=' + id;
+  var token = document.getElementById("flistingltoken").value;
+  var postdata = '&id=' + id + '&token='+token;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1408,7 +1435,7 @@ function moveIncomingFile() {
 
   var surl = ajax_post_handler_url + '/moveincomingfile';
   var formObject = document.getElementById('frmIncomingFileMove');
-
+  
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1480,6 +1507,8 @@ function makeAJAXSearch(form) {
 function makeAJAXBroadcastNotification () {
   timeDiff.setStartTime();    // Reset Timer
   var surl = ajax_post_handler_url + '/broadcastalert';
+  var ftoken = document.getElementById("frmFileDetails_ftoken").value;
+  var postdata = '&ftoken=' + ftoken;
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1511,7 +1540,7 @@ function makeAJAXBroadcastNotification () {
   updateAjaxStatus(NEXLANG_activity);
   var formObject = document.frmBroadcast;
   YAHOO.util.Connect.setForm(formObject);
-  YAHOO.util.Connect.asyncRequest('POST', surl, callback);
+  YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
 
 }
 
@@ -1530,8 +1559,10 @@ function onCategorySelect(elm) {
 
 
 function doAJAXEditVersionNote(fobj) {
+  
+  var ftoken = document.getElementById("frmFileDetails_ftoken").value;
   var surl = ajax_post_handler_url + '/updatenote';
-  var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value;
+  var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value + '&ftoken=' + ftoken;
   var callback = {
     success:  function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1558,8 +1589,9 @@ function doAJAXEditVersionNote(fobj) {
 
 function doAJAXDeleteVersion(fid,version) {
 
+  var ftoken = document.getElementById("frmFileDetails_ftoken").value;
   var surl = ajax_post_handler_url + '/deleteversion';
-  var postdata = '&fid=' + fid + '&version=' + version + '&reportmode=' + document.frmtoolbar.reportmode.value;
+  var postdata = '&fid=' + fid + '&version=' + version + '&reportmode=' + document.frmtoolbar.reportmode.value + '&ftoken=' + ftoken;
   var callback = {
     success:  function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);

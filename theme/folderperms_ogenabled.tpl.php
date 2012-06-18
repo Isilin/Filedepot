@@ -66,7 +66,8 @@
       <div style="text-align:center;">
             <input type="button" name="submit" class="form-submit" value="<?php print t('Submit'); ?>" onclick="makeAJAXUpdateFolderPerms(this.form);">
             <span style="padding-left:10px;"><input id="folderperms_cancel" type="button" class="form-submit" value="<?php print t('Close'); ?> "></span>
-            <input type="hidden" name="catid" value="<?php print $catid ?>"></td>
+            <input type="hidden" name="catid" value="<?php print $catid ?>">
+            <input type="hidden" id="folderpermstoken" name="token" value="<?php print $token ?>"></td>
       </div>
   </div>
 </div>

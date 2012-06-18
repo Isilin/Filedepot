@@ -77,5 +77,6 @@
       </table>
     </div>
     <div class="clearboth" style="padding-bottom:10px;"></div>
+    <input type="hidden" name="token" value="<?php print $token ?>" />
   </form>
 </div>

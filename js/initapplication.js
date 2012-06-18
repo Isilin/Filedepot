@@ -216,9 +216,10 @@ var init_filedepot = function() {
     if(tagname === 'A' && Dom.hasClass(target,'deleteperm')) {
       Event.preventDefault(e);
       var params = target.getAttribute('href');
-      var id = parseURL(params,'accid');
+      var id = parseURL(params,'accid'); // The data is passed as: "id:tokenvalue"
+      var token = document.getElementById("folderpermstoken").value;
       var surl = ajax_post_handler_url + '/delfolderperms';
-      var postdata = '&id=' + id;
+      var postdata = '&id=' + id + '&token=' + token;
       var callback = {
         success: function(o) {
           var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);

@@ -6,6 +6,12 @@
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
 
+// Definitions of allowed token values
+define('FILEDEPOT_TOKEN_FOLDERPERMS', 'filedepot_token_folderperms');
+define('FILEDEPOT_TOKEN_FOLDERMGMT', 'filedepot_token_foldermgmt');
+define('FILEDEPOT_TOKEN_FILEDETAILS', 'filedepot_token_filedetails');
+define('FILEDEPOT_TOKEN_LISTING', 'filedepot_token_listing');
+
 function filedepot_dispatcher($action) {
   global $user;
 
@@ -19,9 +25,9 @@ function filedepot_dispatcher($action) {
     timer_start('filedepot_timer');
   }
   firelogmsg("AJAX Server code executing - action: $action");
-
+    
   switch ($action) {
-
+        
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
       if ($cid > 0) {
@@ -143,110 +149,131 @@ function filedepot_dispatcher($action) {
     case 'deletefolder':
       $data = array();
       $cid = intval($_POST['cid']);
-      $query = db_query("SELECT cid,pid,nid FROM {filedepot_categories} WHERE cid=:cid",
-      array(':cid' => $cid));
-      $A = $query->fetchAssoc();
-      if ($cid > 0 AND $A['cid'] = $cid) {
-        if ($filedepot->checkPermission($cid, 'admin')) {
-          node_delete($A['nid']);
-          $filedepot->cid = $A['pid'];
-          // Set the new active directory to the parent folder
-          $data['retcode'] = 200;
-          $data['activefolder'] = theme('filedepot_activefolder');
-          $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
-          $data = filedepotAjaxServer_generateLeftSideNavigation($data);
-        }
-        else {
-          $data['retcode'] = 403; // Forbidden
-        }
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
+        $data['retcode'] = 403; // Forbidden        
       }
       else {
-        $data['retcode'] = 404; // Not Found
+        $query = db_query("SELECT cid,pid,nid FROM {filedepot_categories} WHERE cid=:cid",
+        array(':cid' => $cid));
+        $A = $query->fetchAssoc();
+        if ($cid > 0 AND $A['cid'] = $cid) {
+          if ($filedepot->checkPermission($cid, 'admin')) {
+            node_delete($A['nid']);
+            $filedepot->cid = $A['pid'];
+            // Set the new active directory to the parent folder
+            $data['retcode'] = 200;
+            $data['activefolder'] = theme('filedepot_activefolder');
+            $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
+            $data = filedepotAjaxServer_generateLeftSideNavigation($data);
+          }
+          else {
+            $data['retcode'] = 403; // Forbidden
+          }
+        }
+        else {
+          $data['retcode'] = 404; // Not Found
+        }
       }
       break;
 
     case 'updatefolder':
-      $data = filedepotAjaxServer_updateFolder();
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
+        $data['retcode'] = 403; // Forbidden        
+      }
+      else {
+        $data = filedepotAjaxServer_updateFolder();
+      }
       break;
 
     case 'setfolderorder':
       $cid = intval($_POST['cid']);
       $filedepot->cid = intval($_POST['listingcid']);
-      if ($filedepot->checkPermission($cid, 'admin')) {
-        // Check and see if any subfolders don't yet have a order value - if so correct
-        $maxorder = 0;
-        $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
-        array(':cid' => $cid))->fetchField();
-        $maxquery = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ORDER BY folderorder ASC", 0, 1,
-        array(':pid' => $pid))->fetchField();
-        $next_folderorder = $maxorder + 10;
-        $query = db_query("SELECT cid FROM {filedepot_categories} WHERE pid=:pid AND folderorder = 0",
-        array(':pid' => $pid));
-        while ($B = $query->fetchAssoc()) {
-          db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid",
-          array(
-            ':folderorder' => $next_folderorder,
-            ':cid' => $B['cid'],
-          ));
-          $next_folderorder += 10;
-        }
-        $itemquery = db_query("SELECT * FROM {filedepot_categories} WHERE cid=:cid", array(
-          ':cid' => $cid,
-        ));
-        $retval = 0;
-        while ($A = $itemquery->fetchAssoc()) {
-          if ($_POST['direction'] == 'down') {
-            $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
-            $sql .= "AND folderorder > :folderorder ORDER BY folderorder ASC LIMIT 1";
-            $nextorder = db_query($sql, array(':pid' => $A['pid'], ':folderorder' => $A['folderorder']))->fetchField();
-            if ($nextorder > $A['folderorder']) {
-              $folderorder = $nextorder + 5;
-            }
-            else {
-              $folderorder = $A['folderorder'];
-            }
-            db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
-              ':folderorder' => $folderorder,
-              ':cid' => $cid,
-            ));
-          }
-          elseif ($_POST['direction'] == 'up') {
-            $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
-            $sql .= "AND folderorder < :folderorder ORDER BY folderorder DESC LIMIT 1";
-            $nextorder = db_query($sql, array(
-              ':pid' => $A['pid'],
-              ':folderorder' => $A['folderorder'],
-            ))->fetchField();
-            $folderorder = $nextorder - 5;
-            if ($folderorder <= 0) {
-              $folderorder = 0;
-            }
-            db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
-              ':folderorder' => $folderorder,
-              ':cid' => $cid,
-            ));
-          }
-        }
-
-        /* Re-order any folders that may have just been moved */
-        $query = db_query("SELECT cid,folderorder from {filedepot_categories} WHERE pid=:pid ORDER BY folderorder",
-        array(':pid' => $pid));
-        $folderorder = 10;
-        $stepnumber = 10;
-        while ($A = $query->fetchAssoc()) {
-          if ($folderorder != $A['folderOrder']) {
-            db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
-              ':folderorder' => $folderorder,
-              ':cid' => $A['cid'],
-            ));
-          }
-          $folderorder += $stepnumber;
-        }
-        $data['retcode'] = 200;
-        $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
-      }
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+        $data['retcode'] = 403; // Forbidden        
+      } 
       else {
-        $data['retcode'] = 400;
+        if ($filedepot->checkPermission($cid, 'admin')) {
+          // Check and see if any subfolders don't yet have a order value - if so correct
+          $maxorder = 0;
+          $pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
+          array(':cid' => $cid))->fetchField();
+          $maxquery = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ORDER BY folderorder ASC", 0, 1,
+          array(':pid' => $pid))->fetchField();
+          $next_folderorder = $maxorder + 10;
+          $query = db_query("SELECT cid FROM {filedepot_categories} WHERE pid=:pid AND folderorder = 0",
+          array(':pid' => $pid));
+          while ($B = $query->fetchAssoc()) {
+            db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid",
+            array(
+              ':folderorder' => $next_folderorder,
+              ':cid' => $B['cid'],
+            ));
+            $next_folderorder += 10;
+          }
+          $itemquery = db_query("SELECT * FROM {filedepot_categories} WHERE cid=:cid", array(
+            ':cid' => $cid,
+          ));
+          $retval = 0;
+          while ($A = $itemquery->fetchAssoc()) {
+            if ($_POST['direction'] == 'down') {
+              $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
+              $sql .= "AND folderorder > :folderorder ORDER BY folderorder ASC LIMIT 1";
+              $nextorder = db_query($sql, array(':pid' => $A['pid'], ':folderorder' => $A['folderorder']))->fetchField();
+              if ($nextorder > $A['folderorder']) {
+                $folderorder = $nextorder + 5;
+              }
+              else {
+                $folderorder = $A['folderorder'];
+              }
+              db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
+                ':folderorder' => $folderorder,
+                ':cid' => $cid,
+              ));
+            }
+            elseif ($_POST['direction'] == 'up') {
+              $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
+              $sql .= "AND folderorder < :folderorder ORDER BY folderorder DESC LIMIT 1";
+              $nextorder = db_query($sql, array(
+                ':pid' => $A['pid'],
+                ':folderorder' => $A['folderorder'],
+              ))->fetchField();
+              $folderorder = $nextorder - 5;
+              if ($folderorder <= 0) {
+                $folderorder = 0;
+              }
+              db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
+                ':folderorder' => $folderorder,
+                ':cid' => $cid,
+              ));
+            }
+          }
+
+          /* Re-order any folders that may have just been moved */
+          $query = db_query("SELECT cid,folderorder from {filedepot_categories} WHERE pid=:pid ORDER BY folderorder",
+          array(':pid' => $pid));
+          $folderorder = 10;
+          $stepnumber = 10;
+          while ($A = $query->fetchAssoc()) {
+            if ($folderorder != $A['folderOrder']) {
+              db_query("UPDATE {filedepot_categories} SET folderorder=:folderorder WHERE cid=:cid", array(
+                ':folderorder' => $folderorder,
+                ':cid' => $A['cid'],
+              ));
+            }
+            $folderorder += $stepnumber;
+          }
+          $data['retcode'] = 200;
+          $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
+        }
+        else {
+          $data['retcode'] = 400;
+        }
       }
       break;
 
@@ -316,7 +343,12 @@ function filedepot_dispatcher($action) {
       $version = intval($_POST['version']);
       $note = check_plain($_POST['note']);
       $reportmode = check_plain($_POST['reportmode']);
-      if ($fid > 0) {
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+        $data['retcode'] = 403; // forbidden
+      }
+      elseif ($fid > 0) {
         db_query("UPDATE {filedepot_fileversions} SET notes=:notes WHERE fid=:fid and version=:version",
         array(
           ':notes' => $note,
@@ -336,10 +368,10 @@ function filedepot_dispatcher($action) {
       $cid = intval($_POST['cid']);
       if ($cid > 0) {
         if ($filedepot->ogenabled) {
-          $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $cid));
+          $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $cid, 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
         }
         else {
-          $data['html'] = theme('filedepot_folderperms', array('cid' => $cid));
+          $data['html'] = theme('filedepot_folderperms', array('cid' => $cid, 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
         }
         $data['retcode'] = 200;
       }
@@ -350,7 +382,12 @@ function filedepot_dispatcher($action) {
 
     case 'delfolderperms':
       $id = intval($_POST['id']);
-      if ($id > 0) {
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERPERMS))) {
+        $data['retcode'] = 403; // forbidden
+      }
+      elseif ($id > 0) {
         $query = db_query("SELECT catid, permtype, permid FROM  {filedepot_access} WHERE accid=:accid", array(
           ':accid' => $id,
         ));
@@ -366,10 +403,10 @@ function filedepot_dispatcher($action) {
           // For this folder - I need to update the access metrics now that a permission has been removed
           $nexcloud->update_accessmetrics($A['catid']);
           if ($filedepot->ogenabled) {
-            $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $A['catid']));
+            $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $A['catid'], 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
           }
           else {
-            $data['html'] = theme('filedepot_folderperms', array('cid' => $A['catid']));
+            $data['html'] = theme('filedepot_folderperms', array('cid' => $A['catid'], 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
           }
           $data['retcode'] = 200;
         }
@@ -384,8 +421,13 @@ function filedepot_dispatcher($action) {
 
     case 'addfolderperm':
       $cid = intval($_POST['catid']);
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
+      
       if (!isset($_POST['cb_access'])) {
         $data['retcode'] = 204; // No permission options selected - return 'No content' statuscode
+      }
+      elseif (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERPERMS))) {
+        $data['retcode'] = 403; // forbidden
       }
       elseif ($filedepot->updatePerms(
         $cid,                          // Category ID
@@ -411,10 +453,10 @@ function filedepot_dispatcher($action) {
               }
             }
           }
-          $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $cid));
+          $data['html'] = theme('filedepot_folderperms_ogenabled', array('cid' => $cid, 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
         }
         else {
-          $data['html'] = theme('filedepot_folderperms', array('cid' => $cid));
+          $data['html'] = theme('filedepot_folderperms', array('cid' => $cid, 'token' => drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS)));
         }
         $data['retcode'] = 200;
       }
@@ -435,7 +477,13 @@ function filedepot_dispatcher($action) {
       $data = array();
       $data['tagerror'] = '';
       $data['errmsg'] = '';
-      if ($_POST['cid'] == 'incoming' AND $fid > 0) {
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+        $data['retcode'] = 403; // forbidden
+        $data['errmsg'] = t('Invalid request');
+      }
+      elseif ($_POST['cid'] == 'incoming' AND $fid > 0) {
         $filemoved = FALSE;
         $sql = "UPDATE {filedepot_import_queue} SET orig_filename=:filename, description=:description,";
         $sql .= "version_note=:notes WHERE id=:fid";
@@ -542,7 +590,12 @@ function filedepot_dispatcher($action) {
 
     case 'deletefile':
       $fid = intval($_POST['fid']);
-      if ($user->uid > 0 AND $fid > 0) {
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+        $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 AND $fid > 0) {
         $data = filedepotAjaxServer_deleteFile($fid);
       }
       else {
@@ -551,7 +604,12 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'deletecheckedfiles':
-      if ($user->uid > 0) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0) {
         $data = filedepotAjaxServer_deleteCheckedFiles();
       }
       else {
@@ -563,7 +621,12 @@ function filedepot_dispatcher($action) {
       $fid = intval($_POST['fid']);
       $version = intval($_POST['version']);
       $reportmode = check_plain($_POST['reportmode']);
-      if ($fid > 0 AND $version > 0) {
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+        $data['retcode'] = 403; // forbidden
+      }
+      elseif ($fid > 0 AND $version > 0) {
         if ($filedepot->deleteVersion($fid, $version)) {
           $data['retcode'] = 200;
           $data['fid'] = $fid;
@@ -580,7 +643,12 @@ function filedepot_dispatcher($action) {
 
     case 'togglefavorite':
       $id = intval($_POST['id']);
-      if ($user->uid > 0 AND $id >= 1) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+       
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+        $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 AND $id >= 1) {
         if (db_query("SELECT count(fid) FROM {filedepot_favorites} WHERE uid=:uid AND fid=:fid", array(
           ':uid' => $user->uid,
           ':fid' => $id,
@@ -606,7 +674,13 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'markfavorite':
-      if ($user->uid > 0 ) {
+      
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 ) {
         $cid = intval($_POST['cid']);
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
@@ -631,7 +705,12 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'clearfavorite':
-      if ($user->uid > 0 ) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 ) {
         $cid = intval($_POST['cid']);
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
@@ -656,39 +735,51 @@ function filedepot_dispatcher($action) {
 
     case 'togglelock':
       $fid = intval($_POST['fid']);
-      $data['error'] = '';
-      $data['fid'] = $fid;
-      $query = db_query("SELECT status FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid));
-      if ($query) {
-        list($status) = array_values($query->fetchAssoc());
-        if ($status == 1) {
-          db_query("UPDATE {filedepot_files} SET status='2', status_changedby_uid=:uid WHERE fid=:fid", array(
-            ':uid' => $user->uid,
-            ':fid' => $fid,
-          ));
-          $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array(
-            ':uid' => $user->uid,
-          ))->fetchField();
-          $data['message'] = 'File Locked successfully';
-          $data['locked_message'] = '* ' . t('Locked by %name', array('%name' => $stat_user));
-          $data['locked'] = TRUE;
-        }
-        else {
-          db_query("UPDATE {filedepot_files} SET status='1', status_changedby_uid=:uid WHERE fid=:fid", array(
-            ':uid' => $user->uid,
-            ':fid' => $fid,
-          ));
-          $data['message'] = 'File Un-Locked successfully';
-          $data['locked'] = FALSE;
-        }
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+       $data['error'] = t('Error locking file');
       }
       else {
-        $data['error'] = t('Error locking file');
+        $data['error'] = '';
+        $data['fid'] = $fid;
+        $query = db_query("SELECT status FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid));
+        if ($query) {
+          list($status) = array_values($query->fetchAssoc());
+          if ($status == 1) {
+            db_query("UPDATE {filedepot_files} SET status='2', status_changedby_uid=:uid WHERE fid=:fid", array(
+              ':uid' => $user->uid,
+              ':fid' => $fid,
+            ));
+            $stat_user = db_query("SELECT name FROM {users} WHERE uid=:uid", array(
+              ':uid' => $user->uid,
+            ))->fetchField();
+            $data['message'] = 'File Locked successfully';
+            $data['locked_message'] = '* ' . t('Locked by %name', array('%name' => $stat_user));
+            $data['locked'] = TRUE;
+          }
+          else {
+            db_query("UPDATE {filedepot_files} SET status='1', status_changedby_uid=:uid WHERE fid=:fid", array(
+              ':uid' => $user->uid,
+              ':fid' => $fid,
+            ));
+            $data['message'] = 'File Un-Locked successfully';
+            $data['locked'] = FALSE;
+          }
+        }
+        else {
+          $data['error'] = t('Error locking file');
+        }
       }
       break;
 
     case 'movecheckedfiles':
-      if ($user->uid > 0) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0) {
         $data = filedepotAjaxServer_moveCheckedFiles();
       }
       else {
@@ -708,28 +799,35 @@ function filedepot_dispatcher($action) {
     case 'togglesubscribe':
       $fid = intval($_POST['fid']);
       $cid = intval($_POST['cid']);
-
-      $data['error'] = '';
-      $data['fid'] = $fid;
-      $ret = filedepotAjaxServer_updateFileSubscription($fid, 'toggle');
-      if ($ret['retcode'] === TRUE) {
-        $data['retcode'] = 200;
-        if ($ret['subscribed'] === TRUE) {
-          $data['subscribed'] = TRUE;
-          $data['message'] = 'You will be notified of any new versions of this file';
-          $data['notifyicon'] = "{$_CONF['site_url']}/filedepot3/images/email-green.gif";
-          $data['notifymsg'] = 'Notification Enabled - Click to change';
-        }
-        elseif ($ret['subscribed'] === FALSE) {
-          $data['subscribed'] = FALSE;
-          $data['message'] = 'You will not be notified of any new versions of this file';
-          $data['notifyicon'] = "{$_CONF['site_url']}/filedepot3/images/email-regular.gif";
-          $data['notifymsg'] = 'Notification Disabled - Click to change';
-        }
+      
+      $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+       $data['error'] = t('Error subscribing');
       }
       else {
-        $data['error'] = t('Error accessing file record');
-        $data['retcode'] = 404;
+        $data['error'] = '';
+        $data['fid'] = $fid;
+        $ret = filedepotAjaxServer_updateFileSubscription($fid, 'toggle');
+        if ($ret['retcode'] === TRUE) {
+          $data['retcode'] = 200;
+          if ($ret['subscribed'] === TRUE) {
+            $data['subscribed'] = TRUE;
+            $data['message'] = 'You will be notified of any new versions of this file';
+            $data['notifyicon'] = "{$_CONF['site_url']}/filedepot3/images/email-green.gif";
+            $data['notifymsg'] = 'Notification Enabled - Click to change';
+          }
+          elseif ($ret['subscribed'] === FALSE) {
+            $data['subscribed'] = FALSE;
+            $data['message'] = 'You will not be notified of any new versions of this file';
+            $data['notifyicon'] = "{$_CONF['site_url']}/filedepot3/images/email-regular.gif";
+            $data['notifymsg'] = 'Notification Disabled - Click to change';
+          }
+        }
+        else {
+          $data['error'] = t('Error accessing file record');
+          $data['retcode'] = 404;
+        }
       }
       break;
 
@@ -776,7 +874,13 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'multisubscribe':
-      if ($user->uid > 0 ) {
+      
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 ) {
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
         $filedepot->cid = intval($_POST['cid']);
@@ -904,7 +1008,12 @@ function filedepot_dispatcher($action) {
 
     case 'approvefile':
       $id = intval($_POST['id']);
-      if ($user->uid > 0 AND $filedepot->approveFileSubmission($id)) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 AND $filedepot->approveFileSubmission($id)) {
         $filedepot->cid = 0;
         $filedepot->activeview = 'approvals';
         $data = filedepotAjaxServer_getfilelisting();
@@ -917,7 +1026,12 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'approvesubmissions':
-      if ($user->uid > 0 ) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 ) {
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
         $files = explode(',', $fileitems);
@@ -947,7 +1061,12 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'deletesubmissions':
-      if ($user->uid > 0 ) {
+      $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($user->uid > 0 ) {
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
         $files = explode(',', $fileitems);
@@ -979,32 +1098,45 @@ function filedepot_dispatcher($action) {
     case 'deleteincomingfile':
       $id = intval($_POST['id']);
       $message = '';
-      $fid = db_query("SELECT drupal_fid FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id))->fetchField();
-      if ($fid > 0) {
-        $filepath = db_query("SELECT filepath FROM {files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
-        if (!empty($filepath) AND file_exists($filepath)) {
-          @unlink($filepath);
+      
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      else
+      {
+        $fid = db_query("SELECT drupal_fid FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id))->fetchField();
+        if ($fid > 0) {
+          $filepath = db_query("SELECT filepath FROM {files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
+          if (!empty($filepath) AND file_exists($filepath)) {
+            @unlink($filepath);
+          }
+          db_query("DELETE FROM {files} WHERE fid=:fid", array(':fid' => $fid));
+          db_query("DELETE FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id));
+          $data['retcode'] = 200;
+          $filedepot->activeview = 'incoming';
+          $data = filedepotAjaxServer_generateLeftSideNavigation($data);
+          $data['displayhtml'] = filedepot_displayFolderListing();
         }
-        db_query("DELETE FROM {files} WHERE fid=:fid", array(':fid' => $fid));
-        db_query("DELETE FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id));
-        $data['retcode'] = 200;
-        $filedepot->activeview = 'incoming';
-        $data = filedepotAjaxServer_generateLeftSideNavigation($data);
-        $data['displayhtml'] = filedepot_displayFolderListing();
-      }
-      else {
-        $data['retcode'] = 500;
-      }
+        else {
+          $data['retcode'] = 500;
+        }
 
-      $retval = json_encode($data);
+        $retval = json_encode($data);
+      }
       break;
 
-    case 'moveincomingfile':
+    case 'moveincomingfile': //FILEDEPOT_TOKEN_FOLDERMGMT
       $newcid = intval($_POST['newcid']);
       $id = intval($_POST['id']);
       $filedepot->activeview = 'incoming';
       $data = array();
-      if ($newcid > 0 AND $id > 0 AND $filedepot->moveIncomingFile($id, $newcid)) {
+      
+      if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
+       $data['retcode'] = 403; // forbidden
+      }
+      elseif ($newcid > 0 AND $id > 0 AND $filedepot->moveIncomingFile($id, $newcid)) {
         // Send out email notifications of new file added to all users subscribed  -  Get fileid for the new file record
         $fid = db_query("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC",
           array(
@@ -1028,8 +1160,14 @@ function filedepot_dispatcher($action) {
       }
       else {
         $fid = intval($_POST['fid']);
+        
         $message = check_plain($_POST['message']);
-        if (!empty($message) AND $fid > 0) {
+        $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
+      
+        if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
+          $data['retcode'] = 403;
+        }
+        elseif (!empty($message) AND $fid > 0) {
           $data = filedepotAjaxServer_broadcastAlert($fid, $message);
         }
         else {

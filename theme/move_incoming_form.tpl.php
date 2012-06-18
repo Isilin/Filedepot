@@ -23,4 +23,5 @@
                                 </td>
                             </tr>
                         </table>
+                        <input type="hidden" name="token" value="<?php print $token ?>" />
                      </form>

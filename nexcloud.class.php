@@ -350,7 +350,7 @@ class nexcloud {
               $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
               $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
               if (db_query($sql)->fetchField() == 0) {
-                db_query("DELETE FROM {nextag_words} WHERE id=", $A['id']);
+                db_query("DELETE FROM {nextag_words} WHERE id = :id", array(':id' => $A['id']));
               }
             }
 

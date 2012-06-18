@@ -30,7 +30,8 @@ function template_preprocess_filedepot_header(&$variables) {
   $variables['LANG_submitted'] = t('Submitted');
   $variables['LANG_owner'] = t('Owner');
   $variables['rightpadding'] = '35';  // Need to tweek the right most padding of the far right heading column for the approvals report view.
-
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_LISTING);
+  
   if ($filedepot->activeview == 'incoming') {
     $variables['show_incomingheader'] = '';
     $variables['show_mainheader'] = 'none';
@@ -101,7 +102,8 @@ function template_preprocess_filedepot_activefolder_admin(&$variables) {
   $variables['LANG_foldercount'] = t('Folder Count');
   $variables['LANG_filecount'] = t('File Count');
   $variables['LANG_totalsize'] = t('Total Size');
-
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT);
+  
   // Folder Stats
   $list = array();
   array_push($list, $filedepot->cid);
@@ -430,6 +432,7 @@ function template_preprocess_filedepot_newfolderdialog(&$variables) {
   $variables['LANG_submit'] = t('Submit');
   $variables['LANG_cancel'] = t('Cancel');
   $variables['LANG_parentfolder'] = t('Parent Folder');
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT);
 }
 
 
@@ -445,6 +448,7 @@ function template_preprocess_filedepot_moveincoming_form(&$variables) {
   $variables['LANG_newfolder'] = t('New Folder');
   $variables['LANG_submit'] = t('Submit');
   $variables['LANG_cancel'] = t('Cancel');
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERMGMT);
 }
 
 function template_preprocess_filedepot_filedetail(&$variables) {
@@ -626,7 +630,8 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['LANG_uploadversions'] = t('Upload Versions');
   $variables['LANG_directupload'] = t('Direct Upload');
   $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
-
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS);
+  
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = %d";
   $query = db_query($sql, $variables['cid']);
@@ -677,6 +682,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $variables['LANG_uploadversions'] = t('Upload Versions');
   $variables['LANG_directupload'] = t('Direct Upload');
   $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
+  $variables['token'] = drupal_get_token(FILEDEPOT_TOKEN_FOLDERPERMS);
 
   $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = %d";

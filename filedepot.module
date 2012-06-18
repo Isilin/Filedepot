@@ -1450,7 +1450,7 @@ function filedepot_mail($key, &$message, $params) {
         '!folder' => $catname,
         '!link' => url($link, array('absolute' => TRUE)),
       );
-      $message_body = t('Site member @@name has submitted a new file (!file)!bp Folder: !folder. The file can be accessed at !link', $message_args);
+      $message_body = t('Site member @@name has submitted a new file (!file) Folder: !folder. The file can be accessed at !link', $message_args);
       $message_body .= "\n\n" . t('You are receiving this because you requested to be notified') . "\n\n" . t('Thank You') . "\n";
       $message['body'][] = $message_body;
       break;

@@ -563,6 +563,7 @@ function filedepotAjaxServer_loadFileDetails() {
   $retval['notifyperm'] = FALSE;
   $retval['broadcastperm'] = FALSE;
   $retval['tags'] = '';
+  $retval['token'] = drupal_get_token(FILEDEPOT_TOKEN_FILEDETAILS);
 
   $validfile = FALSE;
   if ($reportmode == 'approvals') {

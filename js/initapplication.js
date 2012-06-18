@@ -96,7 +96,7 @@ var init_filedepot = function() {
     effect:{effect:YAHOO.widget.ContainerEffect.FADE, duration: .5},
     constraintoviewport : true
   } );
-  YAHOO.container.filedetails.render();
+  YAHOO.container.filedetails.render("filedepotmodule");
 
   // Add and event on the close icon to hide the menu
   var closeEl = Dom.getElementsByClassName("container-close", null, 'filedetails')[0];

@@ -121,6 +121,11 @@ class filedepot {
     }
 
     $this->defRoleRights = $permsdata;
+    
+    // Is og enabled?
+    if (module_exists('og') AND module_exists('og_access')) {
+        $this->ogenabled = TRUE;
+    }
 
     if (user_is_logged_in()) {
 
@@ -161,8 +166,7 @@ class filedepot {
       }
 
       $this->allowableViewFolders = '';
-      if (module_exists('og') AND module_exists('og_access')) {
-        $this->ogenabled = TRUE;
+      if ($this->ogenabled == TRUE) {
         if (variable_get('filedepot_organic_group_mode_enabled', 0) == 1) {
           $this->ogmode_enabled = TRUE;
         }

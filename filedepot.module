@@ -2297,6 +2297,10 @@ function filedepot_newversion_form($form, &$form_state) {
   $cid = ctools_object_cache_get('filedepot', 'folder');
 
   module_load_include('php', 'filedepot', 'lib-common');
+  
+  $default_filter = 'jpg png doc docx xls xlsx pdf ppt pptx';
+  $filter = variable_get('filedepot_filetype_filter', $default_filter);
+  
 
   $form['filedepot_fid'] = array(
     '#type' => 'hidden',
@@ -2306,6 +2310,9 @@ function filedepot_newversion_form($form, &$form_state) {
     '#type' => 'managed_file',
     '#title' => t('Choose a file'),
     '#size' => 22,
+      '#upload_validators' => array(
+      'file_validate_extensions' => array($filter),
+      ),
   );
 
   $form['filedepot_filetags'] = array(

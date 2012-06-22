@@ -527,6 +527,20 @@ function filedepot_node_access($node, $op) {
 }
 
 /**
+ * Checks to see if OG mode is enabled or not
+ * 
+ * @return  Boolean                 True if enabled, False if not 
+ */
+function filedepot_is_ogmode_enabled() {
+  if ((module_exists('og') AND module_exists('og_access')) && (variable_get('filedepot_organic_group_mode_enabled', 0) == 1)) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
  * Implementation of hook_main().
  *
  * If user passes in a valid group id or group name as the argument 1 then
@@ -541,13 +555,13 @@ function filedepot_node_access($node, $op) {
  */
 function filedepot_main() {
   $cid = 0;
-  $filedepot = filedepot_filedepot();
+  $filedepot = NULL;//filedepot_filedepot();
   $grpid = 0;
   $arg1 = arg(1);
   $arg2 = arg(2);
   if ($arg1 === 'folder' AND $arg2 > 0) {
     $cid = intval($arg2);
-  } elseif ($filedepot->ogenabled AND !empty($arg1)) {
+  } elseif ((filedepot_is_ogmode_enabled() === TRUE) AND !empty($arg1)) {
     $grpcontext = $arg1;
     if (intval($grpcontext) > 0) {
       // Verify this is a valid group id
@@ -588,7 +602,10 @@ function filedepot_main() {
     ctools_include('object-cache');
     $cache = ctools_object_cache_set('filedepot', 'grpid', $grpid);
   }
-
+  
+  // Initialize down here to allow the group id to be set for organic groups - otherwise it will cause caching issues
+  $filedepot = filedepot_filedepot();
+  
   $yui_base_url = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');

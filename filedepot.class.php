@@ -682,7 +682,7 @@ class filedepot {
 
   public function createStorageFolder($cid) {
     if (@is_dir($this->root_storage_path) === FALSE) {
-      watchdog('filedepot', "Storage Directory does not exist ({$this->root_storage_path}), attempting to create now");
+      watchdog('filedepot', "Storage Directory does not exist (@path), attempting to create now", array("@path" => $this->root_storage_path));
       $res = @mkdir($this->root_storage_path, FILEDEPOT_CHMOD_DIRS);
       if ($res === FALSE) {
         watchdog('filedepot', "Failed - check the folder path is correct and valid");
@@ -710,7 +710,10 @@ class filedepot {
       $res2 = @mkdir("{$path}/submissions", FILEDEPOT_CHMOD_DIRS);
       umask($oldumask);
       if ($res1 === FALSE OR $res2 === FALSE) {
-        watchdog('filedepot', "Failed to create server directory $path or $path/submissions");
+        watchdog('filedepot', "Failed to create server directory @path or @path2", array(
+            "@path" => $path,
+            "@path2" => "$path/submissions"
+        ));
         RETURN FALSE;
       }
       else {

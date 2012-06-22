@@ -1028,7 +1028,13 @@ function filedepot_download($node, $fid, $version, $mode = '') {
       $file = file_load($drupal_fid);
       list($scheme, $target) = explode('://', $file->uri, 2);
       if ($file === FALSE) {
-        watchdog('filedepot', "Download request for file:$fname ($fid), file id:$drupal_fid invalid - folder ($cid) for user: {$user->name}");
+        watchdog('filedepot', "Download request for file:@fname (@fid), file id: @drupal_fid invalid - folder (@cid) for user: @username", array(
+            "@fname" => $fname,
+            "@fid" => $fid,
+            "@drupal_fid" => $drupal_fid,
+            "@cid" => $cid,
+            "@username" => $user->name,
+        ));
         return drupal_access_denied();
       }
       if ($mode == 'moderator') {
@@ -1039,7 +1045,10 @@ function filedepot_download($node, $fid, $version, $mode = '') {
       }
 
       if ($filedepot->checkPermission($cid, 'view') === FALSE) {
-        watchdog('filedepot', "Download request for incoming file invalid access to folder ($cid) for user: {$user->name}");
+        watchdog('filedepot', "Download request for incoming file invalid access to folder (@cid) for user: @username", array(
+            "@cid" => $cid,
+            "@username" => $user->name,
+        ));
         return drupal_access_denied();
       }
 
@@ -1144,7 +1153,9 @@ function filedepot_file_delete($file) {
   global $user;
 
   if (isset($file->version)) {
-    watchdog('filedepot', "Deleting file return as version {$file->version} is set");
+    watchdog('filedepot', "Deleting file return as version @fileversion is set", array(
+        "@fileversion" => $file->version,
+    ));
     return;
   }
 
@@ -1158,7 +1169,10 @@ function filedepot_file_delete($file) {
     list($cid, $drupal_fid, $title, $version, $submitter, $fsize) = array_values($query->fetchAssoc());
     if ($submitter == $user->uid OR $filedepot->checkPermission($cid, 'admin')) {
 
-      watchdog('filedepot', "Deleting file $fid from folder $cid");
+      watchdog('filedepot', "Deleting file @fid from folder @cid", array(
+          "@fid" => $fid,
+          "@cid" => $cid,
+      ));
       // Additional testing for the nexcloud instance because this method is also called from filedepot_uninstall()
       if (function_exists('filedepot_nexcloud')) {
         $nexcloud =  filedepot_nexcloud();
@@ -1172,7 +1186,14 @@ function filedepot_file_delete($file) {
       /* Remove any file versions */
       $query = db_query("SELECT id, version, drupal_fid FROM {filedepot_fileversions} WHERE fid=:fid", array(':fid' => $fid));
       while ($A = $query->fetchAssoc()) {
-        watchdog('filedepot', "Deleting file version:{$A['version']} ({$A['id']}), $fid from folder $cid, Drupal fid: {$A['drupal_fid']}");
+        watchdog('filedepot', "Deleting file version:@version (@id), @fid from folder @cid, Drupal fid: @dfid", array(
+            "@version" => $A['version'],
+            "@id" => $A['id'],
+            "@fid" => $fid,
+            "@cid" => $cid,
+            "@dfid" => $A['drupal_fid'],
+            
+        ));
         $file = file_load($A['drupal_fid']);
         if ($file) {
           file_usage_delete($file, 'filedepot');
@@ -1389,7 +1410,11 @@ function filedepot_file_download() {
         );
       }
       else {
-        watchdog('filedepot', "Download attempt failed for file: $fid, node: $dfid, version:$version ");
+        watchdog('filedepot', "Download attempt failed for file: @fid, node: @dfid, version:@version ", array(
+            "@fid" => $fid,
+            "@dfid" => $dfid,
+            "@version" => $version,
+        ));
         return -1;
       }
     }

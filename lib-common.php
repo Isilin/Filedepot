@@ -345,7 +345,7 @@ function filedepot_sendNotification($id, $type = 1) {
       $values = array('fid' => $id, 'target_users' => $target_users);
       drupal_mail('filedepot', $type, $user, language_default(), $values);
     } else {
-      watchdog('filedepot', "filedepot_sendNotification ($type) - no target users");
+      watchdog('filedepot', "filedepot_sendNotification (@type) - no target users", array("@type" => $type));
     }
   }
 }
@@ -438,7 +438,7 @@ function filedepot_build_notification_distribution($id, $type = 1) {
     while ( $A = $query_users->fetchObject()) {
       if ($filedepot->checkPermission($cid, 'approval', $A->uid)) {
         $personal_exception = FALSE;
-        if (db_query("SELECT uid FROM {filedepot_usersettings} WHERE uid=:uid AND notify_newfile=0", array(':fid' => $A->uid))->fetchField() == $A->uid) {
+        if (db_query("SELECT uid FROM {filedepot_usersettings} WHERE uid=:uid AND notify_newfile=0", array(':uid' => $A->uid))->fetchField() == $A->uid) {
           $personal_setting = FALSE; // User preference record exists and set to not be notified
         }
         else {

@@ -495,7 +495,7 @@ function filedepot_sendNotification($id, $type=1) {
         }
       }
       if (count($distribution >= 1)) {
-        $message['to'] = 'Filedepot Distribution';
+        $message['to'] = $rec->mail;//'Filedepot Distribution';
         $message['headers']['Bcc'] = implode(',', $distribution);
         drupal_mail_send($message);
         return TRUE;

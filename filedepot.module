@@ -2501,7 +2501,8 @@ function filedepot_newversion_submit($form, &$form_state) {
         ));
 
         // Update tags for this file
-        if (!empty($filetags) AND $this->checkPermission($cid, 'view', 0, FALSE)) {
+        if (!empty($filetags) AND $filedepot->checkPermission($cid, 'view', 0, FALSE)) {
+          $nexcloud = filedepot_nexcloud();
           $nexcloud->update_tags($fid, $filetags);
         }
 

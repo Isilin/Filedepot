@@ -997,7 +997,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
 
   $variables['toolbarform']           = theme('filedepot_toolbar_form');
   // Set the session id to address a bug with Firefox and Mozilla with the YUI Uploader not posting $_COOKIES
-  $variables['session_id'] = db_result(db_query("SELECT sid FROM {sessions} WHERE uid = %d", $user->uid));
+  $variables['session_id'] = session_id();//db_result(db_query("SELECT sid FROM {sessions} WHERE uid = %d", $user->uid));
 
   $variables['tagcloud'] = theme('filedepot_tagcloud');
 

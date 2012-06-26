@@ -1266,6 +1266,12 @@ function filedepot_file_download() {
     }
     else {
       $cid = arg(3);
+      
+      // This prevents filedepot from preventing access to non filedepot files
+      if ($cid === NULL) {
+        return NULL; // Not a filedepot file
+      }
+      
       $fname = arg(4);
       $fid = db_query("SELECT fid FROM {filedepot_files} WHERE fname=:fname AND cid=:cid", array(':fname' => $fname, ':cid' => $cid))->fetchField();
       if ($fid === FALSE) {

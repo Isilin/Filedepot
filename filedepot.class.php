@@ -243,7 +243,7 @@ class filedepot {
     else {
       $uid = $userid;
     }
-    if ($adminOverRide AND user_access('administer filedepot', $user)) {
+    if ($adminOverRide AND user_access('administer filedepot', $user) AND $userid == 0) {
       return TRUE;
     }
     else {

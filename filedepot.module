@@ -1012,7 +1012,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
     }
     else {
       $file = file_load($drupal_fid);
-      list($scheme, $target) = explode('://', $file->uri, 2);
+     // list($scheme, $target) = explode('://', $file->uri, 2);
       if ($file === FALSE) {
         watchdog('filedepot', "Download request for file:@fname (@fid), file id: @drupal_fid invalid - folder (@cid) for user: @username", array(
             "@fname" => $fname,
@@ -1029,7 +1029,8 @@ function filedepot_download($node, $fid, $version, $mode = '') {
       else {
         $filepath = $filedepot->root_storage_path . "{$cid}/{$fname}";
       }
-
+      
+      list($scheme, $target) = explode('://', $filepath, 2);
       if ($filedepot->checkPermission($cid, 'view') === FALSE) {
         watchdog('filedepot', "Download request for incoming file invalid access to folder (@cid) for user: @username", array(
             "@cid" => $cid,
@@ -1238,6 +1239,9 @@ function filedepot_file_download() {
       
       // This prevents filedepot from preventing access to non filedepot files
       if ($cid === NULL) {
+        return NULL; // Not a filedepot file
+      }
+      elseif (!is_int($cid)) {
         return NULL; // Not a filedepot file
       }
       

@@ -1633,6 +1633,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
 
   if (!user_is_logged_in()) {
     $variables['alert_message']       = 'You are not Logged in';
+    $variables['show_alert']          = 'none';
   }
   else {
     $variables['alert_message']       = '';

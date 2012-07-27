@@ -654,7 +654,7 @@ $schema['filedepot_downloads'] = array(
     'remote_ip' => array(
       'description' => ('TODO: please describe this field!'),
       'type' => 'varchar',
-      'length' => '15',
+      'length' => '50',
       'not null' => TRUE,
       'default' => '',
     ),
@@ -1294,3 +1294,13 @@ function filedepot_update_7001() {
 
 }
 
+/**
+ * Change the remote_ip filed to support IPV6 
+ */
+function filedepot_update_7002() {
+  db_change_field('filedepot_downloads', 'remote_ip', 'remote_ip',
+      array('type' => 'varchar', 'not null' => TRUE, 'length' => '50', 'default' => ''
+  ));
+  
+
+}

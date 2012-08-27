@@ -36,6 +36,47 @@ if (!defined('LB')) {
   define('LB', "\n");
 }
 
+/**
+ * Implements hook_libraries_info()
+ */
+function filedepot_libraries_info() {
+  $libraries = array();
+  $libraries['jquery.blockui'] = array(
+    'name' => 'JQuery BlockUI',
+    'vendor url' => 'http://jquery.malsup.com/block',
+    'download url' => 'http://malsup.github.com/jquery.blockUI.js',
+    'version arguments' => array(
+      'file' => 'jquery.blockui.js',
+       'pattern' => '/Version (\d+)/',
+      'lines' => 5,
+    ),
+    'files' => array(
+      'js' => array(
+        'jquery.blockui.js',  
+      ),
+    ),
+  );
+  
+  $libraries['html_encoder'] = array(
+    'name' => 'HTML Encoder',
+    'vendor url' => 'http://www.strictly-software.com/',
+    'download url' => 'http://www.strictly-software.com/scripts/downloads/encoder.js',
+    'version arguments' => array(
+      'file' => 'html_encoder.js',
+       'pattern' => '/Version (\d+)/',
+      'lines' => 5,
+    ),
+    'files' => array(
+      'js' => array(
+        'html_encoder.js',  
+      ),
+    ),
+  );
+  
+  return $libraries;
+}
+
+
 function filedepot_filedepot() {
   static $filedepot;
   if (!isset($filedepot)) {
@@ -506,6 +547,29 @@ function filedepot_is_ogmode_enabled() {
 }
 
 /**
+ * Return a message stating how to fix the missing library issue 
+ */
+function filedepot_libraryfix_message() {
+  return <<<MSG
+  Error loading Filedepot (missing library files jquery.blockui and html_encoder).
+    <br />
+  <br />
+  To fix this issue, assuming your libraries folder is located at sites/all/libraries, create the following directories:
+  <br />
+  - sites/all/libraries/html_encoder
+  <br />
+  - sites/all/libraries/jquery.blockui
+  <br />
+  <br />
+  The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
+  <br />
+   > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: sites/all/libraries/html_encoder/html_encoder.js
+   <br />
+   > http://malsup.github.com/jquery.blockUI.js  - SAVE FILE as sites/all/libraries/jquery.blockui/jquery.blockui.js
+MSG;
+}
+
+/**
  * Implementation of hook_main().
  *
  * If user passes in a valid group id or group name as the argument 1 then
@@ -524,6 +588,17 @@ function filedepot_main() {
   $grpid = 0;
   $arg1 = arg(1);
   $arg2 = arg(2);
+
+  $libpaths = array();
+  $libpaths['jquery.blockui'] = libraries_get_path('jquery.blockui');  
+  $libpaths['html_encoder'] =  libraries_get_path('html_encoder');
+
+  // Check to see if the library path exists
+  if ((($libpaths['jquery.blockui'] === FALSE) || (!file_exists($libpaths['jquery.blockui']))) 
+          || (($libpaths['html_encoder'] === FALSE) || (!file_exists($libpaths['html_encoder'])))) {
+    return drupal_set_message(t(filedepot_libraryfix_message()), 'error');
+  }
+
   if ($arg1 === 'folder' AND $arg2 > 0) {
     $cid = intval($arg2);
   } elseif ((filedepot_is_ogmode_enabled() === TRUE) AND !empty($arg1)) {
@@ -583,11 +658,11 @@ function filedepot_main() {
   drupal_add_js($modulepath . '/js/nexpro.js');
   drupal_add_js($modulepath . '/js/initapplication.js');
   drupal_add_js($modulepath . '/js/common.js');
-  drupal_add_js(libraries_get_path('jquery.blockui.js'));
-  drupal_add_js(libraries_get_path('html_encoder.js'));
-
+  // Libraries version 2 support
+  drupal_add_js(libraries_get_path('jquery.blockui') . '/jquery.blockui.js');
+  drupal_add_js(libraries_get_path('html_encoder') . '/html_encoder.js');
   drupal_set_breadcrumb();
-
+  
   // Check that private file stream is setup
   $streams = file_get_stream_wrappers();
   if (!array_key_exists('private',$streams)) {

@@ -1,6 +1,6 @@
 name = Filedepot
 description = Filedepot File Management System
-dependencies[] = libraries (1.x)
+dependencies[] = libraries
 dependencies[] = ctools
 core = 7.x
 php = 5.x;

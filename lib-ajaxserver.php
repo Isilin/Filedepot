@@ -550,7 +550,7 @@ function filedepot_getFileListingSQL($cid) {
     $sql .= "WHERE file.cid={$cid} ORDER BY file.date DESC, file.fid DESC ";
     if ($filedepot->activeview == 'getmorefolderdata') {
       if (isset($_POST['pass2']) AND $_POST['pass2'] == 1) {
-        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
+        if (db_driver() == 'pgsql') {
           $sql .= "LIMIT 100000 OFFSET {$filedepot->recordCountPass1}";
         }
         else {
@@ -560,7 +560,7 @@ function filedepot_getFileListingSQL($cid) {
       else {
         $recordoffset = $filedepot->recordCountPass2 + $filedepot->recordCountPass1;
         $filedepot->folder_filenumoffset = $recordoffset;
-        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
+        if (db_driver() == 'pgsql') {
           $sql .= "LIMIT 100000 OFFSET {$recordoffset}";
         }
         else {
@@ -573,7 +573,7 @@ function filedepot_getFileListingSQL($cid) {
       if ($filedepot->lastRenderedFolder == $cid) {
         $filedepot->folder_filenumoffset = $filedepot->recordCountPass1;
         $folder_filelimit = $filedepot->recordCountPass2 + 1;
-        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
+        if (db_driver() == 'pgsql') {
           $sql .= "LIMIT $folder_filelimit OFFSET {$filedepot->recordCountPass1} ";
         }
         else {
@@ -581,7 +581,7 @@ function filedepot_getFileListingSQL($cid) {
         }
       }
       else {
-        if (isset($GLOBALS['db_type']) AND $GLOBALS['db_type'] == 'pgsql') {
+        if (db_driver() == 'pgsql') {
           $sql .= "LIMIT $filedepot->recordCountPass1 OFFSET 0 ";
         }
         else {

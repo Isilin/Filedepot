@@ -799,7 +799,8 @@ class filedepot {
   }
 
   public function getFileIcon($fname) {
-    $ext = end(explode(".", $fname));
+    $str = explode(".", $fname);
+    $ext = end($str);
     if (array_key_exists($ext, $this->iconmap)) {
       $icon = $this->iconmap[$ext];
     }

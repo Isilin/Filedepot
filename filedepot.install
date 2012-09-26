@@ -46,8 +46,8 @@ function filedepot_install() {
   // Default to not promoted.
   variable_set('node_options_filedepot_folder', array('status'));
   // Default to closed comments
-  variable_set('comment_filedepot_folder', COMMENT_NODE_CLOSED);
-
+  //variable_set('comment_filedepot_folder', COMMENT_NODE_CLOSED);
+  variable_set('comment_filedepot_folder', 1); // COMMENT_NODE_CLOSED
   // Create all the fields we are adding to our content type.
   // http://api.drupal.org/api/function/field_create_field/7
   foreach (_filedepot_installed_fields() as $field) {

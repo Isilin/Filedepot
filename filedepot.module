@@ -481,7 +481,8 @@ function filedepot_node_access($node, $op) {
   
   // By default don't effect the access permissions unless this node is a filedepot_folder
   $ret = NODE_ACCESS_IGNORE;
-  if (!isset($node->nid) OR !isset($node->type) OR $node->type != 'filedepot_folder') {
+  
+  if ((!is_object($node)) || (!isset($node->nid) OR !isset($node->type) OR $node->type != 'filedepot_folder')) {
     return $ret;
   }
   // We have a filedepot_folder node, so DENY access by default unless user has permission

@@ -1131,7 +1131,7 @@ function filedepotAjaxServer_updateFolder() {
       array(
       ':cid' => $cid,
     ))->fetchField();
-    if ( $pid != $catpid) {
+    if ( ($pid != $catpid) && ($catpid != $cid)) {
       if ($filedepot->checkPermission($catpid, 'admin') OR user_access('administer filedepot')) {
         db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid",
           array(

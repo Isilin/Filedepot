@@ -312,7 +312,10 @@
     <div id="newfiledialog" style="display:none;">
       <div id="newfiledialog_heading" class="hd"></div>
       <div class="bd" style="text-align:left;">
-        <?php print drupal_render(drupal_get_form('filedepot_newversion_form')); ?>
+        <?php 
+          $drupal_render = drupal_get_form('filedepot_newversion_form');
+          print drupal_render($drupal_render); 
+        ?>
       </div>
     </div>
 

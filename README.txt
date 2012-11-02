@@ -51,13 +51,18 @@ Install
 
 1) Copy the filedepot folder to the modules folder in your installation.
 
-2) The filedepot module now requires the libraries module be installed.
-   We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
+2) We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
 
-   You will now need to create a sites/all/libraries folder if you don't already have the libraries module installed.
-   PLEASE rename the files as noted below
-   
-   Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
+   The filedepot module requires the libraries module be installed and works with version 1 or version 2 of the libraries module.
+
+   You will need to create a sites/all/libraries folder if you don't already have the libraries module installed.
+
+   *** PLEASE read carefully and create the required diretories (folders) and rename the files as noted below ***
+
+   *** One of the changes with version 2 of the libraries module appears that it now requires you to create separate folders under
+   sites/all/libraries for each library file with the folder name the same as the library file.
+
+   *** Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
     - sites/all/libraries/html_encoder
     - sites/all/libraries/jquery.blockui
 

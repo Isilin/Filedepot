@@ -53,7 +53,7 @@
     // Instantiate and configure Loader:
     var loader = new YAHOO.util.YUILoader({
 
-      base: YUIBaseURL, 
+      base: YUIBaseURL,
       // Identify the components you want to load.  Loader will automatically identify
       // any additional dependencies required for the specified components.
       require: ["container","layout","resize","connection","dragdrop","menu","button","tabview","treeview","element","cookie","logger","animation"],
@@ -236,7 +236,7 @@
           <input type="hidden" name="tagstore" value="">
           <input type="hidden" name="approved" value="">
           <input type="hidden" name="ftoken" id="frmFileDetails_ftoken" value="" />
-          
+
           <table width="100%" style="margin:10px;">
             <tr>
               <td width="100"><label><?php print t('File Name'); ?></label></td>
@@ -312,9 +312,9 @@
     <div id="newfiledialog" style="display:none;">
       <div id="newfiledialog_heading" class="hd"></div>
       <div class="bd" style="text-align:left;">
-        <?php 
-          $drupal_render = drupal_get_form('filedepot_newversion_form');
-          print drupal_render($drupal_render); 
+        <?php
+          $form = drupal_get_form('filedepot_newversion_form');
+          print drupal_render($form);
         ?>
       </div>
     </div>

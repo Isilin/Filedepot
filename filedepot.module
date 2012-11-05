@@ -2199,16 +2199,17 @@ function filedepot_newfile_submit($form, &$form_state) {
           $query->execute();
 
           // Update the file tags if role or group permission set -- we don't support tag access perms at the user level.
-          if ($filedepot->checkPermission($node->folder, 'view', 0, FALSE)) {
-            $nexcloud = filedepot_nexcloud();
-            if (!$nexcloud->update_tags($newrecid, $tags)) {
+          if (!empty($tags)) {
+            if ($filedepot->checkPermission($node->folder, 'view', 0, FALSE)) {
+              $nexcloud = filedepot_nexcloud();
+              if (!$nexcloud->update_tags($newrecid, $tags)) {
+                drupal_set_message(t('Tags not added - Group or Role assigned view perms required'), 'warning');
+              }
+            }
+            else {
               drupal_set_message(t('Tags not added - Group or Role assigned view perms required'), 'warning');
             }
           }
-          else {
-            drupal_set_message(t('Tags not added - Group or Role assigned view perms required'), 'warning');
-          }
-
           // Update related folders last_modified_date
           $workspaceParentFolder = filedepot_getTopLevelParent($node->folder);
           filedepot_updateFolderLastModified($workspaceParentFolder);

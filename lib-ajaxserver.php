@@ -1138,6 +1138,15 @@ function filedepotAjaxServer_updateFolder() {
           ':pid' => $catpid,
           ':cid' => $cid,
         ));
+        // Need to force a reset of user accessible folders in case folder has been moved under a parent with restricted access
+        db_update('filedepot_usersettings')
+          ->fields(array('allowable_view_folders' => ''))
+          ->execute();
+
+        // If the folder is now a top level folder - then remove it from the recent folders list as top level don't appear.
+        if (($filedepot->ogmode_enabled AND $catpid == $filedepot->ogrootfolder) OR $catpid == 0) {
+          db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid ", array(':cid' => $cid));
+        }
       }
     }
 

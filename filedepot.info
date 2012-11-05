@@ -3,6 +3,7 @@ description = Filedepot File Management System
 dependencies[] = libraries
 dependencies[] = ctools
 dependencies[] = file
+configure = admin/config/media/filedepot
 core = 7.x
 php = 5.x;
 package = File management

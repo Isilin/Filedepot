@@ -201,7 +201,7 @@ function filedepot_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
-  $items['admin/settings/filedepot'] = array(
+  $items['admin/config/media/filedepot'] = array(
     'title' => 'Filedepot Settings',
     'description' => 'Administrate Filedepot Configuration Settings',
     'page callback' => 'drupal_get_form',

@@ -25,9 +25,9 @@ function filedepot_dispatcher($action) {
     timer_start('filedepot_timer');
   }
   firelogmsg("AJAX Server code executing - action: $action");
-    
+
   switch ($action) {
-        
+
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
       if ($cid > 0) {
@@ -150,9 +150,9 @@ function filedepot_dispatcher($action) {
       $data = array();
       $cid = intval($_POST['cid']);
       $token = isset($_POST['token']) ? $_POST['token'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
-        $data['retcode'] = 403; // Forbidden        
+        $data['retcode'] = 403; // Forbidden
       }
       else {
         $query = db_query("SELECT cid,pid,nid FROM {filedepot_categories} WHERE cid=:cid",
@@ -180,9 +180,9 @@ function filedepot_dispatcher($action) {
 
     case 'updatefolder':
       $token = isset($_POST['token']) ? $_POST['token'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
-        $data['retcode'] = 403; // Forbidden        
+        $data['retcode'] = 403; // Forbidden
       }
       else {
         $data = filedepotAjaxServer_updateFolder();
@@ -193,10 +193,10 @@ function filedepot_dispatcher($action) {
       $cid = intval($_POST['cid']);
       $filedepot->cid = intval($_POST['listingcid']);
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
-        $data['retcode'] = 403; // Forbidden        
-      } 
+        $data['retcode'] = 403; // Forbidden
+      }
       else {
         if ($filedepot->checkPermission($cid, 'admin')) {
           // Check and see if any subfolders don't yet have a order value - if so correct
@@ -344,7 +344,7 @@ function filedepot_dispatcher($action) {
       $note = check_plain($_POST['note']);
       $reportmode = check_plain($_POST['reportmode']);
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
         $data['retcode'] = 403; // forbidden
       }
@@ -383,7 +383,7 @@ function filedepot_dispatcher($action) {
     case 'delfolderperms':
       $id = intval($_POST['id']);
       $token = isset($_POST['token']) ? $_POST['token'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERPERMS))) {
         $data['retcode'] = 403; // forbidden
       }
@@ -422,7 +422,7 @@ function filedepot_dispatcher($action) {
     case 'addfolderperm':
       $cid = intval($_POST['catid']);
       $token = isset($_POST['token']) ? $_POST['token'] : NULL;
-      
+
       if (!isset($_POST['cb_access'])) {
         $data['retcode'] = 204; // No permission options selected - return 'No content' statuscode
       }
@@ -478,7 +478,7 @@ function filedepot_dispatcher($action) {
       $data['tagerror'] = '';
       $data['errmsg'] = '';
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
         $data['retcode'] = 403; // forbidden
         $data['errmsg'] = t('Invalid request');
@@ -591,7 +591,7 @@ function filedepot_dispatcher($action) {
     case 'deletefile':
       $fid = intval($_POST['fid']);
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
         $data['retcode'] = 403; // forbidden
       }
@@ -605,7 +605,7 @@ function filedepot_dispatcher($action) {
 
     case 'deletecheckedfiles':
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -622,7 +622,7 @@ function filedepot_dispatcher($action) {
       $version = intval($_POST['version']);
       $reportmode = check_plain($_POST['reportmode']);
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
         $data['retcode'] = 403; // forbidden
       }
@@ -644,7 +644,7 @@ function filedepot_dispatcher($action) {
     case 'togglefavorite':
       $id = intval($_POST['id']);
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-       
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
         $data['retcode'] = 403; // forbidden
       }
@@ -674,9 +674,9 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'markfavorite':
-      
+
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -706,7 +706,7 @@ function filedepot_dispatcher($action) {
 
     case 'clearfavorite':
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -736,7 +736,7 @@ function filedepot_dispatcher($action) {
     case 'togglelock':
       $fid = intval($_POST['fid']);
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
        $data['error'] = t('Error locking file');
       }
@@ -775,7 +775,7 @@ function filedepot_dispatcher($action) {
 
     case 'movecheckedfiles':
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -799,9 +799,9 @@ function filedepot_dispatcher($action) {
     case 'togglesubscribe':
       $fid = intval($_POST['fid']);
       $cid = intval($_POST['cid']);
-      
+
       $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
        $data['error'] = t('Error subscribing');
       }
@@ -874,9 +874,9 @@ function filedepot_dispatcher($action) {
       break;
 
     case 'multisubscribe':
-      
+
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1009,7 +1009,7 @@ function filedepot_dispatcher($action) {
     case 'approvefile':
       $id = intval($_POST['id']);
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1027,7 +1027,7 @@ function filedepot_dispatcher($action) {
 
     case 'approvesubmissions':
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1062,7 +1062,7 @@ function filedepot_dispatcher($action) {
 
     case 'deletesubmissions':
       $token = isset($_POST['ltoken']) ? $_POST['ltoken'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1098,9 +1098,9 @@ function filedepot_dispatcher($action) {
     case 'deleteincomingfile':
       $id = intval($_POST['id']);
       $message = '';
-      
+
       $token = isset($_POST['token']) ? $_POST['token'] : NULL;
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1132,7 +1132,7 @@ function filedepot_dispatcher($action) {
       $id = intval($_POST['id']);
       $filedepot->activeview = 'incoming';
       $data = array();
-      
+
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
        $data['retcode'] = 403; // forbidden
       }
@@ -1160,10 +1160,10 @@ function filedepot_dispatcher($action) {
       }
       else {
         $fid = intval($_POST['fid']);
-        
+
         $message = check_plain($_POST['message']);
         $token = isset($_POST['ftoken']) ? $_POST['ftoken'] : NULL;
-      
+
         if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FILEDETAILS))) {
           $data['retcode'] = 403;
         }

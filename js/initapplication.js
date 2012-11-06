@@ -306,7 +306,10 @@ var init_filedepot = function() {
 
   Dom.setStyle('filedepot', 'visibility', 'visible');
   Dom.setStyle('tagspanel', 'display', 'block');
-  document.frmtoolbar.reportmode.value = 'latestfiles';
+
+  if (initialcid == '') {
+    document.frmtoolbar.reportmode.value = 'latestfiles';
+  }
   YAHOO.filedepot.showfiles(initialcid);
 
   // Browser may have cached selected items and checked checkbox'es but verify and reset if need

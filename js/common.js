@@ -535,7 +535,7 @@ function checkMultiAction(selectoption) {
     var surl = ajax_post_handler_url + '/deletesubmissions';
     var ltoken = document.getElementById("flistingltoken").value;
     var postdata = '&ltoken=' + ltoken;
-    
+
     var callback = {
       success: function(o) {
         var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -710,7 +710,7 @@ var makeAJAXLoadFileDetails = function(id) {
       if (oResults.error.length == 0) {
         Dom.get('displayfiledetails').innerHTML = oResults.displayhtml;
         document.getElementById("frmFileDetails_ftoken").value = oResults.token;
-        
+
         if (!oResults.downloadperm) {
           YAHOO.container.menuBar.getItem(0).cfg.setProperty("disabled", true);
           YAHOO.util.Event.removeListener("menubar_downloadlink", "click");
@@ -804,9 +804,9 @@ var makeAJAXLoadFileDetails = function(id) {
           document.frmFileDetails.approved.value = 1;
           Event.removeListener("approvefiledetailslink", "click");
         }
-        
 
-        
+
+
         document.frmBroadcast.fid.value = oResults.fid;
         document.frmBroadcast.message.value = '';
         document.frmFileDetails.id.value = oResults.fid;
@@ -1296,7 +1296,7 @@ function makeAJAXGetFolderListing(cid) {
 function makeAJAXSetFolderOrder(cid,direction) {
   var listingcid = document.frmtoolbar.cid.value;
   var ltoken = document.getElementById("flistingltoken").value;
-  
+
   var surl = ajax_post_handler_url + '/setfolderorder';
   var postdata = '&direction=' + direction + '&cid=' + cid + '&listingcid=' + listingcid + '&ltoken=' + ltoken;
   var callback = {
@@ -1435,7 +1435,7 @@ function moveIncomingFile() {
 
   var surl = ajax_post_handler_url + '/moveincomingfile';
   var formObject = document.getElementById('frmIncomingFileMove');
-  
+
   var callback = {
     success: function(o) {
       var json = o.responseText.substring(o.responseText.indexOf('{'), o.responseText.lastIndexOf('}') + 1);
@@ -1559,7 +1559,7 @@ function onCategorySelect(elm) {
 
 
 function doAJAXEditVersionNote(fobj) {
-  
+
   var ftoken = document.getElementById("frmFileDetails_ftoken").value;
   var surl = ajax_post_handler_url + '/updatenote';
   var postdata = '&reportmode=' + document.frmtoolbar.reportmode.value + '&ftoken=' + ftoken;

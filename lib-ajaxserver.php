@@ -63,6 +63,7 @@ function filedepotAjaxServer_getfilelisting() {
         }
       }
     }
+
     $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);
     if (is_array($filedepot->lastRenderedFiles) AND count($filedepot->lastRenderedFiles) > 0) {
       $data['lastrenderedfiles'] = json_encode($filedepot->lastRenderedFiles);
@@ -85,6 +86,7 @@ function filedepotAjaxServer_getfilelisting() {
   else {
     $data['retcode'] = 401;
     $data['error'] = 'Error: No Access to Folder';
+    db_query("DELETE FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid ", array(':uid' => $user->uid, ':cid' => $filedepot->cid));
   }
 
   //firelogmsg("Completed generating Header return data");
@@ -593,8 +595,13 @@ function filedepot_getFileListingSQL($cid) {
   }
   else {
     // Default view - latest files
-    if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
+    if ($filedepot->ogmode_enabled) {
+      if (!empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "WHERE file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+      }
+      else {
+        $sql .= "WHERE file.cid in ({$filedepot->allowableViewFoldersSql}) ";
+      }
     } elseif (!user_access('administer filedepot', $user)) {
       if (empty($filedepot->allowableViewFoldersSql)) {
         $sql .= "WHERE file.cid is NULL ";

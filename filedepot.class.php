@@ -572,11 +572,17 @@ class filedepot {
       $node->gid = 0;
     }
 
-    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid) VALUES (:pfolder, :title, :folder, :maxorder, :nid, :vid, :gid)",
+    if (isset($node->filedepot_folder_desc[LANGUAGE_NONE][0])) {
+      $description = check_plain($node->filedepot_folder_desc[LANGUAGE_NONE][0]['value']);
+    }
+    else {
+      $description = '';
+    }
+    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid) VALUES (:pfolder, :title, :desc, :maxorder, :nid, :vid, :gid)",
     array(
       'pfolder' => $node->parentfolder,
       'title' => check_plain($node->title),
-      'folder' => check_plain($node->filedepot_folder_desc[LANGUAGE_NONE][0]['value']),
+      'desc' => $description,
       'maxorder' => $maxorder,
       'nid' => $node->nid,
       'vid' => $node->vid,

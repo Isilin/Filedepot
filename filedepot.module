@@ -2253,7 +2253,7 @@ function filedepot_newfolder_dialog($js = NULL) {
   $output = ctools_modal_form_wrapper('filedepot_newfolder_form', $form_state);
 
   if ($form_state['executed'] && ($js)) {
-    $cid = intval($form_state['values']['filedepot_parentfolder']);
+    $cid = intval($form_state['values']['folder_nid']);
     $commands = array();
     $commands[] = ctools_ajax_command_redirect("filedepot/folder/$cid");
     $commands[] = ctools_modal_command_dismiss(t('New folder success'));
@@ -2373,6 +2373,8 @@ function filedepot_newfolder_submit($form, &$form_state) {
     $node->inherit = 0;
   }
   node_save($node);
+  $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid", array(':nid' => $node->nid ))->fetchField();
+  $form_state['values']['folder_nid'] = $cid;
   if (!$node) {
     drupal_set_message(t('Error creating Folder'), 'error');
   }

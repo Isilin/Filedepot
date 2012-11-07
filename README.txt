@@ -1,10 +1,12 @@
 7.x-1.x RELEASE NOTE
- (Aug 23, 2012) Added support for v2 of the libraries module - please read the "Install" section to setup the proper library requirements.
 
- (Jan 17 2012) The current 7.x branch is under development and is still unstable but core features are working.
+ (Nov 6, 2012) Added support for v1 and v2 of the organic groups module
+
+ (Aug 23, 2012) Added support for v1 and v2 of the libraries module - please read the "Install" section to setup the proper library requirements.
 
  (May 23/2012) Implemented the native drupal file upload filter. Removed the option to allow/disallow files by their extension and MIME type.
                Only support the allow option now and filter just checks the extension type.
+
 
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
@@ -96,6 +98,11 @@ c)  A new content type is automatically created 'filedepot_folder'.
 
 
 Organic Group Mode and OG settings
+
+  Support for both OG module v1 and v2 branches - refer to the module appropriate setup instructions
+
+  The filedepot module requires both the OG module and the OG Group Access Control modules to be enabled.
+
   Enabling the OG option to "Automatically Create Root Level Folder for New Organic Groups" will create a new top level "ROOT" folder
   whenever a new group is created. The group node id (nid) is set only for new groups. If you have existing groups, you can create
   new top level folders and set the group_nid field in the filedepot_categories table to the group node id manually.
@@ -103,6 +110,11 @@ Organic Group Mode and OG settings
   If you want your group members to only see the folders and files under the Group Root level folder, then enable the
   second OG setting "Only Display Organic Group Root Level Folder". If enabled and the users current group context
   is known, only the folders and files under the Group's root folder will be displayed.
+
+  Example URL's to view folders and files in OG Mode (OG Root folder):
+    {site_url}/filedepot/{group name}  -     {site_url}/filedepot/sales
+      or 
+    {site_url}/filedepot/{group id}    -     {site_url}/filedepot/23
 
 
 YUI Javascript Libraries

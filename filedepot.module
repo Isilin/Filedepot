@@ -52,11 +52,11 @@ function filedepot_libraries_info() {
     ),
     'files' => array(
       'js' => array(
-        'jquery.blockui.js',  
+        'jquery.blockui.js',
       ),
     ),
   );
-  
+
   $libraries['html_encoder'] = array(
     'name' => 'HTML Encoder',
     'vendor url' => 'http://www.strictly-software.com/',
@@ -68,11 +68,11 @@ function filedepot_libraries_info() {
     ),
     'files' => array(
       'js' => array(
-        'html_encoder.js',  
+        'html_encoder.js',
       ),
     ),
   );
-  
+
   return $libraries;
 }
 
@@ -122,6 +122,8 @@ function filedepot_permission() {
     ),
   );
 }
+
+
 
 /**
  * Implementation of hook_menu().
@@ -478,10 +480,10 @@ function filedepot_user_access($perm) {
  */
 function filedepot_node_access($node, $op) {
 
-  
+
   // By default don't effect the access permissions unless this node is a filedepot_folder
   $ret = NODE_ACCESS_IGNORE;
-  
+
   if ((!is_object($node)) || (!isset($node->nid) OR !isset($node->type) OR $node->type != 'filedepot_folder')) {
     return $ret;
   }
@@ -497,8 +499,8 @@ function filedepot_node_access($node, $op) {
   $cid = $res->fetchField();
   if ($cid > 0 ) {
     $filedepot = filedepot_filedepot();
-    module_load_include('php', 'filedepot', 'lib-common');    
-    
+    module_load_include('php', 'filedepot', 'lib-common');
+
     switch ($op) {
       case 'view':
         if ($filedepot->checkPermission($cid, 'view')) {
@@ -535,8 +537,8 @@ function filedepot_node_access($node, $op) {
 
 /**
  * Checks to see if OG mode is enabled or not
- * 
- * @return  Boolean                 True if enabled, False if not 
+ *
+ * @return  Boolean                 True if enabled, False if not
  */
 function filedepot_is_ogmode_enabled() {
   if ((module_exists('og') AND module_exists('og_access')) && (variable_get('filedepot_organic_group_mode_enabled', 0) == 1)) {
@@ -548,7 +550,7 @@ function filedepot_is_ogmode_enabled() {
 }
 
 /**
- * Return a message stating how to fix the missing library issue 
+ * Return a message stating how to fix the missing library issue
  */
 function filedepot_libraryfix_message() {
   return <<<MSG
@@ -590,12 +592,13 @@ function filedepot_main() {
   $arg1 = arg(1);
   $arg2 = arg(2);
 
+
   $libpaths = array();
-  $libpaths['jquery.blockui'] = libraries_get_path('jquery.blockui');  
+  $libpaths['jquery.blockui'] = libraries_get_path('jquery.blockui');
   $libpaths['html_encoder'] =  libraries_get_path('html_encoder');
 
   // Check to see if the library path exists
-  if ((($libpaths['jquery.blockui'] === FALSE) || (!file_exists($libpaths['jquery.blockui']))) 
+  if ((($libpaths['jquery.blockui'] === FALSE) || (!file_exists($libpaths['jquery.blockui'])))
           || (($libpaths['html_encoder'] === FALSE) || (!file_exists($libpaths['html_encoder'])))) {
     return drupal_set_message(t(filedepot_libraryfix_message()), 'error');
   }
@@ -604,31 +607,45 @@ function filedepot_main() {
     $cid = intval($arg2);
   } elseif ((filedepot_is_ogmode_enabled() === TRUE) AND !empty($arg1)) {
     $grpcontext = $arg1;
+    module_load_include('php', 'filedepot', 'lib-common');
     if (intval($grpcontext) > 0) {
       // Verify this is a valid group id
-      $query = new EntityFieldQuery();
-      $entity = $query
-      ->entityCondition('entity_type', 'group', '=')
-      ->entityCondition('bundle', 'group')
-      ->entityCondition('entity_id', $grpcontext)
-      ->execute();
-      if (isset($entity['group']) AND key($entity['group']) == $grpcontext) {
-        $grpid = $grpcontext;
+      if (function_exists('og_get_group')) {
+        $wrapper = entity_metadata_wrapper('group', $grpcontext);
+        if(is_object($wrapper->value())) {
+          $grpid = $wrapper->gid->value();
+        }
+      } else {
+        if (og_is_group('node', $grpcontext) === TRUE) {
+          $grpid = $grpcontext;
+        }
       }
     }
     else {
       // Get the gid from the group name
       $grpcontext = strtolower($grpcontext);
-      $query = new EntityFieldQuery();
-      $entity = $query
-      ->entityCondition('entity_type', 'group', '=')
-      ->entityCondition('bundle', 'group')
-      ->execute();
-      foreach($entity['group'] as $key => $obj) {
-        $x = og_get_group('group',$obj->gid);
-        if(strtolower($x->label) == $grpcontext) {
-          $grpid = $x->gid;
-          break;
+      if (function_exists('og_get_group_ids')) {
+        $group_ids = og_get_group_ids('group');
+        foreach($group_ids as $key => $gid) {
+          $grp = og_get_group('group',$gid);
+          if(strtolower($grp->label) == $grpcontext) {
+            $grpid = $grp->gid;
+            break;
+          }
+        }
+      } else {
+        $entity_info = og_get_all_group_bundle();
+        if (isset($entity_info['node'])) {
+          $entity = filedepot_get_group_entity_query();
+          if (count($entity) > 0) {
+            foreach($entity['node'] as $obj) {
+              $node = node_load($obj->nid);
+              if(strtolower($node->title) == $grpcontext) {
+                $grpid = $node->nid;
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -643,10 +660,10 @@ function filedepot_main() {
     ctools_include('object-cache');
     $cache = ctools_object_cache_set('filedepot', 'grpid', $grpid);
   }
-  
+
   // Initialize down here to allow the group id to be set for organic groups - otherwise it will cause caching issues
   $filedepot = filedepot_filedepot();
-  
+
   $yui_base_url = variable_get('filedepot_yui_baseurl', 'http://yui.yahooapis.com/2.7.0/build/');
   $modulepath = drupal_get_path('module', 'filedepot');
   drupal_add_css($modulepath . '/css/filedepot.css');
@@ -663,7 +680,7 @@ function filedepot_main() {
   drupal_add_js(libraries_get_path('jquery.blockui') . '/jquery.blockui.js');
   drupal_add_js(libraries_get_path('html_encoder') . '/html_encoder.js');
   drupal_set_breadcrumb();
-  
+
   // Check that private file stream is setup
   $streams = file_get_stream_wrappers();
   if (!array_key_exists('private',$streams)) {
@@ -1105,7 +1122,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
       else {
         $filepath = $filedepot->root_storage_path . "{$cid}/{$fname}";
       }
-      
+
       list($scheme, $target) = explode('://', $filepath, 2);
       if ($filedepot->checkPermission($cid, 'view') === FALSE) {
         watchdog('filedepot', "Download request for incoming file invalid access to folder (@cid) for user: @username", array(
@@ -1161,25 +1178,42 @@ function filedepot_download($node, $fid, $version, $mode = '') {
 function filedepot_entity_insert($entity, $type) {
   global $user;
 
-  if ($type == 'group' AND $entity->gid > 0) {
+  // Need to support both versions (1.x and 2.x) of the OG module where 2.x moved away from a group specific entity
+  if ( ($type == 'group' AND $entity->gid > 0) OR ($type == 'node' AND isset($entity->group_group) AND !function_exists('og_get_group')) ) {
     if (variable_get('filedepot_auto_create_group_rootfolder_enabled', 0) == 1) {
       /* Admin is being added to the OG Group. This happens when the group is first created but
        * will also occur if another admin is added so we need to test for this.
        * If first Admin - new Group being created then create a new ROOT level filedepot folder */
-      if (db_query("SELECT count(*) FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $entity->gid))->fetchField() == 0) {
+      if ($type == 'node') {
+        $gid = $entity->nid;
+        $label = $entity->title;
+      } else {
+        $gid = $entity->gid;
+        $label = $entity->label;
+      }
+      if (db_query("SELECT count(*) FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $gid))->fetchField() == 0) {
         $node = new stdClass();
         $node->type = 'filedepot_folder';
         node_object_prepare($node);
         $node->language = LANGUAGE_NONE;
         $node->uid = $user->uid;
         $node->name = $user->name;
-        $node->title = check_plain($entity->label);
+        $node->title = check_plain($label);
         $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'] = 'Group Root Folder';
         $node->parentfolder = 0;
         $node->inherit = 0;
-        $node->gid = $entity->gid;
+        $node->gid = $gid;
         node_save($node);
-        watchdog('filedepot',"New Organic Group created @name - new filedepot folder created.", array('@name' => $entity->label));
+
+        // Add a default group permission record
+        $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
+          array(':nid' => $node->nid))->fetchField();
+        if ($cid > 0) {
+          $filedepot = filedepot_filedepot();
+          $filedepot->updatePerms($cid, array('view'), '', $gid);
+        }
+
+        watchdog('filedepot',"New Organic Group created @name - new filedepot folder created.", array('@name' => $label));
       }
     }
   }
@@ -1255,7 +1289,7 @@ function filedepot_file_delete($file) {
             "@fid" => $fid,
             "@cid" => $cid,
             "@dfid" => $A['drupal_fid'],
-            
+
         ));
         $file = file_load($A['drupal_fid']);
         if ($file) {
@@ -1312,7 +1346,7 @@ function filedepot_file_download() {
     }
     else {
       $cid = arg(3);
-      
+
       // This prevents filedepot from preventing access to non filedepot files
       if ($cid === NULL) {
         return NULL; // Not a filedepot file
@@ -1320,7 +1354,7 @@ function filedepot_file_download() {
       elseif (!is_int($cid)) {
         return NULL; // Not a filedepot file
       }
-      
+
       $fname = arg(4);
       $fid = db_query("SELECT fid FROM {filedepot_files} WHERE fname=:fname AND cid=:cid", array(':fname' => $fname, ':cid' => $cid))->fetchField();
       if ($fid === FALSE) {
@@ -1787,12 +1821,14 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   $variables['tagwords'] = '';
 
   $roleids = implode(',', array_keys($user->roles));
+  $groupids = '';
   if ($filedepot->ogenabled) {
-    $groupids = implode(',', array_keys(og_get_entity_groups('user', $user)));
+    $og_entity_groups = filedepot_og_get_user_groups();
+    if (is_array($og_entity_groups) AND count($og_entity_groups) > 0) {
+      $groupids = implode(',', array_values($og_entity_groups));
+    }
   }
-  else {
-    $groupids = '';
-  }
+
   $sql  = "SELECT metric from {nextag_metrics} WHERE type=:type ";
   // Filedepot Admin's should be able to view all tags
   if (!user_access('administer filedepot', $user)) {
@@ -2401,10 +2437,10 @@ function filedepot_newversion_form($form, &$form_state) {
   $cid = ctools_object_cache_get('filedepot', 'folder');
 
   module_load_include('php', 'filedepot', 'lib-common');
-  
+
   $default_filter = 'jpg png doc docx xls xlsx pdf ppt pptx';
   $filter = variable_get('filedepot_filetype_filter', $default_filter);
-  
+
 
   $form['filedepot_fid'] = array(
     '#type' => 'hidden',

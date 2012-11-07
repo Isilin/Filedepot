@@ -311,12 +311,66 @@ function filedepot_getRoleOptions() {
 function filedepot_getGroupOptions() {
   global $user;
   $retval = '';
-  $groups = og_get_entity_groups('user', $user);
+  $groups = filedepot_og_get_user_groups();
   foreach ($groups as $grpid) {
-    $group = og_get_group('group', $grpid);
-    $retval .= '<option value="' . $grpid . '">' . $group->label . '</option>';
+    $entity = filedepot_og_get_group_entity($grpid);
+    $retval .= '<option value="' . $grpid . '">' . $entity->title . '</option>';
   }
   return $retval;
+}
+
+function filedepot_og_get_user_groups() {
+  global $user;
+
+  $retval = array();
+  $groups = og_get_entity_groups('user', $user);
+  if (is_array($groups) AND count($groups) > 0) {
+    if (function_exists('og_get_group')) {
+      $retval = $groups;
+    } else {
+      $retval = $groups['node'];
+    }
+  }
+
+  return $retval;
+}
+
+
+function filedepot_og_get_group_entity($grpid) {
+  if (function_exists('og_get_group')) {
+    $entity = og_get_group('group', $grpid);
+    $entity->title = $entity->label;
+  } else {
+    $entity = node_load($grpid);
+  }
+
+  return $entity;
+}
+
+function filedepot_get_group_entity_query($grpid=0) {
+  $query = new EntityFieldQuery();
+  if ($grpid > 0) {
+    if (function_exists('og_get_group')) {
+      $efq = $query->entityCondition('entity_type', 'group', '=')
+        ->entityCondition('bundle', 'group')
+        ->entityCondition('entity_id', $grpid);
+    } else {
+      $efq = $query->entityCondition('entity_type', 'node')
+        ->entityCondition('entity_id', $grpcontext)
+        ->fieldCondition(OG_GROUP_FIELD, 'value', 1, '=');
+    }
+  } else {
+    if (function_exists('og_get_group')) {
+      $efq = $query->entityCondition('entity_type', 'group', '=')
+        ->entityCondition('bundle', 'group');
+    } else {
+      $efq = $query->entityCondition('entity_type', 'node')
+        ->fieldCondition(OG_GROUP_FIELD, 'value', 1, '=');
+    }
+  }
+
+  return $efq->execute();
+
 }
 
 

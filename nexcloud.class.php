@@ -70,9 +70,9 @@ class nexcloud {
     $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
     if ($cid > 0) {
       if (module_exists('og') AND module_exists('og_access')) {
-        $groups = og_get_entity_groups('user', $user);
+        $groups = filedepot_og_get_user_groups();
         if (!empty($groups)) {
-          $groupids = implode(',', array_keys($groups));
+          $groupids = implode(',', array_values($groups));
           if (!empty($groupids) OR $sitewide === TRUE) {
             $sql = "SELECT permid from {filedepot_access} WHERE catid=:cid AND permtype='group' AND view = 1 AND permid > 0 ";
             $sql .= "AND permid in ($groupids) ";

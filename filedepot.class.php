@@ -121,7 +121,7 @@ class filedepot {
     }
 
     $this->defRoleRights = $permsdata;
-    
+
     // Is og enabled?
     if (module_exists('og') AND module_exists('og_access')) {
         $this->ogenabled = TRUE;
@@ -266,7 +266,7 @@ class filedepot {
 
       if ($this->ogenabled) {
         // Retrieve all the Organic Groups this user is a member of
-        $groupids = og_get_entity_groups('user', $user);
+        $groupids = $this->get_user_groups();
         foreach ($groupids as $gid) {
           $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
           $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
@@ -366,6 +366,23 @@ class filedepot {
       }
     }
     return $list;
+  }
+
+
+  public function get_user_groups()  {
+    global $user;
+
+    $retval = array();
+    $groups = og_get_entity_groups('user', $user);
+    if (is_array($groups) AND count($groups) > 0) {
+      if (function_exists('og_get_group')) {
+        $retval = $groups;
+      } else {
+        $retval = $groups['node'];
+      }
+    }
+
+    return $retval;
   }
 
 
@@ -678,6 +695,7 @@ class filedepot {
           }
         }
       }
+
       return TRUE;
     }
     else {

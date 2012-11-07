@@ -10,6 +10,7 @@
 
 function template_preprocess_filedepot_toolbar_form(&$variables) {
   global $base_url;
+
   $variables['report_option'] = 'latestfiles';
   $variables['base_url']       = $base_url;
   if (!isset($_GET['cid'])) {
@@ -749,6 +750,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
+$user_perm_records = '';
   while ($permrec = $query->fetchAssoc()) {
     $i++;
     $user_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'user', 'token' => $variables['token']));
@@ -764,6 +766,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $sql .= "FROM {filedepot_access} WHERE permtype = 'group' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
+  $group_perm_records = '';
   while ($permrec = $query->fetchAssoc()) {
     $i++;
     $group_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'group', 'token' => $variables['token']));
@@ -779,6 +782,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
+  $role_perm_records = '';
   while ($permrec = $query->fetchAssoc()) {
     $i++;
     $role_perm_records .= theme('filedepot_folderperm_rec', array('permRec' => $permrec, 'mode' => 'role', 'token' => $variables['token']));
@@ -798,8 +802,8 @@ function template_preprocess_filedepot_folderperm_rec(&$variables) {
     $variables['name'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $permid))->fetchField();
   }
   else if ($variables['mode'] == 'group') {
-    $group = og_get_group('group', $permid);
-    $variables['name'] = $group->label;
+    $group = filedepot_og_get_group_entity($permid);
+    $variables['name'] = $group->title;
   }
   else {
     $variables['name'] = db_query("SELECT name FROM {role} WHERE rid=:uid", array(':uid' => $permid))->fetchField();

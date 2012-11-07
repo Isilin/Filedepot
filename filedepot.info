@@ -9,9 +9,3 @@ php = 5.x;
 package = File management
 
 
-; Information added by drupal.org packaging script on 2012-05-25
-version = "7.x-1.0-beta2+0-dev"
-core = "7.x"
-project = "filedepot"
-datestamp = "1337905211"
-

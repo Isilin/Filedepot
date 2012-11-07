@@ -6,10 +6,10 @@
 ?>
 
 <?php
-  // Initialize variable id unknown to solve any PHP Notice level error messages 
-  if (!isset($current_category)) $current_category = 0;  
-  if (!isset($base_url)) $base_url = '';  
-  if (!isset($report_option)) $report_option = '';  
+  // Initialize variable id unknown to solve any PHP Notice level error messages
+  if (!isset($current_category)) $current_category = 0;
+  if (!isset($base_url)) $base_url = '';
+  if (!isset($report_option)) $report_option = '';
 ?>
 <div style="float:left;padding-left:0px;">
   <form name="frmtoolbar" action="<?php print $base_url ?>/filedepot/download.php" method="post" style="margin:0px;">

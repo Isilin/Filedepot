@@ -595,19 +595,21 @@ function filedepot_getFileListingSQL($cid) {
   }
   else {
     // Default view - latest files
-    if ($filedepot->ogmode_enabled) {
-      if (!empty($filedepot->allowableGroupViewFoldersSql)) {
-        $sql .= "WHERE file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
-      }
-      else {
-        $sql .= "WHERE file.cid in ({$filedepot->allowableViewFoldersSql}) ";
-      }
-    } elseif (!user_access('administer filedepot', $user)) {
-      if (empty($filedepot->allowableViewFoldersSql)) {
-        $sql .= "WHERE file.cid is NULL ";
-      }
-      else {
-        $sql .= "WHERE file.cid in ({$filedepot->allowableViewFoldersSql}) ";
+    if (!empty($filedepot->allowableViewFoldersSql)) {
+      if ($filedepot->ogmode_enabled) {
+        if (!empty($filedepot->allowableGroupViewFoldersSql)) {
+          $sql .= "WHERE file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
+        }
+        else {
+          $sql .= "WHERE file.cid in ({$filedepot->allowableViewFoldersSql}) ";
+        }
+      } elseif (!user_access('administer filedepot', $user)) {
+        if (empty($filedepot->allowableViewFoldersSql)) {
+          $sql .= "WHERE file.cid is NULL ";
+        }
+        else {
+          $sql .= "WHERE file.cid in ({$filedepot->allowableViewFoldersSql}) ";
+        }
       }
     }
     $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";

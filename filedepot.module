@@ -844,7 +844,8 @@ function filedepot_native_submit($form, &$form_state) {
           if ($unapprovedfile === FALSE AND $filedepot_fid === FALSE) {
 
             // A new file was attached via the Drupal UI or external API - need to process
-            $ext = end(explode(".", $file->filename));
+            $ext_parts = explode(".", $file->filename);
+            $ext = end($ext_parts);
 
             // Create filedepot record for file and set status of file to 1 - online
             $query = db_insert('filedepot_files');
@@ -1434,7 +1435,8 @@ function filedepot_file_download() {
       }
 
       $type = mime_header_encode($file->filemime);
-      $ext = end(explode(".", $filetitle));
+      $ext_parts = explode(".", $filetitle);
+      $ext = end($ext_parts);
       $pos = strpos($filetitle, ".");
 
       // Generate a 15 character hash value (token) and append to filename
@@ -1795,7 +1797,8 @@ function theme_filedepot_files($node) {
         $icon = $filedepot->iconmap[$A['ext']];
       }
       else {
-        $ext = end(explode(".", $A['fname']));
+        $ext_parts = explode(".", $A['fname']);
+        $ext = end($ext_parts);
         if (array_key_exists($ext, $filedepot->iconmap)) {
           $icon = $filedepot->iconmap[$ext];
         }
@@ -2096,7 +2099,8 @@ function filedepot_newfile_submit($form, &$form_state) {
 
     $tags = check_plain($form_state['values']['filedepot_filetags']);
     $file = file_load($form_state['values']['filedepot_file']);
-    $ext = end(explode(".", $file->filename));
+    $ext_parts = explode(".", $file->filename);
+    $ext = end($ext_parts);
     list($scheme, $target) = explode('://', $file->uri, 2);
 
     // The new file should still be in the temporary location so we need to move it
@@ -2170,7 +2174,8 @@ function filedepot_newfile_submit($form, &$form_state) {
       else {
         $private_uri = $private_destination . $file->filename;
         $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
-        $ext = end(explode(".", $file->filename));
+        $ext_parts = explode(".", $file->filename);
+        $ext = end($ext_parts);
 
         // Get name of new file in case it was renamed after the file_move()
         list($scheme, $target) = explode('://', $file->uri, 2);

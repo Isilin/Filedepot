@@ -197,7 +197,7 @@ function filedepot_menu() {
   $items['filedepot/folder/%'] = array(
     'title' => 'Filedepot',
     'page callback' => 'filedepot_main',
-    'page arguments' => array(1,2),
+    'page arguments' => array(1, 2),
     'access callback' => 'user_access',
     'access arguments' => array('access filedepot'),
     'type' => MENU_NORMAL_ITEM,
@@ -683,11 +683,11 @@ function filedepot_main() {
 
   // Check that private file stream is setup
   $streams = file_get_stream_wrappers();
-  if (!array_key_exists('private',$streams)) {
+  if (!array_key_exists('private', $streams)) {
     drupal_set_message(t('Warning: Your private file system path is not setup and is required - @path', array(
         '@path' => 'admin/config/media/file-system',
     )), 'warning');
-    watchdog('Warning','Your private file system path is not setup and is required for the filedepot module');
+    watchdog('Warning', 'Your private file system path is not setup and is required for the filedepot module');
   }
 
   return theme('filedepot_main_page', array('cid' => $cid));
@@ -1567,7 +1567,7 @@ function filedepot_mail($key, &$message, $params) {
       $query = db_query($sql, array(':fid' => $id));
       list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
       $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
-      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => true));
+      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => TRUE));
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New Document Management Update');
       $message_args = array(
         '@@name' => $submitter_name,
@@ -1586,7 +1586,7 @@ function filedepot_mail($key, &$message, $params) {
       $query = db_query($sql, array(':fid' => $id));
       list($fid, $fname, $cid, $submitter, $catname) = array_values($query->fetchAssoc());
       $submitter_name = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $submitter))->fetchField();
-      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => true));
+      $link = url('filedepot', array('query' => array('cid' => $cid, 'fid' => $fid), 'absolute' => TRUE));
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Approved');
       $message_args = array(
         '@@name' => $submitter_name,
@@ -1632,7 +1632,7 @@ function filedepot_mail($key, &$message, $params) {
       list($fname, $cid) = array_values($query->fetchAssoc());
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('Broadcast Notification');
       $message_body = $params['comment'] . "\n\n";
-      $link = url('filedepot', array('query' => array('cid' => $cid), 'absolute' => true));
+      $link = url('filedepot', array('query' => array('cid' => $cid), 'absolute' => TRUE));
       $message_body .= t('The file: !filename can be accessed at !link', array('!filename' => $fname, '!link' => $link)) . "\n\n";
       $message_body .= t('You are receiving this broadcast alert, because your notification setting is enabled.');
       $message['body'][] = $message_body;
@@ -1675,7 +1675,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
 
   $filedepot = filedepot_filedepot();
   if ($filedepot->ogmode_enabled AND $filedepot->ogrootfolder > 0 AND !$filedepot->checkPermission($filedepot->ogrootfolder, 'view')) {
-    drupal_set_message('You do not have access to this groups documents', 'error');
+    drupal_set_message(t('You do not have access to this groups documents'), 'error');
     drupal_goto();
   }
 
@@ -2254,7 +2254,7 @@ function filedepot_newfile_submit($form, &$form_state) {
 
         }
         else {
-          drupal_set_message('Invalid id returned from insert new file record', 'error');
+          drupal_set_message(t('Invalid id returned from insert new file record'), 'error');
         }
 
       }
@@ -2321,7 +2321,8 @@ function filedepot_newfolder_form($form, &$form_state) {
 
   if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
     $parentFolders = array($filedepot->ogrootfolder => 'Top Level Folder');
-  } elseif (user_access('administer filedepot', $user)) {
+  } 
+  elseif (user_access('administer filedepot', $user)) {
     $parentFolders = array(0 => 'Top Level Folder');
   }
   else {

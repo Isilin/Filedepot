@@ -1515,7 +1515,7 @@ function makeAJAXBroadcastNotification () {
       var oResults = eval('(' + json + ')');
       if (oResults.retcode == 200) {
         updateAjaxStatus();
-        alert('Broadcast message sent to ' + oResults.count + ' users');
+        alert(Drupal.t('Broadcast message sent to !count users', {'!count': oResults.count}));
         updateAjaxStatus(NEXLANG_broadcastmsg + timeDiff.getDiff() + 'ms');
         YAHOO.container.broadcastDialog.hide();
         timer = setTimeout("Dom.setStyle('filedepot_ajaxStatus','visibility','hidden')", 3000);

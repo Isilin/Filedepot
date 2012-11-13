@@ -158,7 +158,7 @@ function filedepot_admin_settings() {
   );
 
   $default_extension_mapping  = 'jpg=jpg.gif, gif=gif.gif, bmp=bmp.gif, doc=doc.gif, docx=doc.gif, xls=xls.gif, xlsx=xls.gif' . "\n";
-  $default_extension_mapping  .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif' . "\n";
+  $default_extension_mapping .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif' . "\n";
 
   $form['filetype_filter']['filedepot_extensions'] = array(
     '#type' => 'textarea',
@@ -237,9 +237,9 @@ function filedepot_admin_settings() {
 
   // Check that private file stream is setup
   $streams = file_get_stream_wrappers();
-  if (!array_key_exists('private',$streams)) {
-    drupal_set_message('Warning: Your private file system path is not setup and is required - admin/config/media/file-system');
-    watchdog('Warning','Your private file system path is not setup and is required for the filedepot module');
+  if (!array_key_exists('private', $streams)) {
+    drupal_set_message(t('Warning: Your private file system path is not setup and is required - admin/config/media/file-system'));
+    watchdog('Warning', 'Your private file system path is not setup and is required for the filedepot module');
   }
 
   return system_settings_form($form);

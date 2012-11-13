@@ -214,6 +214,17 @@ function filedepot_admin_settings() {
     '#wysiwyg' => FALSE,
   );
 
+  $form['permissions']['filedepot_default_group'] = array(
+  '#type' => 'textarea',
+  '#title' => t('Default OG Permissions'),
+  '#cols' => 60,
+  '#rows' => 1,
+  '#default_value' => variable_get('filedepot_default_group', 'view, upload_dir'),
+  '#description' =>
+  t('When a new group is created and OG mode is enabled, list the default user based permissions the folder should be setup with.'),
+  '#wysiwyg' => FALSE,
+  );
+
   $form['permissions']['filedepot_default_roles'] = array(
     '#type' => 'textarea',
     '#title' => t('Default Role Permissions'),
@@ -274,6 +285,17 @@ function filedepot_admin_settings_validate($form, $form_state) {
     }
   }
   $defaultperms['owner'] = $cleanperms;
+
+  $cleanperms = array();
+  $groupperms = $form_state['values']['filedepot_default_group'];
+  $aperms = explode(',', $groupperms);
+  foreach ($aperms as $perm) {
+    $perm = trim($perm);
+    if (in_array($perm, $validperms)) {
+      $cleanperms[] = $perm;
+    }
+  }
+  $defaultperms['group'] = $cleanperms;
 
   $rawroleperms = $form_state['values']['filedepot_default_roles'];
   $permlines = preg_split( '/\r\n|\r|\n/', $rawroleperms );

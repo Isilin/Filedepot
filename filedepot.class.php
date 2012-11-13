@@ -39,6 +39,7 @@ class filedepot {
 
   public $defOwnerRights = array();
   public $defRoleRights = array();
+  public $defGroupRights = array();
 
   public $maxDefaultRecords = 30;
   public $listingpadding = 20; // Number of px to indent filelisting per folder level
@@ -96,13 +97,7 @@ class filedepot {
     if (!empty($iconsettings)) {
       $this->iconmap = array_merge($this->iconmap, $iconsettings);
     }
-    $defOwnerRights = variable_get('filedepot_extension_data', '');
-    if (!empty($defOwnerRights)) {
-      $this->defOwnerRights = unserialize($defOwnerRights);
-    }
-    else {
-      $defOwnerRights = array('view');
-    }
+
     $permsdata = variable_get('filedepot_default_perms_data', '');
     if (!empty($permsdata)) {
       $permsdata = unserialize($permsdata);
@@ -120,7 +115,17 @@ class filedepot {
       unset($permsdata['owner']); // It has now been assigned to defOwnerRights variable
     }
 
-    $this->defRoleRights = $permsdata;
+    if (isset($permsdata['group']) AND count($permsdata['group'] > 0)) {
+      $this->defGroupRights = $permsdata['group'];
+    }
+    else {
+      $this->defGroupRights = array('view');
+    }
+    if (isset($permsdata['group'])) {
+      unset($permsdata['group']); // It has now been assigned to defGroupRights variable
+    }
+
+    $this->defRoleRights = $permsdata;  // Remaining permissions are the role assignments
 
     // Is og enabled?
     if (module_exists('og') AND module_exists('og_access')) {
@@ -683,6 +688,12 @@ class filedepot {
         }
       }
       else {
+
+        if ($node->gid > 0 AND $this->ogmode_enabled) {
+          // Create default permissions record for the group
+          $this->updatePerms($cid, $this->defGroupRights, '', $node->gid);
+        }
+
         // Create default permissions record for the user that created the category
         $this->updatePerms($cid, $this->defOwnerRights, $user->uid);
         if (is_array($this->defRoleRights) AND count($this->defRoleRights) > 0) {

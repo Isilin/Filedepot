@@ -1206,14 +1206,6 @@ function filedepot_entity_insert($entity, $type) {
         $node->gid = $gid;
         node_save($node);
 
-        // Add a default group permission record
-        $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
-          array(':nid' => $node->nid))->fetchField();
-        if ($cid > 0) {
-          $filedepot = filedepot_filedepot();
-          $filedepot->updatePerms($cid, array('view'), '', $gid);
-        }
-
         watchdog('filedepot',"New Organic Group created @name - new filedepot folder created.", array('@name' => $label));
       }
     }

@@ -1082,6 +1082,7 @@ function filedepotAjaxServer_updateFolder() {
     if (db_query("SELECT folderorder FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField() != $folderorder) {
       db_query("UPDATE {filedepot_categories} SET folderorder=:folder WHERE cid=:cid",
         array(':folder' => $folderorder, ':cid' => $cid));
+
       /* Re-order any folders that may have just been moved */
       $query = db_query("SELECT cid,folderorder from {filedepot_categories} WHERE pid=:pid ORDER BY folderorder",
         array(':pid' => $catpid));
@@ -1146,20 +1147,31 @@ function filedepotAjaxServer_updateFolder() {
     ))->fetchField();
     if ( ($pid != $catpid) && ($catpid != $cid)) {
       if ($filedepot->checkPermission($catpid, 'admin') OR user_access('administer filedepot')) {
-        db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid",
-          array(
-          ':pid' => $catpid,
-          ':cid' => $cid,
-        ));
-        // Need to force a reset of user accessible folders in case folder has been moved under a parent with restricted access
-        db_update('filedepot_usersettings')
-          ->fields(array('allowable_view_folders' => ''))
-          ->execute();
+        // Check if user is trying to set the folder's parent to a child folder - ERROR!
+        $children = $filedepot->getFolderChildren($cid);
+        if (!in_array($catpid, $children)) {
+          db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid",
+            array(
+            ':pid' => $catpid,
+            ':cid' => $cid,
+          ));
+          // Need to force a reset of user accessible folders in case folder has been moved under a parent with restricted access
+          db_update('filedepot_usersettings')
+            ->fields(array('allowable_view_folders' => ''))
+            ->execute();
 
-        // If the folder is now a top level folder - then remove it from the recent folders list as top level don't appear.
-        if (($filedepot->ogmode_enabled AND $catpid == $filedepot->ogrootfolder) OR $catpid == 0) {
-          db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid ", array(':cid' => $cid));
+          // If the folder is now a top level folder - then remove it from the recent folders list as top level don't appear.
+          if (($filedepot->ogmode_enabled AND $catpid == $filedepot->ogrootfolder) OR $catpid == 0) {
+            db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid ", array(':cid' => $cid));
+          }
         }
+        else {
+          watchdog('filedepot', "Attempt to set the parent folder for :foldername to a current child folder", array(':foldername' => $catname));
+          $retval['retcode'] = 500;
+        }
+      }
+      else {
+        $retval['retcode'] = 500;
       }
     }
 

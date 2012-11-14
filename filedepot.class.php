@@ -373,6 +373,29 @@ class filedepot {
     return $list;
   }
 
+  /* Function to return an array of category ID's for a folder
+   * Used to check when moving a folder that it's not being moved to a subfolder
+   *
+   *  Recursive function calls itself building the list
+   *
+   * @param        string     $cid         Category to lookup
+   * @param        array      $list        Array of categories
+   */
+  public function getFolderChildren($cid, &$list = array()) {
+    global $user;
+
+    $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid' => $cid));
+    while ( $A = $query->fetchAssoc()) {
+      array_push($list, $A['cid']);
+      // Check and see if this category has any sub categories - where a category record has this cid as it's parent
+      if (db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=:cid", array('cid' => $A['cid']))->fetchField() > 0) {
+        $this->getFolderChildren($A['cid'], $list);
+      }
+    }
+    return $list;
+  }
+
+
 
   public function get_user_groups()  {
     global $user;

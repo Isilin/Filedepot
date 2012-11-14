@@ -53,6 +53,10 @@ function clearAjaxActivity() {
   timerArray = new Array;
 }
 
+function clearBlockUi() {
+  setTimeout('jQuery.unblockUI()',200);
+  blockui = false;
+}
 
 
 function hideFileDetailsPanel() {
@@ -1008,8 +1012,9 @@ function makeAJAXUpdateFolderDetails(formObject) {
       if (oResults.retcode == 200) {
         makeAJAXGetFolderListing(oResults.cid);
       } else {
-        YAHOO.container.menuBar.cfg.setProperty("visible",false)
-        hideFileDetailsPanel();
+        clearBlockUi();
+        toggleElements('edit_activefolder','activefolder');
+        alert(NEXLANG_errormsg1);
       }
       updateAjaxStatus();
     },

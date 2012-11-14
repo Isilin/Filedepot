@@ -155,8 +155,8 @@ class filedepot {
            * This way db_query will only convert the curly bracket surrounding the table name.
            */
           db_query("INSERT INTO {filedepot_usersettings} (uid, allowable_view_folders, notify_newfile, notify_changedfile, allow_broadcasts) VALUES (:uid, :view, :newfile, :changed, :broadcasts)", array(
-            'uid' => $user->uid,
-            'view' => $data,
+            ':uid' => $user->uid,
+            ':view' => $data,
             ':newfile' => variable_get('filedepot_default_notify_newfile', 0),
             ':changed' => variable_get('filedepot_default_notify_filechange', 0),
             ':broadcasts' => variable_get('filedepot_default_allow_broadcasts', 0),
@@ -164,8 +164,8 @@ class filedepot {
         }
         else {
           db_query("UPDATE {filedepot_usersettings} set allowable_view_folders=:view WHERE uid=:uid", array(
-            'view' => $data,
-            'uid' => $user->uid,
+            ':view' => $data,
+            ':uid' => $user->uid,
           ));
         }
       }

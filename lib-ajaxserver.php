@@ -239,6 +239,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
 
 /* Recursive Function to display folder listing */
 function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '', $rowid = 1) {
+  global $user;
+
   $filedepot = filedepot_filedepot();
 
   $retval = '';
@@ -247,26 +249,12 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
     return;
   }
 
-  if (empty($folderprefix)) {
-    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
-      array(':cid' => $id));
-    $rec = $q1->fetchObject();
-    if ($rec AND $rec->pid != 0) {
-      $folderprefix = $rec->folderorder / 10;
-      while ($rec->pid != 0) {
-        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
-          array(':cid' => $rec->pid));
-        $rec = $q2->fetchObject();
-        if ($rec->pid == 0) {
-          break;
-        }
-        $folderprefix = $rec->folderorder / 10 . '.' . $folderprefix;
-      }
-    }
+  if ($id > 0) {
+    $folderprefix = db_query("SELECT folderprefix FROM {filedepot_folderindex} WHERE cid=:cid AND uid=:uid",
+      array(':cid' => $id, ':uid' => $user->uid))->fetchField();
   }
-
-  if (empty($folderprefix)) {
-    $folderprefix = 0;
+  else {
+    $folderprefix = '';
   }
 
   $level++;
@@ -330,6 +318,8 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
 
 
 function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
+  global $user;
+
   $filedepot = filedepot_filedepot();
 
   $filedepot->selectedTopLevelFolder = $cid;
@@ -339,23 +329,11 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
   $output = '';
   $break = FALSE;
   if (empty($folderprefix)) {
-    $q1 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
-      array(':cid' => $cid));
-    $rec = $q1->fetchObject();
-    if ($rec AND $rec->pid != 0) {
-      $folderprefix = $rec->folderorder / 10;
-      while ($rec->pid != 0) {
-        $q2 = db_query("SELECT cid,pid,folderorder FROM {filedepot_categories} WHERE cid=:cid",
-          array(':cid' => $rec->pid));
-        $rec2 = $q2->fetchObject();
-        if ($rec2->pid == 0) {
-          break;
-        }
-        $folderprefix = $rec2->folderorder / 10 . '.' . $folderprefix;
-      }
-    }
+    $folderprefix = db_query("SELECT folderprefix FROM {filedepot_folderindex} WHERE cid=:cid AND uid=:uid",
+      array(':cid' => $cid, ':uid' => $user->uid))->fetchField();
   }
   $i = 0;
+
   while ( $A = $file_query->fetchAssoc()) {
     if ($filedepot->activeview == 'approvals') {
       $A['fid'] = $A['id'];
@@ -363,6 +341,16 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
 
     if (empty($fid) or empty($files) OR !in_array($fid, $files)) {
       $i++;
+
+      // Existing folders where fileorder has not yet been set
+      if ($filedepot->activeview != 'latestfiles' AND $A['fileorder'] != $i * 10) {
+          $A['fileorder'] = $i * 10;
+          db_query("UPDATE {filedepot_files} set fileorder=:order WHERE fid=:fid", array(
+            ':order' => $A['fileorder'],
+            ':fid' => $A['fid'],
+          ));
+      }
+
       $more_records_message = '';
       if ($filedepot->ajaxBackgroundMode == TRUE AND $i >= $filedepot->recordCountPass1) {
         $break = TRUE;
@@ -472,10 +460,11 @@ function filedepot_getFileListingSQL($cid) {
     }
   }
 
-  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,";
+  $sql = "SELECT file.fid as fid,file.cid,file.title,file.fname,file.date,file.version,file.submitter,file.status,file.fileorder,folderindex.folderprefix,";
   $sql .= "file.description,category.name as foldername,category.pid,category.nid,category.last_modified_date,status_changedby_uid as changedby_uid, size ";
   $sql .= "FROM {filedepot_files} file ";
   $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
+  $sql .= "LEFT JOIN {filedepot_folderindex} folderindex ON file.cid=folderindex.cid AND folderindex.uid = {$user->uid} ";
   if ($filedepot->activeview == 'lockedfiles') {
     $sql .= "WHERE file.status=2 AND status_changedby_uid={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {

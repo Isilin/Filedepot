@@ -335,9 +335,9 @@ function template_preprocess_filedepot_filelisting(&$variables) {
 
   $variables['folder_link'] = url('filedepot', array('query' => array('cid' => $rec['cid']), 'absolute' => true));
   $variables['folder_name'] = filter_xss($rec['foldername']);
-  $filenum = $variables['id'] + $filedepot->folder_filenumoffset;
+  $filenum = $rec['fileorder']/10;
   if (variable_get('filedepot_show_index_enabled', 1) == 1) { // Check admin config setting
-    $variables['file_number'] = "{$variables['foldernumber']}.{$filenum}";
+    $variables['file_number'] = "{$rec['folderprefix']}.{$filenum}";
   }
   else {
     $variables['file_number'] = '';

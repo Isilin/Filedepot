@@ -332,6 +332,8 @@ class filedepot {
         $categories[] = $A['catid'];
       }
     }
+    watchdog('filedepot', "Recreate folder index for user: {$user->uid}");
+    $this->getRecursiveCatIDs($categories, 0, 'view' ,FALSE, TRUE);
     if ($returnstring AND count($categories) > 0) {
       $retval = implode(',', $categories);
     }
@@ -343,7 +345,7 @@ class filedepot {
   }
 
 
-  /* Function to return and array of subcategories - used to generate a list of folders
+  /* Function to return an array of subcategories - used to generate a list of folders
    * under the OG Root Group assigned folder.
    *
    *  Recursive function calls itself building the list
@@ -353,20 +355,62 @@ class filedepot {
    * @param        string     $perms       Permissions to check if user has access to catgegory
    * @param        boolean    $override    Set to TRUE only if you don't want to test for permissions
    */
-  public function getRecursiveCatIDs(&$list, $cid, $perms, $override = false) {
-    $filedepot = filedepot_filedepot();
+  public function getRecursiveCatIDs(&$list, $cid, $perms, $override = false, $createFolderIndex = false, $folderprefixroot = '') {
+    global $user;
+
     $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid' => $cid));
+    $i = 0;
     while ( $A = $query->fetchAssoc()) {
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
       if (db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=:cid", array('cid' => $A['cid']))->fetchField() > 0) {
         if ($override === TRUE OR $this->checkPermission($A['cid'], $perms)) {
+          $i++;
           array_push($list, $A['cid']);
-          $this->getRecursiveCatIDs($list, $A['cid'], $perms, $override);
+          if ($createFolderIndex) {
+            if (empty($folderprefixroot)) {
+              $folderprefix = "{$i}";
+            } else {
+              $folderprefix = "{$folderprefixroot}.{$i}";
+            }
+            db_delete('filedepot_folderindex')
+            ->condition('uid', $user->uid)
+            ->condition('cid', $A['cid'])
+            ->execute();
+            $q2 = db_insert('filedepot_folderindex');
+            $q2->fields(array('cid', 'uid', 'folderprefix'));
+            $q2->values(array(
+              'cid' => $A['cid'],
+              'uid' => $user->uid,
+              'folderprefix' => $folderprefix,
+            ));
+            $q2->execute();
+           }
+          $this->getRecursiveCatIDs($list, $A['cid'], $perms, $override, $createFolderIndex, $folderprefix);
         }
       }
       else {
         if ($override === TRUE OR $this->checkPermission($A['cid'], $perms)) {
+          $i++;
           array_push($list, $A['cid']);
+          if ($createFolderIndex) {
+            if (empty($folderprefixroot)) {
+              $folderprefix = "{$i}";
+            } else {
+              $folderprefix = "{$folderprefixroot}.{$i}";
+            }
+            db_delete('filedepot_folderindex')
+            ->condition('uid', $user->uid)
+            ->condition('cid', $A['cid'])
+            ->execute();
+            $q2 = db_insert('filedepot_folderindex');
+            $q2->fields(array('cid', 'uid', 'folderprefix'));
+            $q2->values(array(
+              'cid' => $A['cid'],
+              'uid' => $user->uid,
+              'folderprefix' => $folderprefix,
+            ));
+            $q2->execute();
+           }
         }
       }
     }

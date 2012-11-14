@@ -409,6 +409,13 @@ $schema['filedepot_files'] = array(
       'not null' => TRUE,
       'default' => 1,
     ),
+    'fileorder' => array(
+      'description' => ('File order in the folder'),
+      'type' => 'int',
+      'size' => 'small',
+      'not null' => TRUE,
+      'default' => 0,
+    ),
     'drupal_fid' => array(
       'description' => ('Drupal file id also called fid in the drupal tables'),
       'type' => 'int',
@@ -720,6 +727,35 @@ $schema['filedepot_recentfolders'] = array(
     'uid' => array('uid'),
   ),
 );
+
+$schema['filedepot_folderindex'] = array(
+  'description' => ('Maintains the folder index for each user'),
+  'fields' => array(
+    'cid' => array(
+      'description' => ('Folder or category ID'),
+      'type' => 'int',
+      'size' => 'medium',
+      'not null' => TRUE,
+    ),
+    'uid' => array(
+      'description' => ('User ID'),
+      'type' => 'int',
+      'size' => 'medium',
+      'not null' => TRUE,
+    ),
+    'folderprefix' => array(
+      'description' => ('Folder index base value'),
+      'type' => 'varchar',
+      'length' => '255',
+      'default' => '',
+    ),
+  ),
+  'indexes' => array(
+    'cid' => array('cid'),
+    'uid' => array('uid'),
+  ),
+);
+
 
 
 $schema['filedepot_filesubmissions'] = array(
@@ -1295,12 +1331,33 @@ function filedepot_update_7001() {
 }
 
 /**
- * Change the remote_ip filed to support IPV6 
+ * Change the remote_ip filed to support IPV6
  */
 function filedepot_update_7002() {
   db_change_field('filedepot_downloads', 'remote_ip', 'remote_ip',
       array('type' => 'varchar', 'not null' => TRUE, 'length' => '50', 'default' => ''
   ));
-  
-
 }
+
+/**
+ * Add the folderindex table to provider a user based folder index
+ */
+function filedepot_update_7003() {
+  db_create_table('filedepot_folderindex', drupal_get_schema_unprocessed('filedepot', 'filedepot_folderindex'));
+}
+
+
+/**
+ * Add the fileorder field to track the fileorder in a folder
+ */
+function filedepot_update_7004() {
+  $spec = array(
+      'description' => ('TODO: please describe this field!'),
+      'type' => 'int',
+      'size' => 'small',
+      'not null' => TRUE,
+      'default' => 0,
+  );
+  db_add_field( 'filedepot_files', 'fileorder', $spec);
+}
+

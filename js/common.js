@@ -2059,7 +2059,11 @@ function showAddCategoryPanel() {
 };
 
 
-
+/**
+ * Turn JSON data of reports and folders into YUI TreeView
+ *
+ * @param oResults string JSON
+ */
 function renderLeftNavigation(oResults) {
 
   try {
@@ -2072,65 +2076,83 @@ function renderLeftNavigation(oResults) {
     YAHOO.container.newfolderdialog.hide();
   } catch (e) {}
 
+  // Destroy any current tree view. Is rebuilding nodes cheaper?
+  var curTree = YAHOO.widget.TreeView.getTree('filedepotNavTreeDiv');
+  if (curTree) {
+    curTree.destroy();
+    curTree = null;
+  }
 
   var tree = new YAHOO.widget.TreeView("filedepotNavTreeDiv");
   var root = tree.getRoot();
-  if((oResults.reports) && (oResults.reports.length)) {
-    //Result is an array if more than one result, string otherwise
-    if(YAHOO.lang.isArray(oResults.reports)) {
-      var reportlinks = new YAHOO.widget.TextNode(NEXLANG_intelfolder1, root, true);
-      reportlinks.labelStyle = "icon-files";
-      for (var i=0; i<oResults.reports.length; i++) {
-        eval('var menuobj = { label: "' + oResults.reports[i]['name'] + '", href:"' + oResults.reports[i]['link'] + '" }');
-        var tempNode = new YAHOO.widget.TextNode(menuobj, reportlinks, false);
-        tempNode.labelStyle = oResults.reports[i]['icon'];
-      }
-    }
+
+  // Reports
+  var reports = new YAHOO.widget.TextNode(NEXLANG_intelfolder1, root, true);
+  reports.labelStyle = "icon-files";
+  for (var i = 0; i < oResults.reports.length; i++) {
+    new YAHOO.widget.TextNode({
+      label: oResults.reports[i]['label'],
+      labelStyle: oResults.reports[i]['icon'],
+      report: oResults.reports[i]['report'],
+      cid: 0
+    }, reports, false);
   }
 
-  if((oResults.recentfolders) && (oResults.recentfolders.length)) {
-    //Result is an array if more than one result, string otherwise
-    if(YAHOO.lang.isArray(oResults.recentfolders)) {
-      var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
-      recentfolders.labelStyle = "icon-allfolders";
-      for (var i=0; i<oResults.recentfolders.length; i++) {
-        eval('var menuobj = { label: "' + oResults.recentfolders[i]['name'] + '", href:"' + oResults.recentfolders[i]['link'] + '" }');
-        var tempNode = new YAHOO.widget.TextNode(menuobj, recentfolders, false);
-        tempNode.labelStyle = oResults.recentfolders[i]['icon'];
-      }
-    }
+  // Recent Folders
+  var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
+  recentfolders.labelStyle = "icon-allfolders";
+  for (var i = 0; i < oResults.recentfolders.length; i++) {
+    new YAHOO.widget.TextNode({
+      label: oResults.recentfolders[i]['label'],
+      labelStyle: oResults.recentfolders[i]['icon'],
+      report: '',
+      cid: oResults.recentfolders[i]['cid']
+    }, recentfolders, false);
   }
 
-
-  if((oResults.topfolders) && (oResults.topfolders.length)) {
-    //Result is an array if more than one result, string otherwise
-    if(YAHOO.lang.isArray(oResults.topfolders)) {
-      var topfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder3, root, true);
-      topfolders.labelStyle = "icon-allfolders";
-      for (var i=0; i<oResults.topfolders.length; i++) {
-        eval('var menuobj = { label: "' + oResults.topfolders[i]['name'] + '", href:"' + oResults.topfolders[i]['link'] + '" }');
-        var tempNode = new YAHOO.widget.TextNode(menuobj, topfolders, false);
-        tempNode.labelStyle = oResults.topfolders[i]['icon'];
-      }
-    }
+  // Top Folders
+  var topfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder3, root, true);
+  topfolders.labelStyle = "icon-allfolders";
+  for (var i = 0; i < oResults.topfolders.length; i++) {
+    new YAHOO.widget.TextNode({
+      label: oResults.topfolders[i]['label'],
+      labelStyle: oResults.topfolders[i]['icon'],
+      report: '',
+      cid: oResults.topfolders[i]['cid']
+    }, topfolders, false);
   }
 
-  tree.subscribe('clickEvent', function(oArgs) {
-    if (Dom.get('filedepot_alert').style.display != 'none')
-      closeAlert();
-    var hrefparts = oArgs.node.href.split('=');
-    if (hrefparts[0] == 'reportmode') {
-      document.frmtoolbar.reportmode.value=hrefparts[1];
-      document.frmtoolbar.cid.value = 0;
+  tree.subscribe('labelClick', prepareAction);
+  tree.subscribe('enterKeyPressed', prepareAction);
+
+  function prepareAction(node) {
+    if (node.data.report || node.data.cid) {
+      var actions = document.frmtoolbar;
+      actions.reportmode.value = node.data.report;
+      actions.cid.value = node.data.cid;
+
+      if (Dom.get('filedepot_alert').style.display != 'none') {
+        closeAlert();
+      }
+
       YAHOO.filedepot.showfiles();
-    } else if (hrefparts[0] == 'cid') {
-      document.frmtoolbar.cid.value=hrefparts[1];
-      document.frmtoolbar.reportmode.value='';
-      YAHOO.filedepot.showfiles();
     }
-    return true;
-  });
+  }
   tree.render();
+
+  // Force focus of tree items when tabbing
+  var anchors = tree.getEl().getElementsByTagName("a");
+  for (var anchorIndex = 0; anchorIndex < anchors.length; anchorIndex++) {
+    var anchor = anchors[anchorIndex];
+    Event.on(anchor, 'focus', function (ev) {
+        var target = Event.getTarget(ev);
+        var node = tree.getNodeByElement(target);
+        node.focus();
+      },
+      tree,
+      true
+    );
+  }
 
 }
 
@@ -2382,13 +2404,11 @@ YAHOO.filedepot.showfiles = function(cid) {
 
         //YAHOO.log('showfiles: initiate rendering leftside navigation:' + timeDiff.getDiff() + 'ms');
         updateAjaxStatus(NEXLANG_refreshmsg + timeDiff.getDiff() + 'ms');
-        YAHOO.filedepot.showLeftNavigation();
         //YAHOO.log('showfiles: completed function:' + timeDiff.getDiff() + 'ms');
 
       } else if (oResults.retcode == 401) {   // No permissions to view this category
         Dom.get('filedepot_alert_content').innerHTML = oResults.error;
         Dom.setStyle('filedepot_alert','display','');
-        YAHOO.filedepot.showLeftNavigation();
       } else {
         alert(NEXLANG_errormsg6 + oResults.retcode);
       }

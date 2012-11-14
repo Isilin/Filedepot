@@ -95,7 +95,10 @@ function filedepotAjaxServer_getfilelisting() {
 }
 
 
-/* Generate Left Side Navigation code which is used to create the YUI menu's in the AJAX handler javascript */
+/**
+ * Generate Left Side Navigation code which is used to create the YUI menu's in
+ * the AJAX handler javascript.
+ */
 function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   global $user;
   $filedepot = filedepot_filedepot();
@@ -107,47 +110,48 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   $approvals = filedepot_getSubmissionCnt();
 
   $data['reports'] = array();
+  $data['recentfolders'] = array();
   $data['topfolders'] = array();
   $data['reports'][] = array(
-    'name' => t('Latest Files'),
-    'link' => "reportmode=latestfiles",
+    'label' => t('Latest Files'),
+    'report' => 'latestfiles',
     'parent' => 'allitems',
     'icon' => 'icon-filelisting',
   );
   if (user_is_logged_in()) {
     $data['reports'][] = array(
-      'name' => t('Notifications'),
-      'link' => "reportmode=notifications",
+      'label' => t('Notifications'),
+      'report' => 'notifications',
       'parent' => 'allitems',
       'icon' => 'icon-fileowned',
     );
     $data['reports'][] = array(
-      'name' => t('Owned by me'),
-      'link' => "reportmode=myfiles",
+      'label' => t('Owned by me'),
+      'report' => 'myfiles',
       'parent' => 'allitems',
       'icon' => 'icon-fileowned',
     );
     $data['reports'][] = array(
-      'name' => t('Downloaded by me'),
-      'link' => "reportmode=downloads",
+      'label' => t('Downloaded by me'),
+      'report' => 'downloads',
       'parent' => 'allitems',
       'icon' => 'icon-fileowned',
     );
     $data['reports'][] = array(
-      'name' => t('Unread Files'),
-      'link' => "reportmode=unread",
+      'label' => t('Unread Files'),
+      'report' => 'unread',
       'parent' => 'allitems',
       'icon' => 'icon-fileowned',
     );
     $data['reports'][] = array(
-      'name' => t('Locked by me'),
-      'link' => "reportmode=lockedfiles",
+      'label' => t('Locked by me'),
+      'report' => 'lockedfiles',
       'parent' => 'allitems',
       'icon' => 'icon-filelocked',
     );
     $data['reports'][] = array(
-      'name' => t('Flagged by me'),
-      'link' => "reportmode=flaggedfiles",
+      'label' => t('Flagged by me'),
+      'report' => 'flaggedfiles',
       'parent' => 'allitems',
       'icon' => 'icon-fileflagged',
     );
@@ -155,8 +159,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   if ($approvals > 0) {
     $approvals = "&nbsp;($approvals)";
     $data['reports'][] = array(
-      'name' => t('Waiting approval') . "$approvals",
-      'link' => "reportmode=approvals",
+      'label' => t('Waiting approval') . "$approvals",
+      'report' => 'approvals',
       'parent' => 'allitems',
       'icon' => 'icon-fileowned',
     );
@@ -175,8 +179,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
     if ($A['incoming'] > 0) {
       $incoming_msg = "&nbsp;({$A['incoming']})";
       $data['reports'][] = array(
-        'name' => t('Incoming Files') . "$incoming_msg",
-        'link' => "reportmode=incoming",
+        'label' => t('Incoming Files') . "$incoming_msg",
+        'report' => 'incoming',
         'parent' => 'allitems',
         'icon' => 'icon-fileowned',
       );
@@ -196,8 +200,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
     $res = db_query($sql, array(':uid' => $user->uid));
     while ($A = $res->fetchAssoc()) {
       $data['recentfolders'][] = array(
-        'name' => filter_xss($A['name']),
-        'link' => "cid={$A['cid']}",
+        'label' => filter_xss($A['name']),
+        'cid' => $A['cid'],
         'icon' => 'icon-allfolders',
       );
     }
@@ -216,8 +220,8 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   while ($A = $res->fetchAssoc()) {
     if ($filedepot->checkPermission($A['cid'], 'view')) {
       $data['topfolders'][] = array(
-        'name' => filter_xss($A['name']),
-        'link' => "cid={$A['cid']}",
+        'label' => filter_xss($A['name']),
+        'cid' => $A['cid'],
         'parent' => 'allfolders',
         'icon' => 'icon-allfolders',
       );

@@ -310,6 +310,7 @@ var init_filedepot = function() {
   if (initialcid == '') {
     document.frmtoolbar.reportmode.value = 'latestfiles';
   }
+  YAHOO.filedepot.showLeftNavigation();
   YAHOO.filedepot.showfiles(initialcid);
 
   // Browser may have cached selected items and checked checkbox'es but verify and reset if need

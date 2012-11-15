@@ -360,6 +360,7 @@ class filedepot {
 
     $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid' => $cid));
     $i = 0;
+    $folderprefix = '';
     while ( $A = $query->fetchAssoc()) {
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
       if (db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=:cid", array('cid' => $A['cid']))->fetchField() > 0) {

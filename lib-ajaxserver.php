@@ -475,7 +475,7 @@ function filedepot_getFileListingSQL($cid) {
   elseif ($filedepot->activeview == 'downloads') {
     // Will return multiple records for same file as we capture download records each time a user downloads it
     $sql .= "LEFT JOIN {filedepot_downloads} downloads on downloads.fid=file.fid ";
-    $sql .= "WHERE uid={$user->uid} ";
+    $sql .= "WHERE downloads.uid={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
@@ -507,7 +507,7 @@ function filedepot_getFileListingSQL($cid) {
   }
   elseif ($filedepot->activeview == 'flaggedfiles') {
     $sql .= "LEFT JOIN {filedepot_favorites} favorites on favorites.fid=file.fid ";
-    $sql .= "WHERE uid={$user->uid} ";
+    $sql .= "WHERE favorites.uid={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }

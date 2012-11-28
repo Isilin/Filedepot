@@ -554,21 +554,17 @@ function filedepot_is_ogmode_enabled() {
  */
 function filedepot_libraryfix_message() {
   return <<<MSG
-  Error loading Filedepot (missing library files jquery.blockui and html_encoder).
-    <br />
-  <br />
-  To fix this issue, assuming your libraries folder is located at sites/all/libraries, create the following directories:
-  <br />
-  - sites/all/libraries/html_encoder
-  <br />
-  - sites/all/libraries/jquery.blockui
-  <br />
-  <br />
-  The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
-  <br />
-   > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: sites/all/libraries/html_encoder/html_encoder.js
-   <br />
-   > http://malsup.github.com/jquery.blockUI.js  - SAVE FILE as sites/all/libraries/jquery.blockui/jquery.blockui.js
+  <p>Error loading Filedepot (missing library files jquery.blockui and html_encoder).</p>
+  To fix this issue, assuming your libraries folder is located at sites/all/libraries, <b>create the following directories</b>:
+  <ul style="margin-bottom:10px;">
+  <li style="margin-left:20px;">sites/all/libraries/html_encoder</li>
+  <li style="margin-left:20px;">sites/all/libraries/jquery.blockui</li>
+  </ul>
+  The following javascript files need to be retrieved and saved to their respective folders under sites/all/libraries.
+  <ul>
+  <li style="margin-left:20px;">http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: <b>sites/all/libraries/html_encoder/html_encoder.js</b></li>
+  <li style="margin-left:20px;">http://malsup.github.com/jquery.blockUI.js  - SAVE FILE as <b>sites/all/libraries/jquery.blockui/jquery.blockui.js</b></li>
+  </ul>
 MSG;
 }
 

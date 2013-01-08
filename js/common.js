@@ -599,7 +599,10 @@ function checkMultiAction(selectoption) {
     YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
-  } else {
+  } else if (selectoption == 0) {
+    return false;
+  }
+  else {
     return true;
   }
 }

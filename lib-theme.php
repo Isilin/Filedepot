@@ -879,6 +879,7 @@ function template_preprocess_filedepot_notifications_history(&$variables) {
     '@type' => $filedepot->notificationTypes[$rec['notification_type']],
   )
   );
+  $variables['file_title'] = filter_xss($rec['title']);
   $variables['submitter_uid'] = $rec['submitter_uid'];
   $variables['submitter_name'] = $rec['name'];
   $variables['file_name'] = filter_xss($rec['fname']);
@@ -990,7 +991,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
   // Generate the user notification history - last 100 records
 
 
-  $sql = "SELECT a.submitter_uid,a.notification_type,a.fid,b.fname,a.cid,c.name,a.datetime,d.name "
+  $sql = "SELECT a.submitter_uid,a.notification_type,a.fid,b.fname,b.title,a.cid,c.name,a.datetime,d.name "
   . "FROM {filedepot_notificationlog} a "
   . "LEFT JOIN {filedepot_files} b ON b.fid=a.fid "
   . "LEFT JOIN {filedepot_categories} c ON c.cid=a.cid "

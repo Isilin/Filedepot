@@ -1001,7 +1001,7 @@ function template_preprocess_filedepot_notifications(&$variables) {
   $query = db_query($sql);
   $cssid = 1;
   while ($A = $query->fetchAssoc()) {
-    $variables['history_records'] .= theme('filedepot_notifications_history', $A);
+    $variables['history_records'] .= theme('filedepot_notifications_history', array('rec' => $A));
   }
 }
 

@@ -794,7 +794,8 @@ function filedepotAjaxServer_loadFileDetails() {
         }
         $retval['notifyperm'] = TRUE;
       }
-      if ($filedepot->checkPermission($retval['cid'], 'view', 0, FALSE)) {
+      // Changed 
+      if ($filedepot->checkPermission($retval['cid'], 'view', 0, TRUE)) {
         $retval['tagperms'] = TRUE; // Able to set or change tags
         if ($retval['locked']) {
           if ($retval['submitter'] == $user->uid OR $retval['status_changedby_uid'] == $user->uid) {

@@ -269,18 +269,22 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
 
   if ($id > 0 OR !empty($sql)) {
     // Show any subfolders and check and see if this is a custom report
-
+    $override_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name,' : '') . ' folderorder' ;
+    $roverride_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name DESC,' : '') . ' folderorder DESC' ;
+    
     if (empty($sql)) {
       $sql  = "SELECT DISTINCT cid,pid,name,description,folderorder,last_modified_date FROM {filedepot_categories} WHERE pid=:pid ";
       if (!empty($filedepot->allowableViewFoldersSql)) {
         $sql .= "AND cid in ({$filedepot->allowableViewFoldersSql}) ";
       }
-      $sql .= "ORDER BY folderorder";
+      
+      $sql .= $override_order;
     }
+
     $qfolders = db_query($sql, array(':pid' => $id));
     $output = '';
     $i = $rowid;
-    $maxfolderorder = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ORDER BY folderorder DESC",
+    $maxfolderorder = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid " . $roverride_order,
       0, 1, array(':pid' => $id))->fetchField();
     while ($A = $qfolders->fetchAssoc()) {
       if (empty($folderprefix)) {
@@ -450,7 +454,8 @@ function filedepot_displayTagSearchListing($query) {
 function filedepot_getFileListingSQL($cid) {
   global $user;
   $filedepot = filedepot_filedepot();
-
+  
+  $oo = variable_get('filedepot_override_folderorder', 0) ? 'file.fname,' : '';
   $sql = '';
   // Check and see if this is a custom report
   if (function_exists('filedepot_customReportFilesSQL')) {
@@ -470,7 +475,8 @@ function filedepot_getFileListingSQL($cid) {
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    
+    $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
   }
   elseif ($filedepot->activeview == 'downloads') {
     // Will return multiple records for same file as we capture download records each time a user downloads it
@@ -479,7 +485,7 @@ function filedepot_getFileListingSQL($cid) {
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
   }
   elseif ($filedepot->activeview == 'unread') {
     $sql .= "LEFT OUTER JOIN {filedepot_downloads} downloads on downloads.fid=file.fid ";
@@ -492,7 +498,7 @@ function filedepot_getFileListingSQL($cid) {
     else {
       $sql .= "AND file.cid in ({$filedepot->allowableViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
 
   }
   elseif ($filedepot->activeview == 'incoming') {
@@ -502,7 +508,7 @@ function filedepot_getFileListingSQL($cid) {
     if (!user_access('administer filedepot', $user)) {
       $sql .= "WHERE uid={$user->uid} ";
     }
-    $sql .= "ORDER BY date DESC ";
+    $sql .= "ORDER BY {$oo} file.date DESC ";
 
   }
   elseif ($filedepot->activeview == 'flaggedfiles') {
@@ -511,13 +517,15 @@ function filedepot_getFileListingSQL($cid) {
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
+    
+    $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
   }
   elseif ($filedepot->activeview == 'myfiles') {
     $sql .= "WHERE file.submitter={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
 
   }
   elseif ($filedepot->activeview == 'approvals') {
@@ -538,11 +546,11 @@ function filedepot_getFileListingSQL($cid) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
       }
     }
-    $sql .= "ORDER BY file.date DESC ";
+    $sql .= "ORDER BY {$oo} file.date DESC ";
 
   }
   elseif ($cid > 0) {
-    $sql .= "WHERE file.cid={$cid} ORDER BY file.date DESC, file.fid DESC ";
+    $sql .= "WHERE file.cid={$cid} ORDER BY {$oo} file.date DESC, file.fid DESC ";
     if ($filedepot->activeview == 'getmorefolderdata') {
       if (isset($_POST['pass2']) AND $_POST['pass2'] == 1) {
         if (db_driver() == 'pgsql') {
@@ -605,7 +613,15 @@ function filedepot_getFileListingSQL($cid) {
         }
       }
     }
-    $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    
+    if ($filedepot->activeview == 'latestfiles')
+    {
+      $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    }
+    else
+    {
+      $sql .= "ORDER BY {$oo} file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+    }
   }
 
   return $sql;
@@ -794,6 +810,7 @@ function filedepotAjaxServer_loadFileDetails() {
         }
         $retval['notifyperm'] = TRUE;
       }
+      
       // Changed 
       if ($filedepot->checkPermission($retval['cid'], 'view', 0, TRUE)) {
         $retval['tagperms'] = TRUE; // Able to set or change tags

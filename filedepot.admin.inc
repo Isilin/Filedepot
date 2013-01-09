@@ -135,8 +135,15 @@ function filedepot_admin_settings() {
   $form['options']['filedepot_show_index_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display the index numbers in the listing of folders and files'),
-    '#default_value' => variable_get('filedepot_show_index_enabled', 1),
+    '#default_value' => variable_get('filedepot_show_index_enabled', 0),
     '#description' => t('If enabled, the display will show the index numbers before folder and file names.'),
+  );
+  
+  $form['options']['filedepot_override_folderorder'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use alphabetic ordering instead of the specified order'),
+    '#default_value' => variable_get('filedepot_override_folderorder', 1),
+    '#description' => t('If enabled, all folders and files will be sorted alphabetically overriding the specified order.'),
   );
 
   $form['filetype_filter'] = array(

@@ -267,7 +267,8 @@ function filedepot_uninstall() {
   if (@is_dir($filedepot->root_storage_path) === TRUE) {
     filedepot_delTree($filedepot->root_storage_path);
   }
-
+  
+  variable_del('filedepot_override_folderorder');
   variable_del('filedepot_content_type_initialized');
   variable_del('filedepot_default_allow_broadcasts');
   variable_del('filedepot_default_notify_filechange');

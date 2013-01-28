@@ -138,12 +138,12 @@ function filedepot_admin_settings() {
     '#default_value' => variable_get('filedepot_show_index_enabled', 0),
     '#description' => t('If enabled, the display will show the index numbers before folder and file names.'),
   );
-  
+
   $form['options']['filedepot_override_folderorder'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use alphabetic ordering instead of the specified order'),
+    '#title' => t('Use alphabetic ordering instead of the default settings'),
     '#default_value' => variable_get('filedepot_override_folderorder', 1),
-    '#description' => t('If enabled, all folders and files will be sorted alphabetically overriding the specified order.'),
+    '#description' => t('If enabled, all folders and files will be sorted alphabetically overriding the default settings. Default is to provide an admin setting for the folder order and files displayed in descending date order.'),
   );
 
   $form['filetype_filter'] = array(

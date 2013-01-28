@@ -28,10 +28,12 @@
           <td width="100"><?php print $LANG_description ?>:</td>
           <td><textarea name="catdesc" class="form-textarea" rows="3" style="width:265px;font-size:10pt;"><?php print $folder_description ?></textarea></td>
         </tr>
+        <?php if(variable_get('filedepot_override_folderorder', 0) == 0) { ?>
         <tr>
           <td width="100"><?php print $LANG_folderorder ?>:</td>
           <td><input type="text" name="folderorder" class="form-text" value="<?php print $folderorder ?>" size="5"><span class="pluginTinyText" style="padding-left:10px;"><?php print $LANG_folderordermsg ?></span></td>
         </tr>
+        <?php } ?>
         <tr>
           <td colspan="2">
             <div style="float:left;width:200px;"><?php print $LANG_newfiles ?></div>

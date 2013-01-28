@@ -61,16 +61,17 @@ Install
 
    *** PLEASE read carefully and create the required diretories (folders) and rename the files as noted below ***
 
-   *** One of the changes with version 2 of the libraries module appears that it now requires you to create separate folders under
-   sites/all/libraries for each library file with the folder name the same as the library file.
+   2.1) You need to create separate folders under sites/all/libraries for each new library with the folder name the same as the library file.
 
-   *** Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
-    - sites/all/libraries/html_encoder
-    - sites/all/libraries/jquery.blockui
+   2.2) Folder names and filenames are all in lowercase
 
-   The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
-   > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder/html_encoder.js
-   > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui/jquery.blockui.js
+   2.3) Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
+         - sites/all/libraries/html_encoder
+         - sites/all/libraries/jquery.blockui
+
+   2.4) The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
+        > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder/html_encoder.js
+        > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui/jquery.blockui.js
 
 3) Check that your site has the Private file system path setup.
    Filedepot uses the private file system for it's file repository and is required.

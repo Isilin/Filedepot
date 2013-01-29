@@ -59,7 +59,7 @@ Install
 
    You will need to create a sites/all/libraries folder if you don't already have the libraries module installed.
 
-   *** PLEASE read carefully and create the required diretories (folders) and rename the files as noted below ***
+   *** PLEASE read carefully and create the required directories (folders) and rename the files as noted below ***
 
    2.1) You need to create separate folders under sites/all/libraries for each new library with the folder name the same as the library file.
 

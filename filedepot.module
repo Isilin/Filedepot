@@ -1684,10 +1684,15 @@ function template_preprocess_filedepot_main_page(&$variables) {
   drupal_add_js(array(
     'filedepot-newfile-dialog-style' => array(
       'modalSize' => array(
-        'type' => 'scale',
+        'type' => 'fixed',
+        'width' => 650,
+        'height' => 500,
       ),
-      'closeText' => '',
-      'closeImage' => '',
+      'modalOptions' => array(
+        'opacity' => .6,
+        'background' => '#333333'
+        ),
+      'closeText' => t('Close'),
     ),
   ), 'setting');
 
@@ -1698,8 +1703,11 @@ function template_preprocess_filedepot_main_page(&$variables) {
         'width' => 625,
         'height' => 330,
       ),
-      'closeText' => '',
-      'closeImage' => '',
+      'modalOptions' => array(
+        'opacity' => .6,
+        'background' => '#333333'
+        ),
+      'closeText' => t('Close'),
     ),
   ), 'setting');
 
@@ -1921,6 +1929,7 @@ function filedepot_newfile_dialog($js = NULL) {
   ctools_include('modal');
   ctools_include('ajax');
   ctools_add_js('ajax-responder');
+  drupal_add_css(drupal_get_path('module', 'filedepot') . '/css/filedepot_ctools.css');
   $form_state = array(
     'title' => t('New File'),
     'ajax' => TRUE,
@@ -2275,6 +2284,7 @@ function filedepot_newfolder_dialog($js = NULL) {
   ctools_include('modal');
   ctools_include('ajax');
   ctools_add_js('ajax-responder');
+  drupal_add_css(drupal_get_path('module', 'filedepot') . '/css/filedepot_ctools.css');
   $form_state = array(
     'title' => t('Add a new folder'),
     'ajax' => TRUE,
@@ -2317,7 +2327,7 @@ function filedepot_newfolder_form($form, &$form_state) {
 
   if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
     $parentFolders = array($filedepot->ogrootfolder => 'Top Level Folder');
-  } 
+  }
   elseif (user_access('administer filedepot', $user)) {
     $parentFolders = array(0 => 'Top Level Folder');
   }

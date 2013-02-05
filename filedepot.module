@@ -1316,11 +1316,13 @@ function filedepot_file_download() {
   global $user;
 
   $op = arg(0);
+
   if ($op == 'filedepot_download') {
     $fid = intval(arg(2));
     $version = intval(arg(3));
     $mode = arg(4);
   }
+
   elseif ($op == 'system') {
     // Download of node attachment from native drupal view content page - folder node view
     if (arg(4) == 'submissions') {
@@ -1353,6 +1355,8 @@ function filedepot_file_download() {
       $version = db_query("SELECT version FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
       $mode = '';
     }
+  } else {
+    return NULL;
   }
 
   if ($fid > 0) {

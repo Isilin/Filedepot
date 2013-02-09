@@ -56,22 +56,24 @@ Install
 2) We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
 
    The filedepot module requires the libraries module be installed and works with version 1 or version 2 of the libraries module.
-
    You will need to create a sites/all/libraries folder if you don't already have the libraries module installed.
+   If you have drush installed, you will want to use the build in drush command to download and install the 3rd party libraries
 
+   MANUAL METHOD
    *** PLEASE read carefully and create the required directories (folders) and rename the files as noted below ***
 
-   2.1) You need to create separate folders under sites/all/libraries for each new library with the folder name the same as the library file.
-
-   2.2) Folder names and filenames are all in lowercase
-
-   2.3) Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
+   i) You need to create separate folders under sites/all/libraries for each new library with the folder name the same as the library file.
+   ii) Folder names and filenames are all in lowercase
+   iii) Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:
          - sites/all/libraries/html_encoder
          - sites/all/libraries/jquery.blockui
-
-   2.4) The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
+   iv) The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.
         > http://www.strictly-software.com/scripts/downloads/encoder.js  - SAVE FILE as: html_encoder/html_encoder.js
         > http://jquery.malsup.com/block/#download  - SAVE FILE as jquery.blockui/jquery.blockui.js
+
+   AUTOMATIC METHOD - using drush
+   - Use the drush filedepot-libraries command to download and install the two required 3rd party javascript libraries.
+   - If you enable the module using drush, it will automatically run the drush command to install the 3rd party libraries.
 
 3) Check that your site has the Private file system path setup.
    Filedepot uses the private file system for it's file repository and is required.
@@ -114,7 +116,7 @@ Organic Group Mode and OG settings
 
   Example URL's to view folders and files in OG Mode (OG Root folder):
     {site_url}/filedepot/{group name}  -     {site_url}/filedepot/sales
-      or 
+      or
     {site_url}/filedepot/{group id}    -     {site_url}/filedepot/23
 
 

@@ -106,9 +106,11 @@ Organic Group Mode and OG settings
 
   The filedepot module requires both the OG module and the OG Group Access Control modules to be enabled.
 
+  Note: Enable the og_context module if your using the Commons3 distribution to effectively track and pass in the group context to filedepot.
+
   Enabling the OG option to "Automatically Create Root Level Folder for New Organic Groups" will create a new top level "ROOT" folder
   whenever a new group is created. The group node id (nid) is set only for new groups. If you have existing groups, you can create
-  new top level folders and set the group_nid field in the filedepot_categories table to the group node id manually.
+  new top level folders and will need to set the group_nid field in the filedepot_categories table to the group node id manually.
 
   If you want your group members to only see the folders and files under the Group Root level folder, then enable the
   second OG setting "Only Display Organic Group Root Level Folder". If enabled and the users current group context

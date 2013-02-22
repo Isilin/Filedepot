@@ -11,7 +11,7 @@
 function firelogmsg($message) {
   global $firephp, $mytimer;
   $exectime = timer_read('filedepot_timer');
-  if (function_exists('dfb')) {
+  if (function_exists('dfb')) {  // Calls the firephp fb() function to log message to the firebug console
     dfb("$message - time:$exectime");
   }
 }

@@ -181,9 +181,14 @@ class filedepot {
           // Using the ctools cache functionality to save which group the user has selected - set in filedepot_main()
           ctools_include('object-cache');
           $gid = ctools_object_cache_get('filedepot', 'grpid');
+
           // Check if group context was passed into filedepot and if not check if OG was set by another site feature
           if ($gid == 0 AND isset($_SESSION['og_last']) AND $_SESSION['og_last'] > 0) {
             $gid = $_SESSION['og_last'];
+          }
+          // Check if the og_context module is enabled (part of the commons3 distribution)
+          else if (module_exists('og_context') AND isset($_SESSION['og_context']['gid'])) {
+            $gid = $_SESSION['og_context']['gid'];
           }
           if ($gid > 0) {
             $this->ogrootfolder = db_query("SELECT cid FROM {filedepot_categories} WHERE group_nid=:gid AND pid=0", array(':gid' => $gid))->fetchfield();

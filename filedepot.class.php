@@ -207,10 +207,21 @@ class filedepot {
   * @return       Boolean                         Returns TRUE or FALSE and depends on the filter mode setting
   */
   function checkFilter($filename,$mimetype) {
-    $ext = end(explode(".", $filename));
-
-    $allowed_upload_extensions = explode(' ',variable_get('upload_extensions_default', 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp'));
-    if (is_array($allowed_upload_extensions) AND in_array($ext, $allowed_upload_extensions)) {
+    $myext = end(explode(".", $filename));
+    
+    // filter is in format: x,x,x : mimetype\n
+    $extensions_array = array();
+    $lines = preg_split("/(\r\n|\n|\r)/", variable_get('filedepot_filetype_filter', 'jpg,jpeg,gif,png,txt,doc,xls,pdf,ppt,pps,odt,ods,odp,docx,tmp'));
+    
+    foreach ($lines as $line) {
+      $ext_parts = explode(":", $line);
+      $ext_list = explode(",", $ext_parts[0]);
+      foreach ($ext_list as $ext) {
+        $extensions_array[] = trim($ext);
+      }
+    }
+    
+    if (in_array($myext, $extensions_array)) {
       return TRUE;
     } else {
       return FALSE;

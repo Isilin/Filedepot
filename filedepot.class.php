@@ -221,10 +221,19 @@ class filedepot {
       }
     }
     
+    $filter_mode = variable_get('filedepot_filter_mode', '1');
+    $ret;
+    if ($filter_mode == '1') {
+      $ret = TRUE;
+    }
+    else {
+      $ret = FALSE;
+    }
+    
     if (in_array($myext, $extensions_array)) {
-      return TRUE;
+      return $ret;
     } else {
-      return FALSE;
+      return !$ret;
     }
   }
 

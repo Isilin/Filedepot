@@ -1170,7 +1170,7 @@ function filedepot_og($op, $gid, $uid, $args) {
 
 
 
-function filedepot_file_delete(&$file) {
+function filedepot_file_delete($file) {
   if (isset($file->fid) AND $file->fid > 0 AND $file->fieldname = 'field_filedepot_file') {
       $filedepot_fid = db_result(db_query("SELECT fid FROM {filedepot_files} WHERE cckfd=%d", $file->fid));
       if ($filedepot_fid !== FALSE and $filedepot_fid > 0) {

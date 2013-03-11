@@ -16,23 +16,23 @@ function filedepot_install() {
   $t = get_t();
 
   $folder_def = array(
-    'name' => $t('Filedepot Folder'),
-    'type' => 'filedepot_folder',
-    'description' => $t('Filedepot Folder for storing documents'),
-    'title_label' => $t('Folder Name'),
-    'bundle' => 'filedepot',
-    'base'  => 'node_content',
+    'name'           => $t('Filedepot Folder'),
+    'type'           => 'filedepot_folder',
+    'description'    => $t('Filedepot Folder for storing documents'),
+    'title_label'    => $t('Folder Name'),
+    'bundle'         => 'filedepot',
+    'base'           => 'node_content',
     'min_word_count' => 0,
-    'help' => '',
-    'node_options' =>
+    'help'           => '',
+    'node_options'   =>
     array(
-      'status' => TRUE,
-      'promote' => FALSE,
-      'sticky' => FALSE,
+      'status'   => TRUE,
+      'promote'  => FALSE,
+      'sticky'   => FALSE,
       'revision' => FALSE,
     ),
-    'custom' => TRUE,
-    'comment' => 1,
+    'custom'   => TRUE,
+    'comment'  => 1,
   );
 
   // Complete the node type definition by setting any defaults not explicitly
@@ -58,27 +58,26 @@ function filedepot_install() {
   // http://api.drupal.org/api/function/field_create_instance/7
   foreach (_filedepot_installed_instances() as $instance) {
     $instance['entity_type'] = 'node';
-    $instance['bundle'] = $folder_def['type'];
+    $instance['bundle']      = $folder_def['type'];
     field_create_instance($instance);
   }
 
   /* Setup the default extension mapping so icons appear in the file listing */
   $rawextensions  = 'jpg=jpg.gif, gif=gif.gif, bmp=bmp.gif, doc=doc.gif, docx=doc.gif, xls=xls.gif, xlsx=xls.gif,';
   $rawextensions .= 'ppt=ppt.gif, pptx=ppt.gif, mpp=mpp.gif, pdf=pdf.gif, txt=txt.gif, zip=zip.gif';
-  $extensionlines = preg_split( '/\r\n|\r|\n/', $rawextensions );
+  $extensionlines = preg_split('/\r\n|\r|\n/', $rawextensions);
   foreach ($extensionlines as $line) {
     if (!empty($line)) {
       $records = explode(',', $line);
       foreach ($records as $mapping) {
-        $data = explode('=', $mapping);
-        $ext = trim($data[0]);
-        $icon = trim($data[1]);
+        $data                = explode('=', $mapping);
+        $ext                 = trim($data[0]);
+        $icon                = trim($data[1]);
         $extensiondata[$ext] = $icon;
       }
     }
   }
   variable_set('filedepot_extension_data', serialize($extensiondata));
-
 }
 
 /**
@@ -94,28 +93,28 @@ function filedepot_install() {
 function _filedepot_installed_fields() {
   $t = get_t();
   return array(
-  'filedepot_file' => array(
-  'field_name' => 'filedepot_folder_file',
-  'type'       => 'file',
-  'active' => '1',
-  'locked' => '0',
-  'cardinality' => '-1',
-  'translatable' => '0',
-  'settings' => array(
-  'display_field' => 1,
-  'display_default' => 1,
-  'uri_scheme' => 'temporary',
-  ),
-  ),
-  'filedepot_folder_desc' => array(
-  'translatable' => '0',
-  'settings' => array(),
-  'field_name' => 'filedepot_folder_desc',
-  'type' => 'text_long',
-  'active' => '1',
-  'locked' => '0',
-  'cardinality' => '1',
-  ),
+    'filedepot_file' => array(
+      'field_name'   => 'filedepot_folder_file',
+      'type'         => 'file',
+      'active'       => '1',
+      'locked'       => '0',
+      'cardinality'  => '-1',
+      'translatable' => '0',
+      'settings'     => array(
+        'display_field'         => 1,
+        'display_default'       => 1,
+        'uri_scheme'            => 'temporary',
+      ),
+    ),
+    'filedepot_folder_desc' => array(
+      'translatable' => '0',
+      'settings'     => array(),
+      'field_name'  => 'filedepot_folder_desc',
+      'type'        => 'text_long',
+      'active'      => '1',
+      'locked'      => '0',
+      'cardinality' => '1',
+    ),
   );
 }
 
@@ -135,78 +134,78 @@ function _filedepot_installed_fields() {
 function _filedepot_installed_instances() {
   $t = get_t();
   return array(
-  'filedepot_file' => array(
-  'field_name'  => 'filedepot_folder_file',
-  'label'       => $t('Files'),
-  'entity_type' => 'node',
-  'bundle' => 'filedepot',
-  'required'    => FALSE,
-  'widget' => array(
-  'weight' => 1,
-  'type' => 'file_generic',
-  'active' => 1,
-  'translatable' => '0',
-  'settings' => array(
-  'progress_indicator' => 'throbber',
-  ),
-  ),
-  'settings' => array(
-  'file_directory' => 'filedepot',
-  'file_extensions' => 'txt pdf xls doc',
-  'max_filesize' => '',
-  'description_field' => 0,
-  'user_register_form' => FALSE,
-  ),
-  'display' => array(
-  'default' => array(
-  'label' => 'above',
-  'type' => 'file_default',
-  'settings' => array(),
-  'weight' => 1,
-  ),
-  'teaser' => array(
-  'type' => 'hidden',
-  'label' => 'above',
-  'settings' => array(),
-  'weight' => 0,
-  ),
-  ),
-  ),
-  'filedepot_folder_desc' => array(
-  'label' => 'Folder Description',
-  'widget' => array(
-  'type' => 'text_textarea',
-  'settings' => array(
-  'rows' => 3,
-  ),
-  'weight' => '-4',
-  ),
-  'settings' => array(
-  'display_summary' => FALSE,
-  'text_processing' => 0,
-  'user_register_form' => FALSE,
-  ),
-  'display' => array(
-  'default' => array(
-  'label' => 'above',
-  'type' => 'text_default',
-  'settings' => array(),
-  'weight' => 0,
-  ),
-  'teaser' => array(
-  'label' => 'hidden',
-  'type' => 'hidden',
-  'settings' => array(),
-  'weight' => 0,
-  ),
-  ),
-  'required' => FALSE,
-  'description' => '',
-  'field_name' => 'filedepot_folder_desc',
-  'entity_type' => 'node',
-  'bundle' => 'filedepot_folder',
-  'default_value' => NULL,
-  ),
+    'filedepot_file' => array(
+      'field_name'  => 'filedepot_folder_file',
+      'label'       => $t('Files'),
+      'entity_type' => 'node',
+      'bundle'      => 'filedepot',
+      'required'    => FALSE,
+      'widget'      => array(
+        'weight'       => 1,
+        'type'         => 'file_generic',
+        'active'       => 1,
+        'translatable' => '0',
+        'settings'     => array(
+          'progress_indicator' => 'throbber',
+        ),
+      ),
+      'settings'           => array(
+        'file_directory'     => 'filedepot',
+        'file_extensions'    => 'txt pdf xls doc',
+        'max_filesize'       => '',
+        'description_field'  => 0,
+        'user_register_form' => FALSE,
+      ),
+      'display'            => array(
+        'default' => array(
+          'label'    => 'above',
+          'type'     => 'file_default',
+          'settings' => array(),
+          'weight' => 1,
+        ),
+        'teaser' => array(
+          'type'     => 'hidden',
+          'label'    => 'above',
+          'settings' => array(),
+          'weight'                => 0,
+        ),
+      ),
+    ),
+    'filedepot_folder_desc' => array(
+      'label'  => 'Folder Description',
+      'widget' => array(
+        'type'     => 'text_textarea',
+        'settings' => array(
+          'rows'     => 3,
+        ),
+        'weight'   => '-4',
+      ),
+      'settings' => array(
+        'display_summary'    => FALSE,
+        'text_processing'    => 0,
+        'user_register_form' => FALSE,
+      ),
+      'display'            => array(
+        'default' => array(
+          'label'    => 'above',
+          'type'     => 'text_default',
+          'settings' => array(),
+          'weight' => 0,
+        ),
+        'teaser' => array(
+          'label'    => 'hidden',
+          'type'     => 'hidden',
+          'settings' => array(),
+          'weight'        => 0,
+        ),
+      ),
+      'required'      => FALSE,
+      'description'   => '',
+      'field_name'    => 'filedepot_folder_desc',
+      'entity_type'   => 'node',
+      'bundle'        => 'filedepot_folder',
+      'default_value' => NULL,
+    ),
   );
 }
 
@@ -217,13 +216,14 @@ function filedepot_uninstall() {
   global $base_path;
 
   include_once './' . drupal_get_path('module', 'filedepot') . '/filedepot.class.php';
+  include_once './' . drupal_get_path('module', 'filedepot') . '/permissions.class.php';
   $filedepot = filedepot::getInstance();
   include_once './' . drupal_get_path('module', 'filedepot') . '/lib-common.php';
 
   // Gather all the example content that might have been created while this module was enabled.
-  $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+  $sql    = 'SELECT nid FROM {node} n WHERE n.type = :type';
   $result = db_query($sql, array(':type' => 'filedepot_folder'));
-  $nids = array();
+  $nids   = array();
   foreach ($result as $row) {
     $nids[] = $row->nid;
   }
@@ -267,7 +267,7 @@ function filedepot_uninstall() {
   if (@is_dir($filedepot->root_storage_path) === TRUE) {
     filedepot_delTree($filedepot->root_storage_path);
   }
-  
+
   variable_del('filedepot_override_folderorder');
   variable_del('filedepot_content_type_initialized');
   variable_del('filedepot_default_allow_broadcasts');
@@ -289,7 +289,6 @@ function filedepot_uninstall() {
   variable_del('filedepot_auto_create_group_rootfolder_enabled');
   variable_del('filedepot_organic_group_mode_enabled');
   variable_del('filedepot_email_to');
-
 }
 
 /**
@@ -297,996 +296,1001 @@ function filedepot_uninstall() {
  */
 function filedepot_schema() {
 
-$schema['filedepot_categories'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_categories'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'cid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'pid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'nid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'vid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'group_nid'   => array(
+        'description' => t('Used with OG mode to set the group root folder'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'name'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'description' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'folderorder' => array(
+        'description'        => ('TODO: please describe this field!'),
+        'type'               => 'int',
+        'size'               => 'small',
+        'not null'           => TRUE,
+        'default'            => 0,
+      ),
+      'last_modified_date' => array(
+        'description'       => ('TODO: please describe this field!'),
+        'type'              => 'int',
+        'not null'          => TRUE,
+        'default'           => 0,
+      ),
+      'last_updated_date' => array(
+        'description' => ('Used to signify if this directory has been changed in any way (including adding a new file into it)'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'pid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
+    'primary key' => array('cid'),
+    'indexes' => array(
+      'nid' => array('nid', 'vid'),
+      'pid' => array('pid'),
     ),
-    'nid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'vid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'group_nid' => array(
-      'description' => t('Used with OG mode to set the group root folder'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'name' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'description' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'folderorder' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'small',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'last_modified_date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('cid'),
-  'indexes' => array(
-    'nid' => array('nid', 'vid'),
-    'pid' => array('pid'),
-  ),
-);
+  );
 
-$schema['filedepot_files'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_files'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'fid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'cid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'fname'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'title'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '128',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'description' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'size'        => 'big',
+        'not null'    => FALSE,
+      ),
+      'version'     => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 1,
+      ),
+      'fileorder'   => array(
+        'description' => ('File order in the folder'),
+        'type'        => 'int',
+        'size'        => 'small',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'drupal_fid'  => array(
+        'description' => ('Drupal file id also called fid in the drupal tables'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'size'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'mimetype'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'extension'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '8',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'submitter'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'status'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'date'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'version_ctl' => array(
+        'description'          => ('TODO: please describe this field!'),
+        'type'                 => 'int',
+        'size'                 => 'tiny',
+        'not null'             => TRUE,
+        'default'              => 0,
+      ),
+      'status_changedby_uid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
+    'primary key' => array('fid'),
+    'indexes' => array(
+      'cid' => array('cid'),
     ),
-    'fname' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'title' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '128',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'description' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'size' => 'big',
-      'not null' => FALSE,
-    ),
-    'version' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
-    ),
-    'fileorder' => array(
-      'description' => ('File order in the folder'),
-      'type' => 'int',
-      'size' => 'small',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'drupal_fid' => array(
-      'description' => ('Drupal file id also called fid in the drupal tables'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'size' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'mimetype' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'extension' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '8',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'submitter' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'status' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'version_ctl' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'status_changedby_uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('fid'),
-  'indexes' => array(
-    'cid' => array('cid'),
-  ),
-);
+  );
 
-$schema['filedepot_access'] = array(
-  'description' => ('filedepot Access Rights - for user or group access to category'),
-  'fields' => array(
-    'accid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_access'] = array(
+    'description' => ('filedepot Access Rights - for user or group access to category'),
+    'fields'      => array(
+      'accid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'catid'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'permid'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'permtype'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '8',
+        'not null'    => TRUE,
+        'default'     => '0',
+      ),
+      'view'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'upload'      => array(
+        'description'   => ('TODO: please describe this field!'),
+        'type'          => 'int',
+        'size'          => 'tiny',
+        'not null'      => TRUE,
+        'default'       => 0,
+      ),
+      'upload_direct' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'upload_ver'  => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'approval'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'admin'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'catid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
+    'primary key' => array('accid'),
+    'indexes' => array(
+      'catid' => array('catid'),
+      'permid' => array('permid'),
+      'permtype' => array('permtype'),
     ),
-    'permid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'permtype' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '8',
-      'not null' => TRUE,
-      'default' => '0',
-    ),
-    'view' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'upload' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'upload_direct' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'upload_ver' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'approval' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'admin' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('accid'),
-  'indexes' => array(
-    'catid' => array('catid'),
-    'permid' => array('permid'),
-    'permtype' => array('permtype'),
-  ),
-);
-
-
-$schema['filedepot_fileversions'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'fname' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'version' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'drupal_fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'size' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'notes' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'size' => 'big',
-      'not null' => TRUE,
-    ),
-    'date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'status' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'fid' => array('fid'),
-  ),
-);
+  );
 
 
-$schema['filedepot_downloads'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
+  $schema['filedepot_fileversions'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'fname'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'version'     => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'drupal_fid'  => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'size'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'notes'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'size'        => 'big',
+        'not null'    => TRUE,
+      ),
+      'date'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'uid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'status'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
+    'primary key' => array('id'),
+    'indexes' => array(
+      'fid' => array('fid'),
     ),
-    'remote_ip' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '50',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'indexes' => array(
-    'date' => array('date'),
-    'fid' => array('fid'),
-    'uid' => array('uid'),
-  ),
-);
-
-$schema['filedepot_favorites'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-    ),
-  ),
-  'indexes' => array(
-    'topic_id' => array('fid'),
-    'uid' => array('uid'),
-  ),
-);
-
-$schema['filedepot_recentfolders'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'not null' => TRUE,
-    ),
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'cid' => array('cid'),
-    'uid' => array('uid'),
-  ),
-);
-
-$schema['filedepot_folderindex'] = array(
-  'description' => ('Maintains the folder index for each user'),
-  'fields' => array(
-    'cid' => array(
-      'description' => ('Folder or category ID'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'uid' => array(
-      'description' => ('User ID'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'folderprefix' => array(
-      'description' => ('Folder index base value'),
-      'type' => 'varchar',
-      'length' => '255',
-      'default' => '',
-    ),
-  ),
-  'indexes' => array(
-    'cid' => array('cid'),
-    'uid' => array('uid'),
-  ),
-);
+  );
 
 
+  $schema['filedepot_downloads'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'uid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'remote_ip'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '50',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'date'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+    ),
+    'indexes'     => array(
+      'date' => array('date'),
+      'fid' => array('fid'),
+      'uid' => array('uid'),
+    ),
+  );
 
-$schema['filedepot_filesubmissions'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_favorites'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'uid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
     ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
+    'indexes'     => array(
+      'topic_id' => array('fid'),
+      'uid' => array('uid'),
     ),
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'fname' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'tempname' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'title' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '128',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'description' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'size' => 'big',
-      'not null' => TRUE,
-    ),
-    'drupal_fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'tags' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'version' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
-    ),
-    'version_note' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'size' => 'big',
-      'not null' => TRUE,
-    ),
-    'size' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'mimetype' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'extension' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '8',
-      'not null' => TRUE,
-      'default' => '',
-    ),
-    'submitter' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'version_ctl' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'notify' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
-    ),
-    'status' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'cid' => array('cid'),
-  ),
-);
+  );
 
-$schema['filedepot_usersettings'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_recentfolders'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'not null'    => TRUE,
+      ),
+      'uid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'cid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
     ),
-    'notify_newfile' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
+    'primary key' => array('id'),
+    'indexes' => array(
+      'cid' => array('cid'),
+      'uid' => array('uid'),
     ),
-    'notify_changedfile' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
-    ),
-    'allow_broadcasts' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 1,
-    ),
-    'allowable_view_folders' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'not null' => TRUE,
-    ),
-  ),
-  'indexes' => array(
-    'uid' => array('uid'),
-  ),
-);
+  );
 
-$schema['filedepot_import_queue'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'not null' => TRUE,
+  $schema['filedepot_folderindex'] = array(
+    'description' => ('Maintains the folder index for each user'),
+    'fields'      => array(
+      'cid' => array(
+        'description' => ('Folder or category ID'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'uid'         => array(
+        'description'  => ('User ID'),
+        'type'         => 'int',
+        'size'         => 'medium',
+        'not null'     => TRUE,
+      ),
+      'folderprefix' => array(
+        'description' => ('Folder index base value'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'default'     => '',
+      ),
     ),
-    'orig_filename' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '150',
-      'not null' => TRUE,
+    'indexes'     => array(
+      'cid' => array('cid'),
+      'uid' => array('uid'),
     ),
-    'queue_filename' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => TRUE,
-    ),
-    'drupal_fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'timestamp' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-    ),
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'mimetype' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '128',
-      'not null' => FALSE,
-    ),
-    'size' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'description' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => FALSE,
-    ),
-    'version_note' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '255',
-      'not null' => FALSE,
-    ),
-  ),
-  'primary key' => array('id'),
-);
-
-$schema['filedepot_export_queue'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'not null' => TRUE,
-    ),
-    'orig_filename' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '150',
-      'not null' => TRUE,
-    ),
-    'token' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '20',
-      'not null' => TRUE,
-    ),
-    'extension' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '10',
-      'not null' => TRUE,
-    ),
-    'timestamp' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-    ),
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-    ),
-  ),
-  'primary key' => array('id'),
-);
-
-$schema['filedepot_notificationlog'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'target_uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'submitter_uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'notification_type' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-    ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'datetime' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-    ),
-  ),
-  'indexes' => array(
-    'target_uid' => array('target_uid'),
-  ),
-);
+  );
 
 
-$schema['filedepot_notifications'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
-    ),
-    'fid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'ignore_filechanges' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'cid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'cid_newfiles' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'cid_changes' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'tiny',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'uid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-    'date' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'cid' => array('cid'),
-    'fid' => array('fid'),
-    'uid' => array('uid'),
-  ),
-);
 
-$schema['nextag_words'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'not null' => TRUE,
+  $schema['filedepot_filesubmissions'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'cid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'fname'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'tempname'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'title'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '128',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'description' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'size'        => 'big',
+        'not null'    => TRUE,
+      ),
+      'drupal_fid'  => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'tags'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'version'     => array(
+        'description'  => ('TODO: please describe this field!'),
+        'type'         => 'int',
+        'unsigned'     => TRUE,
+        'size'         => 'tiny',
+        'not null'     => TRUE,
+        'default'      => 1,
+      ),
+      'version_note' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'size'        => 'big',
+        'not null'    => TRUE,
+      ),
+      'size'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'mimetype'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'extension'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '8',
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'submitter'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'date'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'version_ctl' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'notify'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 1,
+      ),
+      'status'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'tagword' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '32',
-      'not null' => TRUE,
+    'primary key' => array('id'),
+    'indexes' => array(
+      'cid' => array('cid'),
     ),
-    'displayword' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '32',
-      'not null' => FALSE,
+  );
+
+  $schema['filedepot_usersettings'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'uid' => array(
+        'description'    => ('TODO: please describe this field!'),
+        'type'           => 'int',
+        'size'           => 'medium',
+        'not null'       => TRUE,
+      ),
+      'notify_newfile' => array(
+        'description'        => ('TODO: please describe this field!'),
+        'type'               => 'int',
+        'size'               => 'tiny',
+        'not null'           => TRUE,
+        'default'            => 1,
+      ),
+      'notify_changedfile' => array(
+        'description'      => ('TODO: please describe this field!'),
+        'type'             => 'int',
+        'size'             => 'tiny',
+        'not null'         => TRUE,
+        'default'          => 1,
+      ),
+      'allow_broadcasts' => array(
+        'description'            => ('TODO: please describe this field!'),
+        'type'                   => 'int',
+        'size'                   => 'tiny',
+        'not null'               => TRUE,
+        'default'                => 1,
+      ),
+      'allowable_view_folders' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'not null'    => TRUE,
+      ),
     ),
-    'metric' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'small',
-      'not null' => TRUE,
-      'default' => 1,
+    'indexes'     => array(
+      'uid' => array('uid'),
     ),
-    'last_updated' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
+  );
+
+  $schema['filedepot_import_queue'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description'   => ('TODO: please describe this field!'),
+        'type'          => 'serial',
+        'not null'      => TRUE,
+      ),
+      'orig_filename' => array(
+        'description'    => ('TODO: please describe this field!'),
+        'type'           => 'varchar',
+        'length'         => '150',
+        'not null'       => TRUE,
+      ),
+      'queue_filename' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'drupal_fid'  => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'timestamp'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+      'uid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'mimetype'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '128',
+        'not null'    => FALSE,
+      ),
+      'size'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'description' => array(
+        'description'  => ('TODO: please describe this field!'),
+        'type'         => 'varchar',
+        'length'       => '255',
+        'not null'     => FALSE,
+      ),
+      'version_note' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
     ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'tagword' => array('tagword'),
-  ),
-);
+    'primary key' => array('id'),
+  );
+
+  $schema['filedepot_export_queue'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description'   => ('TODO: please describe this field!'),
+        'type'          => 'serial',
+        'not null'      => TRUE,
+      ),
+      'orig_filename' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '150',
+        'not null'    => TRUE,
+      ),
+      'token'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '20',
+        'not null'    => TRUE,
+      ),
+      'extension'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '10',
+        'not null'    => TRUE,
+      ),
+      'timestamp'   => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+      'uid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['filedepot_notificationlog'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'target_uid' => array(
+        'description'   => ('TODO: please describe this field!'),
+        'type'          => 'int',
+        'size'          => 'medium',
+        'not null'      => TRUE,
+      ),
+      'submitter_uid' => array(
+        'description'       => ('TODO: please describe this field!'),
+        'type'              => 'int',
+        'size'              => 'medium',
+        'not null'          => TRUE,
+      ),
+      'notification_type' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+      ),
+      'fid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'cid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'datetime'    => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+    ),
+    'indexes'     => array(
+      'target_uid' => array('target_uid'),
+    ),
+  );
 
 
-$schema['nextag_items'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'itemid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['filedepot_notifications'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'fid'         => array(
+        'description'        => ('TODO: please describe this field!'),
+        'type'               => 'int',
+        'size'               => 'medium',
+        'not null'           => TRUE,
+        'default'            => 0,
+      ),
+      'ignore_filechanges' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'cid'         => array(
+        'description'  => ('TODO: please describe this field!'),
+        'type'         => 'int',
+        'size'         => 'medium',
+        'not null'     => TRUE,
+        'default'      => 0,
+      ),
+      'cid_newfiles' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'cid_changes' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'uid'         => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'date'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'type' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '32',
-      'not null' => TRUE,
+    'primary key' => array('id'),
+    'indexes' => array(
+      'cid' => array('cid'),
+      'fid' => array('fid'),
+      'uid' => array('uid'),
     ),
-    'tags' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'text',
-      'not null' => FALSE,
-    ),
-  ),
-  'indexes' => array(
-    'itemid' => array('itemid'),
-    'type' => array('type'),
-  ),
-);
+  );
 
-$schema['nextag_metrics'] = array(
-  'description' => ('TODO: please describe this table!'),
-  'fields' => array(
-    'id' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'serial',
-      'size' => 'medium',
-      'not null' => TRUE,
+  $schema['nextag_words'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'not null'    => TRUE,
+      ),
+      'tagword'     => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '32',
+        'not null'    => TRUE,
+      ),
+      'displayword' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '32',
+        'not null'    => FALSE,
+      ),
+      'metric'      => array(
+        'description'  => ('TODO: please describe this field!'),
+        'type'         => 'int',
+        'size'         => 'small',
+        'not null'     => TRUE,
+        'default'      => 1,
+      ),
+      'last_updated' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
     ),
-    'tagid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
+    'primary key' => array('id'),
+    'indexes' => array(
+      'tagword' => array('tagword'),
     ),
-    'type' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'varchar',
-      'length' => '32',
-      'not null' => TRUE,
-    ),
-    'groupid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => FALSE,
-    ),
-    'roleid' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'medium',
-      'not null' => FALSE,
-    ),
-    'metric' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'small',
-      'not null' => TRUE,
-    ),
-    'last_updated' => array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => 0,
-    ),
-  ),
-  'primary key' => array('id'),
-  'indexes' => array(
-    'tagid' => array('tagid'),
-    'type' => array('type'),
-    'uid' => array('roleid'),
-  ),
-);
+  );
 
-return $schema;
 
+  $schema['nextag_items'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'itemid' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'type'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '32',
+        'not null'    => TRUE,
+      ),
+      'tags'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'text',
+        'not null'    => FALSE,
+      ),
+    ),
+    'indexes'     => array(
+      'itemid' => array('itemid'),
+      'type' => array('type'),
+    ),
+  );
+
+  $schema['nextag_metrics'] = array(
+    'description' => ('TODO: please describe this table!'),
+    'fields'      => array(
+      'id' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'serial',
+        'size'        => 'medium',
+        'not null'    => TRUE,
+      ),
+      'tagid'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+      ),
+      'type'        => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'varchar',
+        'length'      => '32',
+        'not null'    => TRUE,
+      ),
+      'groupid'     => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => FALSE,
+      ),
+      'roleid'      => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'medium',
+        'not null'    => FALSE,
+      ),
+      'metric'      => array(
+        'description'  => ('TODO: please describe this field!'),
+        'type'         => 'int',
+        'size'         => 'small',
+        'not null'     => TRUE,
+      ),
+      'last_updated' => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'tagid' => array('tagid'),
+      'type' => array('type'),
+      'uid' => array('roleid'),
+    ),
+  );
+
+  return $schema;
 }
 
 /**
@@ -1298,22 +1302,22 @@ function filedepot_requirements($phase) {
   $requirements = array();
   $t = get_t();
 
-  $value = $t('Enabled');
-  $severity = REQUIREMENT_OK;
+  $value       = $t('Enabled');
+  $severity    = REQUIREMENT_OK;
   $description = NULL;
 
   if (!function_exists('json_encode')) {
-    $value = $t('Not enabled');
-    $severity = REQUIREMENT_ERROR;
+    $value       = $t('Not enabled');
+    $severity    = REQUIREMENT_ERROR;
     $description = $t('Your server does not have the PHP JSON extension enabled.');
   }
 
   $requirements['filedepot_php_json_extension'] = array(
-    'title' => $t('PHP JSON extension'),
-    'value' => $value,
-    'severity' => $severity,
+    'title'       => $t('PHP JSON extension'),
+    'value'       => $value,
+    'severity'    => $severity,
     'description' => $description
-      );
+  );
 
   return $requirements;
 }
@@ -1326,17 +1330,15 @@ function filedepot_update_7001() {
   variable_del('filedepot_filter_mode');
 
   // Change the format and set the default for the allowed file type filter
-  $default_filter  = 'jpg png doc docx xls xlsx pdf ppt pptx';
+  $default_filter = 'jpg png doc docx xls xlsx pdf ppt pptx';
   variable_set('filedepot_filetype_filter', $default_filter);
-
 }
 
 /**
  * Change the remote_ip filed to support IPV6
  */
 function filedepot_update_7002() {
-  db_change_field('filedepot_downloads', 'remote_ip', 'remote_ip',
-      array('type' => 'varchar', 'not null' => TRUE, 'length' => '50', 'default' => ''
+  db_change_field('filedepot_downloads', 'remote_ip', 'remote_ip', array('type'     => 'varchar', 'not null' => TRUE, 'length'   => '50', 'default'  => ''
   ));
 }
 
@@ -1347,18 +1349,30 @@ function filedepot_update_7003() {
   db_create_table('filedepot_folderindex', drupal_get_schema_unprocessed('filedepot', 'filedepot_folderindex'));
 }
 
-
 /**
  * Add the fileorder field to track the fileorder in a folder
  */
 function filedepot_update_7004() {
   $spec = array(
-      'description' => ('TODO: please describe this field!'),
-      'type' => 'int',
-      'size' => 'small',
-      'not null' => TRUE,
-      'default' => 0,
+    'description' => ('TODO: please describe this field!'),
+    'type'        => 'int',
+    'size'        => 'small',
+    'not null'    => TRUE,
+    'default'     => 0,
   );
-  db_add_field( 'filedepot_files', 'fileorder', $spec);
+  db_add_field('filedepot_files', 'fileorder', $spec);
 }
 
+/**
+ * Add the last_update_date field to track folder changes for a single folder
+ */
+function filedepot_update_7005() {
+  $spec = array(
+    'description' => ('Used to signify if this directory has been changed in any way (including adding a new file into it)'),
+    'type'        => 'int',
+    'not null'    => TRUE,
+    'default'     => 0,
+  );
+
+  db_add_field('filedepot_categories', 'last_updated_date', $spec);
+}

@@ -5,14 +5,14 @@
  * filedepot.class.php
  * Main class for the Filedepot module
  */
-
-class filedepot {
+class filedepot
+{
 
   protected static $_instance;
-  public $root_storage_path = '';
-  public $tmp_storage_path = '';
-  public $tmp_incoming_path = '';
-
+  private static $_permission_objects = Array();
+  public $root_storage_path   = '';
+  public $tmp_storage_path    = '';
+  public $tmp_incoming_path   = '';
   public $validReportingModes = array(
     'latestfiles',
     'notifications',
@@ -26,48 +26,43 @@ class filedepot {
     'searchtags',
     'search',
   );
-
   public $iconmap = array(
-    'default' => 'none.gif',
-    'favorite-on' => 'staron-16x16.gif',
-    'favorite-off' => 'staroff-16x16.gif',
-    'locked' => 'padlock.gif',
-    'download' => 'download.png',
-    'editfile' => 'editfile.png',
-    'upload' => 'upload.png',
+    'default'       => 'none.gif',
+    'favorite-on'   => 'staron-16x16.gif',
+    'favorite-off'  => 'staroff-16x16.gif',
+    'locked'        => 'padlock.gif',
+    'download'      => 'download.png',
+    'editfile'      => 'editfile.png',
+    'upload'        => 'upload.png',
   );
-
   public $defOwnerRights = array();
   public $defRoleRights = array();
   public $defGroupRights = array();
-
-  public $maxDefaultRecords = 30;
-  public $listingpadding = 20; // Number of px to indent filelisting per folder level
-  public $filedescriptionOffset = 50;
-  public $shortdate = '%x';
-  public $activeview = ''; // Active filtered view
-  public $cid = 0; // Active folder
+  public $maxDefaultRecords      = 30;
+  public $listingpadding         = 20; // Number of px to indent filelisting per folder level
+  public $filedescriptionOffset  = 50;
+  public $shortdate              = '%x';
+  public $activeview             = ''; // Active filtered view
+  public $cid                    = 0; // Active folder
   public $selectedTopLevelFolder = 0;
-  public $recordCountPass1 = 2;
-  public $recordCountPass2 = 10;
-  public $folder_filenumoffset = 0;
-  public $lastRenderedFiles = array();
-  public $lastRenderedFolder = 0;
-  public $allowableViewFolders = '';
-  public $allowableViewFoldersSql = '';
-  public $ajaxBackgroundMode = FALSE;
+  public $recordCountPass1       = 2;
+  public $recordCountPass2       = 10;
+  public $folder_filenumoffset   = 0;
+  public $lastRenderedFiles      = array();
+  public $lastRenderedFolder            = 0;
+  public $allowableViewFolders          = '';
+  public $allowableViewFoldersSql       = '';
+  public $ajaxBackgroundMode            = FALSE;
   private $upload_prefix_character_count = 18;
-  private $download_chunk_rate =   8192; //set to 8k download chunks
-  public $ogenabled = FALSE;
-  public $ogmode_enabled = FALSE;        // SET true if OG installed and site admin has enabled OG Mode
-  public $ogrootfolder = 0;
-  public $allowableGroupViewFoldersSql = '';
-  public $paddingsize = 5; // Number of pixels to indent each folder level
-  public $message = '';   // Temporary storage of message
-
-  static $ogmode_initialized = FALSE;   // SET true once we have intialized GroupViewFolders
-
-  public $notificationTypes = array(
+  private $download_chunk_rate           = 8192; //set to 8k download chunks
+  public $ogenabled                     = FALSE;
+  public $ogmode_enabled                = FALSE;        // SET true if OG installed and site admin has enabled OG Mode
+  public $ogrootfolder                  = 0;
+  public $allowableGroupViewFoldersSql  = '';
+  public $paddingsize                   = 5; // Number of pixels to indent each folder level
+  public $message                       = '';   // Temporary storage of message
+  static $ogmode_initialized            = FALSE;   // SET true once we have intialized GroupViewFolders
+  public $notificationTypes             = array(
     1 => 'New File Added',
     2 => 'New File Approved',
     3 => 'New File Declined',
@@ -75,13 +70,11 @@ class filedepot {
     5 => 'Broadcast',
   );
 
-
-
   protected function __construct() { # Singleton Pattern: we don't permit an explicit call of the constructor!
     global $user;
 
-    $this->tmp_storage_path  =  drupal_realpath('public://') . '/filedepot/';
-    $this->tmp_incoming_path  = drupal_realpath('public://') . '/filedepot/incoming/';
+    $this->tmp_storage_path  = drupal_realpath('public://') . '/filedepot/';
+    $this->tmp_incoming_path = drupal_realpath('public://') . '/filedepot/incoming/';
     $this->root_storage_path = 'private://filedepot/';
 
     /* @TODO: Need to add logic that will only be executed once to test
@@ -126,10 +119,9 @@ class filedepot {
     }
 
     $this->defRoleRights = $permsdata;  // Remaining permissions are the role assignments
-
     // Is og enabled?
     if (module_exists('og') AND module_exists('og_access')) {
-        $this->ogenabled = TRUE;
+      $this->ogenabled = TRUE;
     }
 
     if (user_is_logged_in()) {
@@ -141,7 +133,7 @@ class filedepot {
       $data = db_query("SELECT allowable_view_folders FROM {filedepot_usersettings} WHERE uid=:uid", array('uid' => $user->uid))->fetchField();
       if (empty($data)) {
         $this->allowableViewFolders = $this->getAllowableCategories('view', FALSE);
-        $data = serialize($this->allowableViewFolders);
+        $data                       = serialize($this->allowableViewFolders);
         if (db_query("SELECT count(uid) FROM {filedepot_usersettings} WHERE uid=:uid", array('uid' => $user->uid))->fetchField() == 0) {
           /* Has a problem handling serialized data - we couldn't unserialize the data afterwards.
            * The problem is the pre-constructed SQL statement. When we use the function "udate_sql($sql)",
@@ -155,17 +147,17 @@ class filedepot {
            * This way db_query will only convert the curly bracket surrounding the table name.
            */
           db_query("INSERT INTO {filedepot_usersettings} (uid, allowable_view_folders, notify_newfile, notify_changedfile, allow_broadcasts) VALUES (:uid, :view, :newfile, :changed, :broadcasts)", array(
-            ':uid' => $user->uid,
-            ':view' => $data,
-            ':newfile' => variable_get('filedepot_default_notify_newfile', 0),
-            ':changed' => variable_get('filedepot_default_notify_filechange', 0),
+            ':uid'        => $user->uid,
+            ':view'       => $data,
+            ':newfile'    => variable_get('filedepot_default_notify_newfile', 0),
+            ':changed'    => variable_get('filedepot_default_notify_filechange', 0),
             ':broadcasts' => variable_get('filedepot_default_allow_broadcasts', 0),
           ));
         }
         else {
           db_query("UPDATE {filedepot_usersettings} set allowable_view_folders=:view WHERE uid=:uid", array(
             ':view' => $data,
-            ':uid' => $user->uid,
+            ':uid'  => $user->uid,
           ));
         }
       }
@@ -181,7 +173,6 @@ class filedepot {
           // Using the ctools cache functionality to save which group the user has selected - set in filedepot_main()
           ctools_include('object-cache');
           $gid = ctools_object_cache_get('filedepot', 'grpid');
-
           // Check if group context was passed into filedepot and if not check if OG was set by another site feature
           if ($gid == 0 AND isset($_SESSION['og_last']) AND $_SESSION['og_last'] > 0) {
             $gid = $_SESSION['og_last'];
@@ -195,35 +186,106 @@ class filedepot {
             if ($this->ogrootfolder !== FALSE and $this->ogrootfolder > 0) {
               $this->allowableViewFolders = array();
               array_push($this->allowableViewFolders, $this->ogrootfolder);
-              $folderlist = $this->getRecursiveCatIDs ($this->allowableViewFolders, $this->ogrootfolder, 'view');
-                $this->allowableGroupViewFoldersSql = implode(',', $folderlist);  // Format to use for SQL statement - test for allowable categories
+              $folderlist                         = $this->getRecursiveCatIDs($this->allowableViewFolders, $this->ogrootfolder, 'view');
+              $this->allowableGroupViewFoldersSql = implode(',', $folderlist);  // Format to use for SQL statement - test for allowable categories
             }
           }
         }
       }
 
       if (empty($this->allowableViewFolders)) {
-        $this->allowableViewFolders = unserialize($data);
+        $this->allowableViewFolders    = unserialize($data);
       }
       $this->allowableViewFoldersSql = implode(',', $this->allowableViewFolders); // Format to use for SQL statement - test for allowable categories
     }
     else {
-      $this->allowableViewFolders = $this->getAllowableCategories('view', FALSE);
+      $this->allowableViewFolders    = $this->getAllowableCategories('view', FALSE);
       $this->allowableViewFoldersSql = implode(',', $this->allowableViewFolders); // Format to use for SQL statement - test for allowable categories
     }
-
   }
 
   protected function __clone() { # we don't permit cloning the singleton
   }
 
   public static function getInstance() {
-    if ( self::$_instance === NULL) {
+    if (self::$_instance === NULL) {
       self::$_instance = new self();
     }
     return self::$_instance;
   }
 
+  /**
+   * Function to retreive all user access records for a specific category and user
+   * @param type $cid
+   * @param type $userid
+   * @return filedepot_permission_object
+   */
+  function getPermissionObject($cid, $userid = 0) {
+    global $user;
+
+    if (intval($cid) < 1) {
+      return filedepot_permission_object::createNoPermissionsObject($cid);
+    }
+
+    // Using a supplied userid or the current global one
+    if ($userid == 0) {
+      if (empty($user->uid) OR $user->uid == 0) {
+        $uid = 0;
+      }
+      else {
+        $uid = $user->uid;
+      }
+    }
+    else {
+      $uid = $userid;
+    }
+
+    if (user_access('administer filedepot', $user) === TRUE) {
+      return filedepot_permission_object::createFullPermissionObject($cid);
+    }
+    else {
+      // Check to see if a permission object already exists
+      if ((isset(self::$_permission_objects[$uid][$cid]))) {
+        return self::$_permission_objects[$uid][$cid];
+      }
+
+      $po = new filedepot_permission_object($cid);
+
+      // Check user access records
+      $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid";
+      $query = db_query($sql, array('cid' => $cid, 'uid' => $uid));
+      while ($rec  = $query->fetchAssoc()) {
+        list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
+        $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
+      }
+
+      if ($this->ogenabled) {
+        // Retrieve all the Organic Groups this user is a member of
+        $groupids = $this->get_user_groups();
+        foreach ($groupids as $gid) {
+          $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
+          $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
+          while ($rec   = $query->fetchAssoc()) {
+            list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
+            $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
+          }
+        }
+      }
+
+      // For each role that the user is a member of - check if they have the right
+      foreach ($user->roles as $rid => $role) {
+        $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
+        $query = db_query($sql, array('cid' => $cid, 'uid' => $rid));
+        while ($rec  = $query->fetchAssoc()) {
+          list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
+          $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
+        }
+      }
+
+      self::$_permission_objects[$uid][$cid] = $po;
+      return $po;
+    }
+  }
 
   /* Function to check if user has a particular right or permission to a folder
    *  Checks the access table for the user and any groups they belong to
@@ -234,8 +296,11 @@ class filedepot {
    * @param        Boolean         $adminOverRide  Set to FALSE, to ignore if user is in the Admin group and check for absolute perms
    * @return       Boolean                         Returns TRUE if user has one of the requested access rights else FALSE
    */
+
   function checkPermission($cid, $rights, $userid = 0, $adminOverRide = TRUE) {
     global $user;
+
+
 
     if (intval($cid) < 1) {
       return FALSE;
@@ -243,7 +308,7 @@ class filedepot {
 
     // If user is an admin - they should have access to all rights on all categories
     if ($userid == 0) {
-      if (empty($user->uid) OR $user->uid == 0 ) {
+      if (empty($user->uid) OR $user->uid == 0) {
         $uid = 0;
       }
       else {
@@ -257,10 +322,25 @@ class filedepot {
       return TRUE;
     }
     else {
+      // This modification allows the caching of permission objects to save database queries
+      $obj = $this->getPermissionObject($cid, $userid);
+      if (is_array($rights)) {
+        foreach ($rights as $key) {
+          if ($obj->hasPermission($key)) {
+            return TRUE;
+          }
+        }
+      }
+      else {
+        return $obj->hasPermission($rights);
+      }
+
+      return FALSE;
+
       // Check user access records
-      $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid";
+      $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid";
       $query = db_query($sql, array('cid' => $cid, 'uid' => $uid));
-      while ($rec = $query->fetchAssoc()) {
+      while ($rec  = $query->fetchAssoc()) {
         list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
         if (is_array($rights)) {
           foreach ($rights as $key) { // Field name above needs to match access right name
@@ -278,9 +358,9 @@ class filedepot {
         // Retrieve all the Organic Groups this user is a member of
         $groupids = $this->get_user_groups();
         foreach ($groupids as $gid) {
-          $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
+          $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
           $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
-          while ($rec = $query->fetchAssoc()) {
+          while ($rec   = $query->fetchAssoc()) {
             list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
             if (is_array($rights)) {
               foreach ($rights as $key) { // Field name above needs to match access right name
@@ -298,9 +378,9 @@ class filedepot {
 
       // For each role that the user is a member of - check if they have the right
       foreach ($user->roles as $rid => $role) {
-        $sql = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
+        $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
         $query = db_query($sql, array('cid' => $cid, 'uid' => $rid));
-        while ($rec = $query->fetchAssoc()) {
+        while ($rec  = $query->fetchAssoc()) {
           list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
           if (is_array($rights)) {
             // If any of the required permissions set - return TRUE
@@ -330,15 +410,15 @@ class filedepot {
     global $user;
 
     $categories = array();
-    $sql = "SELECT distinct catid FROM {filedepot_access} ";
+    $sql   = "SELECT distinct catid FROM {filedepot_access} ";
     $query = db_query($sql);
-    while ($A = $query->fetchAssoc()) {
+    while ($A     = $query->fetchAssoc()) {
       if ($this->checkPermission($A['catid'], $perm, $user->uid)) {
         $categories[] = $A['catid'];
       }
     }
     watchdog('filedepot', "Recreate folder index for user: {$user->uid}");
-    $this->getRecursiveCatIDs($categories, 0, 'view' ,FALSE, TRUE);
+    $this->getRecursiveCatIDs($categories, 0, 'view', FALSE, TRUE);
     if ($returnstring AND count($categories) > 0) {
       $retval = implode(',', $categories);
     }
@@ -348,7 +428,6 @@ class filedepot {
 
     return $retval;
   }
-
 
   /* Function to return an array of subcategories - used to generate a list of folders
    * under the OG Root Group assigned folder.
@@ -360,13 +439,14 @@ class filedepot {
    * @param        string     $perms       Permissions to check if user has access to catgegory
    * @param        boolean    $override    Set to TRUE only if you don't want to test for permissions
    */
+
   public function getRecursiveCatIDs(&$list, $cid, $perms, $override = false, $createFolderIndex = false, $folderprefixroot = '') {
     global $user;
 
-    $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid' => $cid));
-    $i = 0;
+    $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid'         => $cid));
+    $i            = 0;
     $folderprefix = '';
-    while ( $A = $query->fetchAssoc()) {
+    while ($A            = $query->fetchAssoc()) {
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
       if (db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=:cid", array('cid' => $A['cid']))->fetchField() > 0) {
         if ($override === TRUE OR $this->checkPermission($A['cid'], $perms)) {
@@ -375,22 +455,23 @@ class filedepot {
           if ($createFolderIndex) {
             if (empty($folderprefixroot)) {
               $folderprefix = "{$i}";
-            } else {
+            }
+            else {
               $folderprefix = "{$folderprefixroot}.{$i}";
             }
             db_delete('filedepot_folderindex')
-            ->condition('uid', $user->uid)
-            ->condition('cid', $A['cid'])
-            ->execute();
-            $q2 = db_insert('filedepot_folderindex');
+              ->condition('uid', $user->uid)
+              ->condition('cid', $A['cid'])
+              ->execute();
+            $q2           = db_insert('filedepot_folderindex');
             $q2->fields(array('cid', 'uid', 'folderprefix'));
             $q2->values(array(
-              'cid' => $A['cid'],
-              'uid' => $user->uid,
+              'cid'          => $A['cid'],
+              'uid'          => $user->uid,
               'folderprefix' => $folderprefix,
             ));
             $q2->execute();
-           }
+          }
           $this->getRecursiveCatIDs($list, $A['cid'], $perms, $override, $createFolderIndex, $folderprefix);
         }
       }
@@ -401,22 +482,23 @@ class filedepot {
           if ($createFolderIndex) {
             if (empty($folderprefixroot)) {
               $folderprefix = "{$i}";
-            } else {
+            }
+            else {
               $folderprefix = "{$folderprefixroot}.{$i}";
             }
             db_delete('filedepot_folderindex')
-            ->condition('uid', $user->uid)
-            ->condition('cid', $A['cid'])
-            ->execute();
-            $q2 = db_insert('filedepot_folderindex');
+              ->condition('uid', $user->uid)
+              ->condition('cid', $A['cid'])
+              ->execute();
+            $q2           = db_insert('filedepot_folderindex');
             $q2->fields(array('cid', 'uid', 'folderprefix'));
             $q2->values(array(
-              'cid' => $A['cid'],
-              'uid' => $user->uid,
+              'cid'          => $A['cid'],
+              'uid'          => $user->uid,
               'folderprefix' => $folderprefix,
             ));
             $q2->execute();
-           }
+          }
         }
       }
     }
@@ -431,11 +513,12 @@ class filedepot {
    * @param        string     $cid         Category to lookup
    * @param        array      $list        Array of categories
    */
+
   public function getFolderChildren($cid, &$list = array()) {
     global $user;
 
     $query = db_query("SELECT cid FROM {filedepot_categories} WHERE PID=:cid ORDER BY cid", array('cid' => $cid));
-    while ( $A = $query->fetchAssoc()) {
+    while ($A    = $query->fetchAssoc()) {
       array_push($list, $A['cid']);
       // Check and see if this category has any sub categories - where a category record has this cid as it's parent
       if (db_query("SELECT count(pid) FROM {filedepot_categories} WHERE pid=:cid", array('cid' => $A['cid']))->fetchField() > 0) {
@@ -445,9 +528,7 @@ class filedepot {
     return $list;
   }
 
-
-
-  public function get_user_groups()  {
+  public function get_user_groups() {
     global $user;
 
     $retval = array();
@@ -455,7 +536,8 @@ class filedepot {
     if (is_array($groups) AND count($groups) > 0) {
       if (function_exists('og_get_group')) {
         $retval = $groups;
-      } else {
+      }
+      else {
         $retval = $groups['node'];
       }
     }
@@ -463,17 +545,16 @@ class filedepot {
     return $retval;
   }
 
-
   public function updatePerms($id, $accessrights, $users = '', $groups = '', $roles = '') {
 
-    if ($users != ''    AND !is_array($users)) {
-      $users  = array($users);
+    if ($users != '' AND !is_array($users)) {
+      $users = array($users);
     }
     if ($groups != '' AND !is_array($groups)) {
       $groups = array($groups);
     }
-    if ($roles != ''    AND !is_array($roles)) {
-      $roles  = array($roles);
+    if ($roles != '' AND !is_array($roles)) {
+      $roles = array($roles);
     }
 
     if (!empty($accessrights)) {
@@ -515,31 +596,31 @@ class filedepot {
       }
 
       if (!empty($users)) {
-        foreach ($users as $uid ) {
-          $uid = intval($uid);
+        foreach ($users as $uid) {
+          $uid   = intval($uid);
           $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid", array(
             ':cid' => $id,
             ':uid' => $uid,
-          ));
+            ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
             $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-              'catid' => $id,
-              'permid' => $uid,
-              'permtype' => 'user',
-              'view' => $view,
-              'upload' => $upload,
+              'catid'         => $id,
+              'permid'        => $uid,
+              'permtype'      => 'user',
+              'view'          => $view,
+              'upload'        => $upload,
               'upload_direct' => $direct,
-              'upload_ver' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+              'upload_ver'    => $versions,
+              'approval'      => $approval,
+              'admin'         => $admin,
             ));
             $query->execute();
           }
           else {
             db_update('filedepot_access')
-              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->fields(array('view'          => $view, 'upload'        => $upload, 'upload_direct' => $direct, 'upload_ver'    => $versions, 'approval'      => $approval, 'admin'         => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'user')
               ->condition('permid', $uid)
@@ -549,31 +630,31 @@ class filedepot {
       }
 
       if (!empty($groups)) {
-        foreach ($groups as $gid ) {
-          $gid = intval($gid);
+        foreach ($groups as $gid) {
+          $gid   = intval($gid);
           $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid", array(
             ':cid' => $id,
             ':gid' => $gid,
-          ));
+            ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
             $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-              'catid' => $id,
-              'permid' => $gid,
-              'permtype' => 'group',
-              'view' => $view,
-              'upload' => $upload,
+              'catid'         => $id,
+              'permid'        => $gid,
+              'permtype'      => 'group',
+              'view'          => $view,
+              'upload'        => $upload,
               'upload_direct' => $direct,
-              'upload_ver' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+              'upload_ver'    => $versions,
+              'approval'      => $approval,
+              'admin'         => $admin,
             ));
             $query->execute();
           }
           else {
             db_update('filedepot_access')
-              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->fields(array('view'          => $view, 'upload'        => $upload, 'upload_direct' => $direct, 'upload_ver'    => $versions, 'approval'      => $approval, 'admin'         => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'group')
               ->condition('permid', $gid)
@@ -583,31 +664,31 @@ class filedepot {
       }
 
       if (!empty($roles)) {
-        foreach ($roles as $rid ) {
-          $rid = intval($rid);
+        foreach ($roles as $rid) {
+          $rid   = intval($rid);
           $query = db_query("SELECT accid FROM {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid", array(
             'cid' => $id,
             'uid' => $rid,
-          ));
+            ));
           if ($query->fetchField() === FALSE) {
             $query = db_insert('filedepot_access');
             $query->fields(array('catid', 'permid', 'permtype', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
             $query->values(array(
-              'catid' => $id,
-              'permid' => $rid,
-              'permtype' => 'role',
-              'view' => $view,
-              'upload' => $upload,
+              'catid'         => $id,
+              'permid'        => $rid,
+              'permtype'      => 'role',
+              'view'          => $view,
+              'upload'        => $upload,
               'upload_direct' => $direct,
-              'upload_ver' => $versions,
-              'approval' => $approval,
-              'admin' => $admin,
+              'upload_ver'    => $versions,
+              'approval'      => $approval,
+              'admin'         => $admin,
             ));
             $query->execute();
           }
           else {
             db_update('filedepot_access')
-              ->fields(array('view' => $view, 'upload' => $upload, 'upload_direct' => $direct, 'upload_ver' => $versions, 'approval' => $approval, 'admin' => $admin))
+              ->fields(array('view'          => $view, 'upload'        => $upload, 'upload_direct' => $direct, 'upload_ver'    => $versions, 'approval'      => $approval, 'admin'         => $admin))
               ->condition('catid', $id)
               ->condition('permtype', 'role')
               ->condition('permid', $rid)
@@ -617,25 +698,178 @@ class filedepot {
       }
 
       /* May need to review this - and clear only those users that have been updated later.
-       But determining the users in updated groups and sorting out duplicates from the individual user perms
-       and only updating them may take more processing then simply clearing all.
-       The users setting will be updated the next time they use the application - public/filedepot/library.php
-       Distributing the load to update the cached setting.
-       This cached setting will really only benefit when there are many thousand access records like portal23
+        But determining the users in updated groups and sorting out duplicates from the individual user perms
+        and only updating them may take more processing then simply clearing all.
+        The users setting will be updated the next time they use the application - public/filedepot/library.php
+        Distributing the load to update the cached setting.
+        This cached setting will really only benefit when there are many thousand access records like portal23
        */
       db_update('filedepot_usersettings')
-      ->fields(array('allowable_view_folders' => ''))
-      ->execute();
+        ->fields(array('allowable_view_folders' => ''))
+        ->execute();
 
       return TRUE;
-
     }
     else {
       return FALSE;
     }
-
   }
 
+  /**
+   * Create a new node for a folder (which will then trigger the folder to be added as a new - do not call createFolder as this is triggered on node create)
+   * @param type $in_foldername                     Name of the folder to create
+   * @param type $in_description                    Description for the folder
+   * @param type $in_parentfolder                   Parent folder ID
+   * @param type $out_node                          Populated Node stdClass will be stored here
+   * @param type $out_cid                           Newly created category id will be stored here
+   * @param type $in_inherit_permissions            [Optional] True to inherit parent permissions
+   * @return                                        TRUE on success, FALSE on failure
+   */
+  public static function createFolderNode($in_foldername, $in_description, $in_parentfolder, &$out_node, &$out_cid, $in_inherit_permissions = TRUE) {
+    global $user;
+
+    $node                                                   = new stdClass();
+    $node->type                                             = 'filedepot_folder';
+    node_object_prepare($node);
+    $node->language                                         = LANGUAGE_NONE;
+    $node->uid                                              = $user->uid;
+    $node->name                                             = $user->name;
+    $node->title                                            = check_plain($in_foldername);
+    $node->description                                      = check_plain($in_foldername);
+    $node->filedepot_folder_desc[LANGUAGE_NONE][0]['value'] = ($in_description);
+    $node->parentfolder                                     = $in_parentfolder;
+    $node->inherit                                          = ($in_inherit_permissions === TRUE) ? 1 : 0;
+
+    node_save($node);
+
+    $out_node = $node;
+    $out_cid  = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid", array(':nid' => $node->nid))->fetchField();
+
+    if ($node->nid) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Set the order of a single folder
+   * @param Integer   $folder_id              ID of the folder to set
+   * @param Integer   $order                  Order to set the folder to
+   * @param Integer   &$out_pid               [Optional] Will be filled with the parent if set to a non null value
+   * @param Integer   &$old_order             [Optional] Will be filled with the old order if set to a non null value
+   * @return                                  TRUE on success, FALSE on failure (forbidden)
+   */
+  public function setSingleFolderOrder($folder_id, $order, &$out_pid = NULL, &$out_oldorder = NULL) {
+    $folder_perm = $this->getPermissionObject($folder_id);
+    if ($folder_perm->canManage() === TRUE) {
+      db_query("UPDATE {filedepot_categories} SET folderorder = :folderorder WHERE cid = :cid", array(
+        ':folderorder' => $order,
+        ':cid'         => $folder_id,
+      ));
+
+      $res = db_query("SELECT pid,folderorder FROM {filedepot_categories} WHERE cid = :cid", array(
+        ':cid' => $folder_id,
+        ))->fetchAssoc();
+
+      if ($res !== FALSE) {
+        if ($out_pid !== NULL) {
+          $out_pid = $res['pid'];
+        }
+
+        if ($out_oldorder !== NULL) {
+          $out_oldorder = $res['folderorder'];
+        }
+      }
+
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Update the last updated timestamp for a specified category
+   * @param type $folder_id
+   */
+  public function updateCategoryLastUpdatedDate($folder_id) {
+    db_query("UPDATE {filedepot_categories} SET last_updated_date = :time WHERE cid = :cid", array(
+      ":time" => time(),
+      ":cid"  => $folder_id,
+    ));
+  }
+
+  /**
+   * Rename a category
+   * @param Integer   $folder_id              ID of the folder to rename
+   * @param String    $newname                New name
+   * @param Integer   &$out_pid               [Optional] Will be filled with the parent if set to a non null value
+   * @return                                  TRUE on success, FALSE on failure (forbidden)
+   */
+  public function renameCategory($folder_id, $newname, &$out_pid = NULL) {
+    $folder_perm = $this->getPermissionObject($folder_id);
+    if ($folder_perm->canManage() === TRUE) {
+      db_query("UPDATE {filedepot_categories} SET name = :name WHERE cid = :cid", array(
+        ':name' => $newname,
+        ':cid'  => $folder_id,
+      ));
+
+      if ($out_pid !== NULL) {
+        $out_pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid = :cid", array(
+          ':cid' => $folder_id,
+          ))->fetchField();
+      }
+
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Rename a file
+   * @param Integer   $file_id                ID of the file to rename
+   * @param String    $newname                New name
+   * @param Integer   &$out_pid               [Optional] Will be filled with the parent if set to a non null value
+   * @return                                  TRUE on success, FALSE on failure (forbidden)
+   */
+  public function renameFile($file_id, $newname, &$out_pid) {
+    $cid = db_query("SELECT cid FROM {filedepot_files} WHERE fid = :fid", array(
+      ':fid' => $file_id,
+      ))->fetchField();
+
+    if (!$cid) {
+      return FALSE;
+    }
+
+    $folder_perm = $this->getPermissionObject($cid);
+    if ($folder_perm->canManage() === TRUE) {
+      db_query("UPDATE {filedepot_files} SET title = :name, fname = :fname WHERE fid= :fid", array(
+        ':name'  => $newname,
+        ':fname' => $newname,
+        ':fid'   => $file_id,
+      ));
+
+      if ($out_pid !== NULL) {
+        $out_pid = $cid;
+      }
+
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Call createFolderNode to create the folder which will trigger this method through filedepot_insert
+   * @global type $user
+   * @param type $node
+   * @return boolean
+   */
   public function createFolder($node) {
     global $user;
 
@@ -659,7 +893,7 @@ class filedepot {
       'nid' => $node->nid,
     ));
 
-    $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=:pid", array('pid' => $node->parentfolder));
+    $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=:pid", array('pid'     => $node->parentfolder));
     $maxorder = $query->fetchField() + 10;
 
     // Only used for top level OG folders
@@ -673,89 +907,90 @@ class filedepot {
     else {
       $description = '';
     }
-    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid) VALUES (:pfolder, :title, :desc, :maxorder, :nid, :vid, :gid)",
-    array(
-      'pfolder' => $node->parentfolder,
-      'title' => check_plain($node->title),
-      'desc' => $description,
+
+    $time = time();
+    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid, last_modified_date, last_updated_date) VALUES (:pfolder, :title, :desc, :maxorder, :nid, :vid, :gid, :lmd, :lud)", array(
+      'pfolder'  => $node->parentfolder,
+      'title'    => check_plain($node->title),
+      'desc'     => $description,
       'maxorder' => $maxorder,
-      'nid' => $node->nid,
-      'vid' => $node->vid,
-      'gid' => $node->gid
+      'nid'      => $node->nid,
+      'vid'      => $node->vid,
+      'gid'      => $node->gid,
+      ':lmd'     => $time,
+      ':lud'     => $time,
     ));
 
     // Need to clear the cached user folder permissions
     db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
 
     // Retrieve the folder id (category id) for the new folder
-    $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid",
-    array('nid' => $node->nid))->fetchField();
+    $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid", array('nid' => $node->nid))->fetchField();
     if ($cid > 0 AND $this->createStorageFolder($cid)) {
       $this->cid = $cid;
-      $catpid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid",
-      array('cid' => $cid))->fetchField();
+      $catpid    = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField();
       if (isset($node->inherit) AND $node->inherit == 1 AND $catpid > 0) {
         // Retrieve parent User access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin FROM {filedepot_access} "
-        . "WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
-        $q1 = db_query($sql, array('cid' => $catpid));
+          . "WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
+        $q1  = db_query($sql, array('cid' => $catpid));
         foreach ($q1 as $rec) {
           $query = db_insert('filedepot_access');
           $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
           $query->values(array(
-            'catid' => $cid,
-            'permtype' => 'user',
-            'permid' => $rec->permid,
-            'view' => $rec->view,
-            'upload' => $rec->upload,
+            'catid'         => $cid,
+            'permtype'      => 'user',
+            'permid'        => $rec->permid,
+            'view'          => $rec->view,
+            'upload'        => $rec->upload,
             'upload_direct' => $rec->upload_direct,
-            'upload_ver' => $rec->upload_ver,
-            'approval' => $rec->approval,
-            'admin' => $rec->admin,
-          )
+            'upload_ver'    => $rec->upload_ver,
+            'approval'      => $rec->approval,
+            'admin'         => $rec->admin,
+            )
           );
           $query->execute();
         }
         // Retrieve parent Role Access records - for each record create a new one for this category
-        $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin "
-        . "FROM {filedepot_access} WHERE permtype='role' AND permid > 0 AND catid=:cid";
-        $q2 = db_query($sql, array('cid' => $catpid));
+        $sql            = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin "
+          . "FROM {filedepot_access} WHERE permtype='role' AND permid > 0 AND catid=:cid";
+        $q2             = db_query($sql, array('cid' => $catpid));
         foreach ($q2 as $rec) {
           $query = db_insert('filedepot_access');
           $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
           $query->values(array(
-            'catid' => $cid,
-            'permtype' => 'role',
-            'permid' => $rec->permid,
-            'view' => $rec->view,
-            'upload' => $rec->upload,
+            'catid'         => $cid,
+            'permtype'      => 'role',
+            'permid'        => $rec->permid,
+            'view'          => $rec->view,
+            'upload'        => $rec->upload,
             'upload_direct' => $rec->upload_direct,
-            'upload_ver' => $rec->upload_ver,
-            'approval' => $rec->approval,
-            'admin' => $rec->admin,
-          )
+            'upload_ver'    => $rec->upload_ver,
+            'approval'      => $rec->approval,
+            'admin'         => $rec->admin,
+            )
           );
           $query->execute();
         }
 
         // Retrieve parent Group Access records - for each record create a new one for this category
         $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin "
-        . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=:cid";
-        $q3 = db_query($sql, array('cid' => $catpid));
+          . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=:cid";
+        $q3  = db_query($sql, array('cid' => $catpid));
         foreach ($q3 as $rec) {
           $query = db_insert('filedepot_access');
           $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin'));
           $query->values(array(
-            'catid' => $cid,
-            'permtype' => 'group',
-            'permid' => $rec->permid,
-            'view' => $rec->view,
-            'upload' => $rec->upload,
+            'catid'         => $cid,
+            'permtype'      => 'group',
+            'permid'        => $rec->permid,
+            'view'          => $rec->view,
+            'upload'        => $rec->upload,
             'upload_direct' => $rec->upload_direct,
-            'upload_ver' => $rec->upload_ver,
-            'approval' => $rec->approval,
-            'admin' => $rec->admin,
-          )
+            'upload_ver'    => $rec->upload_ver,
+            'approval'      => $rec->approval,
+            'admin'         => $rec->admin,
+            )
           );
           $query->execute();
         }
@@ -771,8 +1006,7 @@ class filedepot {
         $this->updatePerms($cid, $this->defOwnerRights, $user->uid);
         if (is_array($this->defRoleRights) AND count($this->defRoleRights) > 0) {
           foreach ($this->defRoleRights as $role => $perms) {
-            $rid = db_query("SELECT rid FROM {role} WHERE name=:role",
-            array('role' => $role))->fetchField();
+            $rid = db_query("SELECT rid FROM {role} WHERE name=:role", array('role' => $role))->fetchField();
             if ($rid and $rid > 0) {
               $this->updatePerms($cid, $perms, '', '', array($rid));
             }
@@ -787,11 +1021,10 @@ class filedepot {
     }
   }
 
-
   public function createStorageFolder($cid) {
     if (@is_dir($this->root_storage_path) === FALSE) {
       watchdog('filedepot', "Storage Directory does not exist (@path), attempting to create now", array("@path" => $this->root_storage_path));
-      $res = @mkdir($this->root_storage_path, FILEDEPOT_CHMOD_DIRS);
+      $res    = @mkdir($this->root_storage_path, FILEDEPOT_CHMOD_DIRS);
       if ($res === FALSE) {
         watchdog('filedepot', "Failed - check the folder path is correct and valid");
       }
@@ -800,7 +1033,8 @@ class filedepot {
       }
     }
     $path = $this->root_storage_path . $cid;
-    if (@is_dir($path)) {
+    //watchdog('filedepot', "Attempting to create path: @path", array("@path" => $path));
+    if ((file_exists($path)) && (@is_dir($path))) {
       @chmod($path, FILEDEPOT_CHMOD_DIRS);
       if ($fh = fopen($path . '/.htaccess', 'w')) {
         fwrite($fh, "deny from all\n");
@@ -814,13 +1048,13 @@ class filedepot {
     }
     else {
       $oldumask = umask(0);
-      $res1 = @mkdir($path, FILEDEPOT_CHMOD_DIRS);
-      $res2 = @mkdir("{$path}/submissions", FILEDEPOT_CHMOD_DIRS);
+      $res1     = @mkdir($path, FILEDEPOT_CHMOD_DIRS);
+      $res2     = @mkdir("{$path}/submissions", FILEDEPOT_CHMOD_DIRS);
       umask($oldumask);
       if ($res1 === FALSE OR $res2 === FALSE) {
         watchdog('filedepot', "Failed to create server directory @path or @path2", array(
-            "@path" => $path,
-            "@path2" => "$path/submissions"
+          "@path"  => $path,
+          "@path2" => "$path/submissions"
         ));
         RETURN FALSE;
       }
@@ -837,7 +1071,6 @@ class filedepot {
       }
     }
   }
-
 
   public function deleteFolder($filedepot_folder_id) {
     /* Test for valid folder and admin permission one more time
@@ -858,31 +1091,30 @@ class filedepot {
       foreach ($list as $cid) {
         // Drupal will remove the file attachments automatically when folder node is deleted even if file usage is > 1
         $query = db_query("SELECT drupal_fid FROM {filedepot_files} WHERE cid=:cid", array(':cid' => $cid));
-        while ($A = $query->fetchAssoc()) {
+        while ($A     = $query->fetchAssoc()) {
           $file = file_load($A['drupal_fid']);
           file_usage_delete($file, 'filedepot');
         }
 
-        $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
-        array(':cid' => $cid))->fetchField();
+        $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
         db_delete('filedepot_categories')
-        ->condition('cid', $cid)
-        ->execute();
+          ->condition('cid', $cid)
+          ->execute();
         db_delete('filedepot_categories')
-        ->condition('cid', $cid)
-        ->execute();
+          ->condition('cid', $cid)
+          ->execute();
         db_delete('filedepot_access')
-        ->condition('catid', $cid)
-        ->execute();
+          ->condition('catid', $cid)
+          ->execute();
         db_delete('filedepot_recentfolders')
-        ->condition('cid', $cid)
-        ->execute();
+          ->condition('cid', $cid)
+          ->execute();
         db_delete('filedepot_notifications')
-        ->condition('cid', $cid)
-        ->execute();
+          ->condition('cid', $cid)
+          ->execute();
         db_delete('filedepot_filesubmissions')
-        ->condition('cid', $cid)
-        ->execute();
+          ->condition('cid', $cid)
+          ->execute();
 
         // Call the drupal node delete now for the subfolder node
         //watchdog('filedepot',"Calling node_delete for node id: {$subfolder_nid}");
@@ -891,19 +1123,17 @@ class filedepot {
         // Remove the physical directory
         $uri = $this->root_storage_path . $cid;
         if (file_exists($uri)) {
-          $ret = @drupal_rmdir("{$uri}/.htaccess");
-          $ret = @drupal_rmdir("{$uri}/submissions/.htaccess");
+          $ret = @unlink("{$uri}/.htaccess");
+          $ret = @unlink("{$uri}/submissions/.htaccess");
           $ret = @drupal_rmdir("{$uri}/submissions");
           $ret = @drupal_rmdir($uri);
         }
-
       }
       return TRUE;
     }
     else {
       return FALSE;
     }
-
   }
 
   public function getFileIcon($fname) {
@@ -918,19 +1148,21 @@ class filedepot {
     return $icon;
   }
 
-
-
   /* Delete the file and any versions */
-  public function deleteFile($fid) {
+
+  public function deleteFile($fid, &$out_pid = NULL) {
     $query = db_query("SELECT cid,drupal_fid FROM {filedepot_files} WHERE fid=:fid", array(':fid' => $fid));
     list($cid, $dfid) = array_values($query->fetchAssoc());
+    if ($out_pid !== NULL) {
+      $out_pid = $cid;
+    }
+
     if ($this->checkPermission($cid, 'admin')) {
       $file = file_load($dfid);
 
       // Drupal is not updating the node when the file (attachment) is deleted
       // Need to cycle thru the attachments and remove it then save the node
-      $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
-      array('cid' => $cid))->fetchField();
+      $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array('cid'       => $cid))->fetchField();
       $foldernode = node_load($nid);
       foreach ($foldernode->filedepot_folder_file[LANGUAGE_NONE] as $delta => $attachment) {
         if ($attachment['fid'] == $dfid) {
@@ -949,8 +1181,7 @@ class filedepot {
   }
 
   public function deleteSubmission($id) {
-    $query = db_query("SELECT cid,drupal_fid,tempname,fname,notify FROM {filedepot_filesubmissions} WHERE id=:id",
-    array('id' => $id));
+    $query = db_query("SELECT cid,drupal_fid,tempname,fname,notify FROM {filedepot_filesubmissions} WHERE id=:id", array('id' => $id));
     list($cid, $drupal_fid, $tempname, $fname, $notify) = array_values($query->fetchAssoc());
     if (!empty($tempname) AND file_exists("{$this->root_storage_path}{$cid}/submissions/$tempname")) {
       @unlink("{$this->root_storage_path}{$cid}/submissions/$tempname");
@@ -959,8 +1190,8 @@ class filedepot {
         filedepot_sendNotification($id, FILEDEPOT_NOTIFY_REJECT);
       }
       db_delete('filedepot_filesubmissions')
-      ->condition('id', $id)
-      ->execute();
+        ->condition('id', $id)
+        ->execute();
       return TRUE;
     }
     else {
@@ -968,20 +1199,73 @@ class filedepot {
     }
   }
 
-  public function moveFile($fid, $newcid) {
+  public function moveCategory($cid, $new_pid, &$out_oldpid = NULL) {
+    global $user;
+    $returnValue = 500;
+
+    $old_pid = db_query("SELECT pid FROM {filedepot_categories} WHERE cid = :cid", array(
+      ':cid' => $cid,
+      ))->fetchField();
+
+    if ($out_oldpid !== NULL) {
+      $out_oldpid = $old_pid;
+    }
+
+    if (($old_pid != $new_pid) && ($new_pid != $cid)) {
+      if ($this->checkPermission($new_pid, 'admin') OR user_access('administer filedepot')) {
+        // Check if user is trying to set the folder's parent to a child folder - ERROR!
+        $children = $this->getFolderChildren($cid);
+        if (!in_array($new_pid, $children)) {
+          db_query("UPDATE {filedepot_categories} SET pid=:pid WHERE cid=:cid", array(
+            ':pid' => $new_pid,
+            ':cid' => $cid,
+          ));
+          // Need to force a reset of user accessible folders in case folder has been moved under a parent with restricted access
+          db_update('filedepot_usersettings')
+            ->fields(array('allowable_view_folders' => ''))
+            ->execute();
+
+          // If the folder is now a top level folder - then remove it from the recent folders list as top level don't appear.
+          if ((($this->ogmode_enabled) && ($new_pid == $this->ogrootfolder)) || ($new_pid == 0)) {
+            db_query("DELETE FROM {filedepot_recentfolders} WHERE cid=:cid ", array(':cid' => $cid));
+          }
+
+          $returnValue = 0;
+        }
+        else {
+          $returnValue = 500;
+        }
+      }
+      else {
+        $returnValue = 403;
+      }
+    }
+    else {
+      $returnValue = 500;
+    }
+
+    return $returnValue;
+  }
+
+  public function moveFile($fid, $newcid, &$out_oldcid = NULL) {
     global $user;
 
     $filemoved = FALSE;
     if ($newcid > 0) {
       $query = db_query("SELECT fname,cid,drupal_fid,version,submitter FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
       list($fname, $orginalCid, $dfid, $curVersion, $submitter) = array_values($query->fetchAssoc());
+
+      if ($out_oldcid !== NULL) {
+        $out_oldcid = $orginalCid;
+      }
+
       if ($submitter == $user->uid OR $this->checkPermission($newcid, 'admin')) {
         if ($newcid !== intval($orginalCid)) {
 
           /* Need to move the file */
           $query2 = db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
-          while ($A = $query2->fetchAssoc()) {
-            $fname = stripslashes($A['fname']);
+          while ($A    = $query2->fetchAssoc()) {
+            $fname      = stripslashes($A['fname']);
             $sourcefile = $this->root_storage_path . "{$orginalCid}/{$fname}";
 
             $private_destination = "private://filedepot/{$newcid}/";
@@ -989,22 +1273,22 @@ class filedepot {
             // Best to call file_prepare_directory() - even if you believe directory exists
             file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
 
-            $file = file_load($dfid);
-            $private_uri = $private_destination . $file->filename;
-            $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
-            $file->display = 1;
+            $file           = file_load($dfid);
+            $private_uri    = $private_destination . $file->filename;
+            $file           = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+            $file->display  = 1;
             list($scheme, $target) = explode('://', $file->uri, 2);
             $moved_filename = str_replace("filedepot/{$newcid}/", '', $target);
             if ($moved_filename != $fname) {
               db_update('filedepot_fileversions')
-              ->fields(array('fname' => $moved_filename))
-              ->condition('fid', $fid)
-              ->execute();
+                ->fields(array('fname' => $moved_filename))
+                ->condition('fid', $fid)
+                ->execute();
             }
 
             // Remove the attached file from the original folder
-            $source_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",    array(':cid' => $orginalCid))->fetchField();
-            $node = node_load($source_folder_nid);
+            $source_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $orginalCid))->fetchField();
+            $node  = node_load($source_folder_nid);
             // Remove the moved file now from the source folder
             foreach ($node->filedepot_folder_file[LANGUAGE_NONE] as $delta => $attachment) {
               if ($attachment['fid'] == $file->fid) {
@@ -1016,95 +1300,84 @@ class filedepot {
 
             // Add the moved file to the target folder
             // Doing node_save changes the file status to permanent in the file_managed table
-            $target_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",    array(':cid' => $newcid))->fetchField();
-            $node = node_load($target_folder_nid);
+            $target_folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid'                                        => $newcid))->fetchField();
+            $node                                         = node_load($target_folder_nid);
             $node->filedepot_folder_file[LANGUAGE_NONE][] = (array) $file; //the name of the field that requires the files
             node_save($node);
 
             // Need to clear the cache as the node will still have the original file name
             field_cache_clear();
             db_update('filedepot_files')
-            ->fields(array('cid' => $newcid))
-            ->condition('fid', $fid)
-            ->execute();
+              ->fields(array('cid'      => $newcid))
+              ->condition('fid', $fid)
+              ->execute();
           }
           $filemoved = TRUE;
         }
       }
       else {
-        watchdog('filedepot', 'User (@user) does not have access to move file(@fid): @name to category: @newcid',
-        array('@user' => $user->name, '@fid' => $fid, '@name' => $fname, '@newcid' => $newcid));
+        watchdog('filedepot', 'User (@user) does not have access to move file(@fid): @name to category: @newcid', array('@user'   => $user->name, '@fid'    => $fid, '@name'   => $fname, '@newcid' => $newcid));
       }
     }
     return $filemoved;
   }
 
-
   public function deleteVersion($fid, $version) {
     $q1 = db_query("SELECT cid,version FROM {filedepot_files} WHERE fid=:fid", array('fid' => $fid));
     list($cid, $curVersion) = array_values($q1->fetchAssoc());
-    $q2 = db_query("SELECT fname, drupal_fid FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version",
-    array(
-      ':fid' => $fid,
+    $q2   = db_query("SELECT fname, drupal_fid FROM {filedepot_fileversions} WHERE fid=:fid AND version=:version", array(
+      ':fid'     => $fid,
       ':version' => $version,
-    )
+      )
     );
     list($fname, $dfid) = array_values($q2->fetchAssoc());
     if ($cid > 0 AND !empty($fname) AND $dfid > 0) {
       db_delete('filedepot_fileversions')
-      ->condition('fid', $fid)
-      ->condition('version', $version)
-      ->execute();
+        ->condition('fid', $fid)
+        ->condition('version', $version)
+        ->execute();
       // Need to check there are no other repository entries in this category for the same filename
-      if (db_query("SELECT count(fid) FROM {filedepot_files} WHERE cid=:cid and fname=:fname",
-      array('cid' => $cid, 'fname' => $fname))->fetchField() > 1) {
-        watchdog('filedepot', 'Delete file(@fid), version: @version, File: @fname. Other references found - not deleted.',
-        array('@fid' => $fid, '@version' => $version, '@fname' => $fname));
+      if (db_query("SELECT count(fid) FROM {filedepot_files} WHERE cid=:cid and fname=:fname", array('cid'   => $cid, 'fname' => $fname))->fetchField() > 1) {
+        watchdog('filedepot', 'Delete file(@fid), version: @version, File: @fname. Other references found - not deleted.', array('@fid'     => $fid, '@version' => $version, '@fname'   => $fname));
       }
       else {
         if (!empty($fname) AND file_exists("{$this->root_storage_path}{$cid}/{$fname}")) {
           @unlink("{$this->root_storage_path}{$cid}/{$fname}");
         }
-        watchdog('filedepot', 'Delete file(@fid), version: @version, File: @fname. Single reference - file deleted.',
-        array('@fid' => $fid, '@version' => $version, '@fname' => $fname));
+        watchdog('filedepot', 'Delete file(@fid), version: @version, File: @fname. Single reference - file deleted.', array('@fid'     => $fid, '@version' => $version, '@fname'   => $fname));
       }
       // If there is at least 1 more version record on file then I may need to update current version
       if (db_query("SELECT count(fid) FROM {filedepot_fileversions} WHERE fid=:fid", array(':fid' => $fid))->fetchField() > 0) {
         if ($version == $curVersion) {
           // Retrieve most current version on record
-          $q3 = db_query("SELECT fname,version,date FROM {filedepot_fileversions} WHERE fid=:fid ORDER BY version DESC",
-          array(':fid' => $fid), 0, 1);
+          $q3 = db_query("SELECT fname,version,date FROM {filedepot_fileversions} WHERE fid=:fid ORDER BY version DESC", array(':fid' => $fid), 0, 1);
           list($fname, $version, $date) = array_values($q3->fetchAssoc());
-          db_query("UPDATE {$filedepot_files} SET fname=:fname,version=:version, date=:time WHERE fid=:fid",
-          array(
-            ':fname' => $fname,
+          db_query("UPDATE {$filedepot_files} SET fname=:fname,version=:version, date=:time WHERE fid=:fid", array(
+            ':fname'   => $fname,
             ':version' => $version,
-            ':time' => time(),
-            ':fid' => $fid,
+            ':time'    => time(),
+            ':fid'     => $fid,
           ));
         }
       }
       else {
-        watchdog('filedepot', 'Delete File final version for fid(@fid), Main file records deleted.',
-        array('@fid' => $fid, '@version' => $version, '@fname' => $fname));
+        watchdog('filedepot', 'Delete File final version for fid(@fid), Main file records deleted.', array('@fid'     => $fid, '@version' => $version, '@fname'   => $fname));
         db_delete('filedepot_files')
-        ->condition('fid', $fid)
-        ->execute();
+          ->condition('fid', $fid)
+          ->execute();
       }
       return TRUE;
-
     }
     else {
       return FALSE;
     }
-
   }
 
   public function approveFileSubmission($id) {
-    $nexcloud =  filedepot_nexcloud();
+    $nexcloud = filedepot_nexcloud();
 
-    $query = db_query("SELECT * FROM {filedepot_filesubmissions} WHERE id=:fid", array('fid' => $id));
-    $rec = $query->fetchObject();
+    $query = db_query("SELECT * FROM {filedepot_filesubmissions} WHERE id=:fid", array('fid'   => $id));
+    $rec    = $query->fetchObject();
     $newfid = 0;
 
     // @TODO: Check if there have been multiple submission requests for the same file and thus have same new version #
@@ -1115,9 +1388,9 @@ class filedepot {
       // Best to call file_prepare_directory() - even if you believe directory exists
       file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
 
-      $file = file_load($rec->drupal_fid);
+      $file        = file_load($rec->drupal_fid);
       $private_uri = $private_destination . $rec->fname;
-      $file = file_move($file, $private_uri, FILE_EXISTS_RENAME);
+      $file        = file_move($file, $private_uri, FILE_EXISTS_RENAME);
 
       // Get name of new file in case it was renamed after the file_move()
       list($scheme, $target) = explode('://', $file->uri, 2);
@@ -1131,9 +1404,8 @@ class filedepot {
       }
 
       // Load the node for the folder and then update the file usage table
-      $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid",
-      array(':cid' => $rec->cid))->fetchField();
-      $node = node_load($nid);
+      $nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $rec->cid))->fetchField();
+      $node  = node_load($nid);
       file_usage_add($file, 'filedepot', 'node', $node->nid);
       // Remove the record for the core file module from the file usage table
       file_usage_delete($file, 'file');
@@ -1141,46 +1413,44 @@ class filedepot {
       $query = db_insert('filedepot_files');
       $query->fields(array('cid', 'fname', 'title', 'description', 'version', 'drupal_fid', 'size', 'mimetype', 'submitter', 'status', 'date', 'version_ctl', 'extension'));
       $query->values(array(
-        'cid' => $rec->cid,
-        'fname' => $filename,
-        'title' => $filetitle,
+        'cid'         => $rec->cid,
+        'fname'       => $filename,
+        'title'       => $filetitle,
         'description' => $rec->description,
-        'version' => $rec->version,
-        'drupal_fid' => $file->fid,
-        'size' => $file->filesize,
-        'mimetype' => $file->filemime,
-        'submitter' => $rec->submitter,
-        'status' => 1,
-        'date' => $rec->date,
+        'version'     => $rec->version,
+        'drupal_fid'  => $file->fid,
+        'size'        => $file->filesize,
+        'mimetype'    => $file->filemime,
+        'submitter'   => $rec->submitter,
+        'status'      => 1,
+        'date'        => $rec->date,
         'version_ctl' => $rec->version_ctl,
-        'extension' => $rec->extension,
-      )
+        'extension'   => $rec->extension,
+        )
       );
       $query->execute();
 
       // Get fileid for the new file record
-      $newfid = db_query_range("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", 0, 1,
-      array(':cid' => $rec->cid, ':uid' => $rec->submitter))->fetchField();
+      $newfid = db_query_range("SELECT fid FROM {filedepot_files} WHERE cid=:cid AND submitter=:uid ORDER BY fid DESC", 0, 1, array(':cid' => $rec->cid, ':uid' => $rec->submitter))->fetchField();
 
       $query = db_insert('filedepot_fileversions');
       $query->fields(array('fid', 'fname', 'drupal_fid', 'version', 'notes', 'size', 'date', 'uid', 'status'));
       $query->values(array(
-        'fid' => $newfid,
-        'fname' => $filename,
+        'fid'        => $newfid,
+        'fname'      => $filename,
         'drupal_fid' => $file->fid,
-        'version' => 1,
-        'notes' => $rec->version_note,
-        'size' => $file->filesize,
-        'date' => time(),
-        'uid' => $rec->submitter,
-        'status' => 1,
+        'version'    => 1,
+        'notes'      => $rec->version_note,
+        'size'       => $file->filesize,
+        'date'       => time(),
+        'uid'        => $rec->submitter,
+        'status'     => 1,
       ));
       $query->execute();
 
       if (!empty($rec->tags) AND $this->checkPermission($rec->cid, 'view', 0, FALSE)) {
         $nexcloud->update_tags($fid, $rec->tags);
       }
-
     }
 
     if ($newfid > 0) {
@@ -1188,8 +1458,8 @@ class filedepot {
         filedepot_sendNotification($newfid, FILEDEPOT_NOTIFY_APPROVED);
       }
       db_delete('filedepot_filesubmissions')
-      ->condition('id', $id)
-      ->execute();
+        ->condition('id', $id)
+        ->execute();
 
       // Send out notifications of update to all subscribed users
       filedepot_sendNotification($newfid, FILEDEPOT_NOTIFY_NEWFILE);
@@ -1199,11 +1469,10 @@ class filedepot {
       filedepot_updateFolderLastModified($workspaceParentFolder);
 
       return TRUE;
-
     }
     else {
       return FALSE;
     }
-
   }
+
 }

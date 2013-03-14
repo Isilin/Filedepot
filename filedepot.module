@@ -1770,7 +1770,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
     if (!empty($groupids)) {
       $query->condition(db_or()->condition('roleid', $user->roles, 'IN')->condition('groupid',$og_entity_groups));
     } else {
-      $query->condition('roleid', $roleids, 'IN');
+      $query->condition('roleid', $user->roles, 'IN');
     }
   } elseif (!empty($groupids)) {
       $query->condition('groupid', $og_entity_groups, 'IN');
@@ -1781,6 +1781,7 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
 
   $tags = 0;
   if ($rec) {
+    /* @TODO: Need to rewrite this query to use Drupal 7 Database API */
     list($maxm) = array_values($rec);
     $sql = "SELECT a.tagid,b.tagword,a.metric from {nextag_metrics} a ";
     $sql .= "LEFT JOIN {nextag_words} b ON a.tagid=b.id ";

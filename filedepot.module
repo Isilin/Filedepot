@@ -96,17 +96,6 @@ function filedepot_nexcloud() {
 }
 
 /**
- * Implementation of hook_help().
- */
-function filedepot_help($path, $args) {
-  switch ($path) {
-    case 'admin/help#filedepot':
-      return t('Filedepot Default Settings');
-      break;
-  }
-}
-
-/**
  * Implementation of hook_perm().
  */
 function filedepot_permission() {
@@ -523,6 +512,63 @@ function filedepot_node_access($node, $op) {
   }
   return $ret;
 }
+
+
+/**
+ * Implementation of hook_help().
+ */
+function filedepot_help($path,$arg){
+ switch($path){
+ case 'admin/help#filedepot';
+      $output = '';
+      $output .= '<h3>' . t('Requirements') . '</h3>';
+      $output .= '<p>' . t('PHP 5.2+ and PHP JSON library enabled. As of PHP 5.2.0, the JSON extension is bundled and compiled into PHP by default.') . '</p>';
+      $output .= '<h3>' . t('Installation') . '</h3>';
+      $output .= '<p>' . t('Filedepot requires two external javascript libraries to be installed and uses the Drupal libraries module API to manage access to them. ');
+      $output .=  t('Either version 1 or 2 of the libraries module is supported. You will need to create a <i>sites/all/libraries</i> folder if you don\'t already have the libraries module installed.') . '</p><p>' . t('If you have drush installed, you will want to use the provided drush command to download and install the 3rd party.') . '</p>';
+      $output .= '<dl>';
+      $output .= '<dt><b>' . t('Using Drush to install requried libraries') . '</b></dt>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('Use the <i>drush filedepot-libraries</i> command to download and install the required 3rd party javascript libraries.') . '</li>';
+      $output .= '<li>' . t('If you enable the module using drush, it will automatically run the drush command to install the 3rd party libraries.') . '</li>';
+      $output .= '</ul>';
+      $output .= '<dt><b>' . t('Manual Libraries Install') . '</b></dt>';
+      $output .= '<ol>';
+      $output .= '<li>' . t('You need to create separate folders under sites/all/libraries for each new library with the folder name the same as the library file.') . '</li>';
+      $output .= '<li>' . t('Folder names and filenames are all in lowercase.') . '</li>';
+      $output .= '<li>' . t('Assuming your libraries folder exists at sites/all/libraries, create two directories below the sites/all/libraries folder:');
+      $output .= '<ul>';
+      $output .= '<li>' . t('sites/all/libraries/html_encoder') . '</li>';
+      $output .= '<li>' . t('sites/all/libraries/jquery.blockui') . '</li>';
+      $output .= '</ul>';
+      $output .= '<li>' . t('The following javascript files then need to be retrieved and saved to their respective folders under the sites/all/libraries folder.');
+      $output .= '<ul>';
+      $output .= '<li>' . t('<a href="@url" target="_new">html_encoder.js</a> - SAVE FILE as: html_encoder/html_encoder.js', array('@url' => 'http://www.strictly-software.com/scripts/downloads/encoder.js') ) . '</li>';
+      $output .= '<li>' . t('<a href="@url" target="_new">jquery.blockui.js</a> - SAVE FILE as: jquery.blockui/jquery.blockui.js', array('@url' => 'http://jquery.malsup.com/block/#download') ) . '</li>';
+      $output .= '</ul>';
+      $output .= '</ol>';
+      $output .= '<dt><b>' . t('Final Steps') . '</b></dt>';
+      $output .= '<ol>';
+      $output .= '<li>' . t('Check that your site has the Private file system path setup. Filedepot uses the private file system for it\'s file repository and is required. Typically the private file system is located outside of the website\'s public_html directory and this provides for a far more secure file repository since the files can not be accessed directly by a URL and there is no need to use other filesystem security like .htaccess.') . '</li>';
+      $output .= '<li>' . t('Review the <a href="@url">module settings</a>, save your settings and at a minimum, reset to defaults and save settings. Review the file type filtering and extension mapping - this sets the allowable files that can be uploaded and the icon that appears in the listing to be associated with the file type.', array('@url' => url('admin/config/media/filedepot'))) . '</li>';
+      $output .= '<li>' . t('Review the <a href="@url">permissions</a> assigned to your site roles - example adding <i>access filedepot</i> for authenticated users', array('@url' => url('admin/people/permissions', array('fragment' => 'module-filedepot')))) . '</li>';
+      $output .= '</ol>';
+      $output .= '</dl>';
+      $output .= '<dt><b>' . t('Notes') . '</b></dt>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('More details and help setting up filedepot to use Organic Groups and troubleshooting is contained in the module README file') . '</li>';
+      $output .= '<li>' . t('Filedepot looks best and works best if you disable all side blocks') . '</li>';
+      $output .= '<li>' . t('You can also create new folders and upload files (attachments) via the native Drupal Content Add/View/Edit interface.') . '</li>';
+      $output .= '<li>' . t('A new content type is automatically created <i>filedepot_folder</i>') . '</li>';
+      $output .= '</ul>';
+  return $output;
+ break;
+ }
+
+
+}
+
+
 
 /**
  * Checks to see if OG mode is enabled or not

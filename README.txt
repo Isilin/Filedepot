@@ -1,13 +1,3 @@
-7.x-1.x RELEASE NOTE
-
- (Nov 6, 2012) Added support for v1 and v2 of the organic groups module
-
- (Aug 23, 2012) Added support for v1 and v2 of the libraries module - please read the "Install" section to setup the proper library requirements.
-
- (May 23/2012) Implemented the native drupal file upload filter. Removed the option to allow/disallow files by their extension and MIME type.
-               Only support the allow option now and filter just checks the extension type.
-
-
 
 The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
  - Documents are saved to a directory under the Drupal Private file system to protect corporate documents for safe access and distribution.
@@ -27,7 +17,7 @@ The Filedepot Document Management module satisfies the need for a full featured 
  - File Downloads are logged to the Druapl Recent Log messages
  - Check the Drupal Recent Log messages for any module errors and other module events - type: filedepot
 
-The Filedepot module is provided by Nextide www.nextide.ca and written by Blaine Lang (blainelang)
+The Filedepot module is developed by Nextide www.nextide.ca
 
 
 Dependencies
@@ -55,9 +45,11 @@ Install
 
 2) We are not permitted to include NON-GPL or mixed license files in the module distribution as per Drupal guidelines.
 
+   Filedepot requires two external javascript libraries to be installed and uses the Drupal libraries module API to manage access to them.
+
    The filedepot module requires the libraries module be installed and works with version 1 or version 2 of the libraries module.
    You will need to create a sites/all/libraries folder if you don't already have the libraries module installed.
-   If you have drush installed, you will want to use the build in drush command to download and install the 3rd party libraries
+   If you have drush installed, you will want to use the provided drush command to download and install the 3rd party libraries
 
    MANUAL METHOD
    *** PLEASE read carefully and create the required directories (folders) and rename the files as noted below ***

@@ -1130,3 +1130,17 @@ function filedepot_update_6301() {
   db_add_index($ret, 'filedepot_categories', 'group_nid', array('group_nid'));
   return $ret;
 }
+
+/**
+ * Add the last_update_date field to track folder changes for a single folder
+ */
+function filedepot_update_6302() {
+  $spec = array(
+    'description' => ('Used to signify if this directory has been changed in any way (including adding a new file into it)'),
+    'type'        => 'int',
+    'not null'    => TRUE,
+    'default'     => 0,
+  );
+  $ret = array();
+  db_add_field($ret, 'filedepot_categories', 'last_updated_date', $spec);
+}

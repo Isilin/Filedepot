@@ -278,7 +278,7 @@ class filedepot {
       // Check user access records
       $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='user' AND permid=%d";
       $query = db_query($sql, $cid, $uid);
-      while ($rec  = $query->fetch_assoc()) {
+      while ($rec  = db_fetch_array($query)) {
         list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
         $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
       }
@@ -289,7 +289,7 @@ class filedepot {
         foreach ($groupids as $gid) {
           $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='group' AND permid=%d";
           $query = db_query($sql, $cid, $gid);
-          while ($rec   = $query->fetch_assoc()) {
+          while ($rec   = db_fetch_array($query)) {
             list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
             $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
           }
@@ -300,7 +300,7 @@ class filedepot {
       foreach ($user->roles as $rid => $role) {
         $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=%d AND permtype='role' AND permid=%d";
         $query = db_query($sql, $cid, $rid);
-        while ($rec  = $query->fetch_assoc()) {
+        while ($rec  = db_fetch_array($query)) {
           list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
           $po->setTruePermissions($view, $upload, $upload_dir, $upload_ver, $approval, $admin);
         }
@@ -617,7 +617,7 @@ class filedepot {
     node_save($node);
 
     $out_node = $node;
-    $assoc  = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid)->fetch_assoc();
+    $assoc  = db_fetch_array(db_query("SELECT cid FROM {filedepot_categories} WHERE nid=%d", $node->nid));
     $out_cid = $assoc['cid'];
     
     if ($node->nid) {
@@ -1493,7 +1493,7 @@ class filedepot {
     global $user;
     $returnValue = 500;
 
-    $row = db_query("SELECT pid FROM {filedepot_categories} WHERE cid = %d", $cid)->fetch_assoc();
+    $row = db_fetch_array(db_query("SELECT pid FROM {filedepot_categories} WHERE cid = %d", $cid));
     $old_pid = $row['pid'];
     
     if ($out_oldpid !== NULL) {
@@ -1545,7 +1545,7 @@ class filedepot {
       db_query("UPDATE {filedepot_categories} SET name = '%s' WHERE cid = %d", addslashes($newname), $folder_id);
 
       if ($out_pid !== NULL) {
-        $row = db_query("SELECT pid FROM {filedepot_categories} WHERE cid = %d", $folder_id)->fetch_assoc();
+        $row = db_fetch_array(db_query("SELECT pid FROM {filedepot_categories} WHERE cid = %d", $folder_id));
         $out_pid = $row['pid'];
       }
 
@@ -1564,7 +1564,7 @@ class filedepot {
    * @return                                  TRUE on success, FALSE on failure (forbidden)
    */
   public function renameFile($file_id, $newname, &$out_pid) {
-    $row = db_query("SELECT cid FROM {filedepot_files} WHERE fid = %d", $file_id)->fetch_assoc();
+    $row = db_fetch_array(db_query("SELECT cid FROM {filedepot_files} WHERE fid = %d", $file_id));
     $cid = $row['cid'];
 
     if (!$cid) {
@@ -1599,7 +1599,7 @@ class filedepot {
     if ($folder_perm->canManage() === TRUE) {
       db_query("UPDATE {filedepot_categories} SET folderorder = %d WHERE cid = %d", $order, $folder_id);
 
-      $res = db_query("SELECT pid,folderorder FROM {filedepot_categories} WHERE cid = %d", $folder_id)->fetch_assoc();
+      $res = db_fetch_array(db_query("SELECT pid,folderorder FROM {filedepot_categories} WHERE cid = %d", $folder_id));
       
       if ($res !== FALSE) {
         if ($out_pid !== NULL) {

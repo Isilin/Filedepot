@@ -37,6 +37,7 @@ if (!defined('LB')) {
 function filedepot_filedepot() {
   static $filedepot;
   if (!isset($filedepot)) {
+    module_load_include('php', 'filedepot', 'permissions.class'); 
     module_load_include('php','filedepot','filedepot.class');
     $filedepot = filedepot::getInstance();
   }
@@ -141,7 +142,6 @@ function filedepot_menu() {
   );
 
   return $items;
-
 }
 
 /**

@@ -61,7 +61,7 @@ class filedepot_archiver extends ZipArchive
     
     // Grab all subdirectories under this category
     $result = db_query("SELECT cid FROM {filedepot_categories} WHERE pid = %d", $cid);
-    while ($A     = $result->fetch_assoc()) {
+    while ($A     = db_fetch_array($result)) {
       $found_subdirs = TRUE;
       if (!in_array($A['cid'], $this->uncheckedFolderIds)) {
         $this->generateAllFilesUnderCidRecursively($A['cid']);
@@ -71,7 +71,7 @@ class filedepot_archiver extends ZipArchive
     // Grab all files under this category
     $result = db_query("SELECT fid FROM {filedepot_files} WHERE cid = %d", $cid);
     $file_count = 0;
-    while ($A          = $result->fetch_assoc()) {
+    while ($A          = db_fetch_array($result)) {
       $file_count++;
       if ((!in_array($A['fid'], $this->filesToBeDownloaded)) && (!in_array($A['fid'], $this->uncheckedFileIds))) {
         $this->filesToBeDownloaded[] = $A['fid'];
@@ -93,7 +93,7 @@ class filedepot_archiver extends ZipArchive
   private function getPathComponent($cid) {
     if (!array_key_exists($cid, $this->processedPathComponents)) {
       $result = db_query("SELECT pid, name FROM {filedepot_categories} WHERE cid = %d", $cid);
-      $A     = $result->fetch_assoc();
+      $A     = db_fetch_array($result);
       if ($A) {
         $ppo                                 = new ProcessedPathObject();
         $ppo->catName                        = $A['name'];
@@ -280,7 +280,7 @@ class filedepot_archiver extends ZipArchive
 
       $result     = db_query("SELECT fid, fname, title, cid FROM {filedepot_files} WHERE fid IN ({$this->filesToBeDownloaded})");
       $file_count = 0;
-      while ($A          = $result->fetch_assoc()) {
+      while ($A          = db_fetch_array($result)) {
         if ($this->hasViewPermission($A['cid']) === TRUE) {
           // Inode limit workaround
           if ($file_count === 200) {

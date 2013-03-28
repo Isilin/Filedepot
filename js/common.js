@@ -4,6 +4,119 @@
  * Common or main libray of javascript functions for the drupal filedepot module
  */
 
+/**
+ * Nextide filedepot class
+ */
+function NxFiledepot() {
+  // empty
+};
+
+Global_checkedItemsDict = {
+  folders: {},
+  files: {}
+};
+
+/**
+ * Checked items manager class
+ */
+NxFiledepot.checkedItemsManager = function() {
+  
+};
+
+/**
+ * Create a checked item object from the parameters passed
+ * 
+ * @param id            ID of the folder or file
+ * @param ischecked     Boolean true or false to indicate if checked or nots
+ * @param pid           Parent ID
+ */
+NxFiledepot.checkedItemsManager.createCheckedItemObject = function(id, ischecked, pid) {
+  return {
+    id: id,
+    checked: ischecked,
+    pid : pid
+  };
+};
+
+/**
+ * Add a new checked folder item to the list
+ * 
+ * @param checkedItemObj          Object with parameters: { id : "folder_id", checked : "boolean" }
+ */
+NxFiledepot.checkedItemsManager.setFolder = function(checkedItemObj) {
+  Global_checkedItemsDict.folders[checkedItemObj.id] = checkedItemObj;
+};
+
+/**
+ * Add a new checked file item to the list
+ * 
+ * @param checkedItemObj          Object with parameters: { id : "file_id", checked : "boolean" }
+ */
+NxFiledepot.checkedItemsManager.setFile = function(checkedItemObj) {
+  Global_checkedItemsDict.files[checkedItemObj.id] = checkedItemObj;
+};
+
+/**
+ * Returns true if anything is selected, false otherwise
+ */
+NxFiledepot.checkedItemsManager.areSelected = function() {
+  var s = NxFiledepot.checkedItemsManager.exportFolders();
+  var q = NxFiledepot.checkedItemsManager.exportFiles();
+  if ((s == '{}') && (q == '{}')) { // empty
+    return false;
+  }
+  else {
+    return true;
+  }
+};
+
+/**
+ * Export folder checked items as a string
+ */
+NxFiledepot.checkedItemsManager.exportFolders = function() {
+  return JSON.stringify(Global_checkedItemsDict.folders);
+};
+
+NxFiledepot.checkedItemsManager.areFilesSelected = function() {
+  var selected = false;
+  
+  for(var key in Global_checkedItemsDict.files) {
+    if (Global_checkedItemsDict.files[key].id == undefined) {
+      continue;
+    }
+    else if (Global_checkedItemsDict.files[key].checked == false) {
+      continue;
+    }
+    else {
+      if (Global_checkedItemsDict.files[key].pid in Global_checkedItemsDict.folders) {
+        if (Global_checkedItemsDict.folders[Global_checkedItemsDict.files[key].pid].checked == true) {
+          continue;
+        }
+      }
+    }
+    
+    selected = true;
+    break;
+  }
+  
+  return selected;
+};
+
+/**
+ * Export file checked items as a string
+ */
+NxFiledepot.checkedItemsManager.exportFiles = function() {
+  return JSON.stringify(Global_checkedItemsDict.files);
+};
+
+/**
+ * Clear folders and files
+ */
+NxFiledepot.checkedItemsManager.clearAll = function() {
+  Global_checkedItemsDict.folders = { };
+  Global_checkedItemsDict.files = { };
+};
+
  YAHOO.namespace("filedepot");
  YAHOO.namespace("container");
 
@@ -599,6 +712,16 @@ function checkMultiAction(selectoption) {
     YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
+  } else if (selectoption == "download") {    
+    document.frmtoolbar.multiaction.selectedIndex=0;
+    var ltoken = document.getElementById("flistingltoken").value;
+    var postdata = '&ltoken=' + ltoken + '&checked_files=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFiles()) + '&checked_folders=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFolders());
+    var surl = ajax_post_handler_url + '/archive' + postdata;
+    jQuery('input[name=chkfolder]').attr('checked', false);
+    resetCheckedItems();
+    enable_multiaction('','');
+    window.location = surl;
+    return false;
   } else if (selectoption == 0) {
     return false;
   }
@@ -608,7 +731,10 @@ function checkMultiAction(selectoption) {
 }
 
 function postSubmitMultiactionResetIfNeed(selectoption) {
-  if (selectoption == 'archive') {
+  if (selectoption == 'download') {
+    jQuery('input[name=chkfolder]').attr('checked', false);
+    resetCheckedItems();
+    enable_multiaction('','');
     timer = setTimeout('document.frmtoolbar.multiaction.selectedIndex=0', 3000);
   } else if (selectoption == 'delete') {
     if (document.frmtoolbar.reportmode.value == 'notifications') {
@@ -1795,17 +1921,36 @@ function updateCheckedItems(obj,type) {
   }
   if (obj.checked) {
     field.value += ',' + obj.value;
+    NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(obj.value, true, 0));
   } else {
     if (field.value == field.value.replace(obj.value + ',', '')) {
       field.value = field.value.replace(obj.value, '');
     } else {
       field.value = field.value.replace(obj.value + ',', '');
     }
+    
+    NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(obj.value, false, 0));
   }
   // Remove any leading comma
   field.value = field.value.replace(/^,*/g, '');
   enable_multiaction(field.value,document.frmtoolbar.checkedfolders.value);
 }
+
+/**
+ * Resets the checked items fields 
+ */
+function resetCheckedItems() {
+  document.frmtoolbar.checkeditems.value = "";
+  document.frmtoolbar.checkedfolders.value = "";
+  NxFiledepot.checkedItemsManager.clearAll();
+}
+
+function getPidFromCheckedItemClassName(obj) {
+  var pidfid = obj.className;
+  var pid = pidfid.split(':')[0];
+  return pid;
+};
+
 
 function toggleCheckedItems(obj,files) {
 
@@ -1816,14 +1961,19 @@ function toggleCheckedItems(obj,files) {
     selectedFilesField.value = '';
     selectedFoldersField.value = '';
     // Need to test if only 1 checkbox exists on page or multiple
-
+    NxFiledepot.checkedItemsManager.clearAll();
+    
     try {
       if (document.frmfilelisting.chkfile.length) {
         for (i=0; i<document.frmfilelisting.chkfile.length; i++) {
           document.frmfilelisting.chkfile[i].checked = obj.checked ? true : false;
+          var itemvalue = document.frmfilelisting.chkfile[i].value;
           if (obj.checked) {
-            var itemvalue = document.frmfilelisting.chkfile[i].value;
             selectedFilesField.value = selectedFilesField.value + itemvalue + ',';
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, true, 0));
+          }
+          else {
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, false, 0));
           }
         }
 
@@ -1831,9 +1981,13 @@ function toggleCheckedItems(obj,files) {
         if (document.frmfilelisting.chkfolder) {
           for (i=0; i<document.frmfilelisting.chkfolder.length; i++) {
             document.frmfilelisting.chkfolder[i].checked = obj.checked ? true : false;
+            var itemvalue = document.frmfilelisting.chkfolder[i].value;            
             if (obj.checked) {
-              var itemvalue = document.frmfilelisting.chkfolder[i].value;
               selectedFoldersField.value = selectedFoldersField.value + itemvalue + ',';
+               NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, true, 0));
+            }
+            else {
+               NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, false, 0));
             }
           }
         }
@@ -1843,8 +1997,10 @@ function toggleCheckedItems(obj,files) {
           field.value = document.frmfilelisting.chkfile.value;
         try {
           document.frmfilelisting.chkfolder.checked = obj.checked ? true : false;
+          NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfolder.value, obj.checked ? true : false, 0));
         } catch (e) {}
         document.frmfilelisting.chkfile.checked = obj.checked ? true : false;
+        NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfile.value, obj.checked ? true : false, 0));
       }
 
     } catch(e) {
@@ -1852,9 +2008,13 @@ function toggleCheckedItems(obj,files) {
       try {
         if (document.frmfilelisting.chkfile.value > 0) {
           document.frmfilelisting.chkfile.checked = obj.checked ? true : false;
+          var itemvalue = document.frmfilelisting.chkfile.value;
           if (obj.checked) {
-            var itemvalue = document.frmfilelisting.chkfile.value;
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, true, 0));
             selectedFilesField.value = itemvalue;
+          }
+          else {
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, false, 0));
           }
         }
         // Check or un-check the folder checkboxes
@@ -1864,6 +2024,7 @@ function toggleCheckedItems(obj,files) {
             if (obj.checked) {
               var itemvalue = document.frmfilelisting.chkfolder[i].value;
               selectedFoldersField.value = selectedFoldersField.value + itemvalue + ',';
+              NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfolder[i].value, obj.checked ? true : false, 0));
             }
           }
         } else {
@@ -1871,6 +2032,7 @@ function toggleCheckedItems(obj,files) {
             document.frmfilelisting.chkfolder.checked = obj.checked ? true : false;
             if (obj.checked)
               selectedFoldersField.value = document.frmfilelisting.chkfolder.value;
+            NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfolder.value, obj.checked ? true : false, 0));
           } catch(e) {}
         }
       } catch (e) {}
@@ -1882,26 +2044,40 @@ function toggleCheckedItems(obj,files) {
     selectedFoldersField.value = selectedFoldersField.value.replace(/,$/g, '');
 
   } else if (obj.value > 0) {
-    // Find any checkboxes (subfolders or files) under this subfolder and toggle the checkboxes
-    $("#subfolder"+obj.value+"_contents :input[type=checkbox]").each(function() {
-      $(this).attr('checked',!$(this).attr('checked'));
-    });
+    try {
+      // Find any checkboxes (subfolders or files) under this subfolder and toggle the checkboxes
+      jQuery("#subfolder"+obj.value+"_contents :input[type=checkbox]").each(function() {
+        jQuery(this).attr('checked',!jQuery(this).attr('checked'));
+      });
+    }
+    catch(e) {}
 
     // Need to update the hidden field in the header form - the 'More Actions' dropdown form
     selectedFilesField.value = '';
     selectedFoldersField.value = '';
+    NxFiledepot.checkedItemsManager.clearAll();
+    
     // Need to test if only 1 checkbox exists on page or multiple
     try {
       if (document.frmfilelisting.chkfile.length) {
         for (i=0; i<document.frmfilelisting.chkfile.length; i++) {
+          var itemvalue = document.frmfilelisting.chkfile[i].value;
           if (document.frmfilelisting.chkfile[i].checked) {
-            var itemvalue = document.frmfilelisting.chkfile[i].value;
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, true, 0));
             selectedFilesField.value = selectedFilesField.value + itemvalue + ',';
+          }
+          else {
+            NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, false, 0));
           }
         }
       } else if (document.frmfilelisting.chkfile.value > 0) {
-        if (document.frmfilelisting.chkfile.checked)
+        if (document.frmfilelisting.chkfile.checked) {
           selectedFilesField.value = document.frmfilelisting.chkfile.value;
+          NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfile.value, true, 0));
+        }
+        else {
+          NxFiledepot.checkedItemsManager.setFile(NxFiledepot.checkedItemsManager.createCheckedItemObject(document.frmfilelisting.chkfile.value, false, 0));
+        }
       }
     } catch (e) {}
 
@@ -1910,9 +2086,13 @@ function toggleCheckedItems(obj,files) {
       var chkobj;
       for (i=0; i<document.frmfilelisting.chkfolder.length; i++) {
         chkobj = document.frmfilelisting.chkfolder[i];
+        var itemvalue = chkobj.value;
         if (chkobj.checked) {
-          var itemvalue = chkobj.value;
           selectedFoldersField.value = selectedFoldersField.value + itemvalue + ',';
+          NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, true, 0));
+        }
+        else {
+          NxFiledepot.checkedItemsManager.setFolder(NxFiledepot.checkedItemsManager.createCheckedItemObject(itemvalue, false, 0));
         }
       }
     }

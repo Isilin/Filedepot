@@ -14,7 +14,7 @@ define('FILEDEPOT_TOKEN_LISTING', 'filedepot_token_listing');
 
 function filedepot_dispatcher($action) {
   global $user;
-
+  
   $filedepot = filedepot_filedepot();
   $nexcloud = filedepot_nexcloud();
   module_load_include('php', 'filedepot', 'lib-theme');
@@ -25,9 +25,28 @@ function filedepot_dispatcher($action) {
     timer_start('filedepot_timer');
   }
   firelogmsg("AJAX Server code executing - action: $action");
-
+  
   switch ($action) {
-
+    case 'archive':
+      if ((isset($_GET['checked_files'])) && (isset($_GET['checked_folders']))) {
+         module_load_include('php', 'filedepot', 'filedepot_archiver.class');
+        $checked_files = json_decode($_GET['checked_files'], TRUE);
+        $checked_folders = json_decode($_GET['checked_folders'], TRUE);
+        //print_r($checked_files);
+        //die(1);
+        $fa = new filedepot_archiver();
+        $fa->createAndCleanArchiveDirectory();
+        $fa->addCheckedObjectArrays($checked_files, $checked_folders);
+        $fa->createArchive();
+        $fa->close();
+        $fa->download();
+        return;
+      }
+      else {
+        echo "Invalid Parameters";
+        return;
+      }
+      break;
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
       if ($cid > 0) {

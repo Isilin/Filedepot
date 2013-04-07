@@ -476,7 +476,7 @@ function filedepot_displayTagSearchListing($query) {
 
 }
 
-function filedepot_getFileListingSQL($cid, $out_limit_start, $out_limit_end) {
+function filedepot_getFileListingSQL($cid, &$out_limit_start, &$out_limit_end) {
   global $user;
   $filedepot = filedepot_filedepot();
   

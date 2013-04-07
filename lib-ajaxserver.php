@@ -335,8 +335,18 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
 
   $filedepot->selectedTopLevelFolder = $cid;
   $files = array();
-  $sql = filedepot_getFileListingSQL($cid);
-  $file_query = db_query($sql);
+  $limit_start = 0;
+  $limit_end = FALSE;
+  
+  $sql = filedepot_getFileListingSQL($cid, $limit_start, $limit_end);
+  
+  if ($limit_end === FALSE) {
+    $file_query = db_query($sql);
+  }
+  else {
+    $file_query = db_query($sql, $limit_start, $limit_end);
+  }
+  
   $output = '';
   $break = FALSE;
 
@@ -466,10 +476,11 @@ function filedepot_displayTagSearchListing($query) {
 
 }
 
-function filedepot_getFileListingSQL($cid) {
+function filedepot_getFileListingSQL($cid, $out_limit_start, $out_limit_end) {
   global $user;
   $filedepot = filedepot_filedepot();
-
+  
+  $out_limit_start = 0;
   $display_orderby = variable_get('filedepot_override_folderorder', 0) ? 'file.title ASC, file.date DESC' : 'file.date DESC';
   $sql = '';
   // Check and see if this is a custom report
@@ -485,13 +496,15 @@ function filedepot_getFileListingSQL($cid) {
   $sql .= "FROM {filedepot_files} file ";
   $sql .= "LEFT JOIN {filedepot_categories} category ON file.cid=category.cid ";
   $sql .= "LEFT JOIN {filedepot_folderindex} folderindex ON file.cid=folderindex.cid AND folderindex.uid = {$user->uid} ";
+  $limit = FALSE;
   if ($filedepot->activeview == 'lockedfiles') {
     $sql .= "WHERE file.status=2 AND status_changedby_uid={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
 
-    $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$display_orderby} ";
+    $limit = $filedepot->maxDefaultRecords;
   }
   elseif ($filedepot->activeview == 'downloads') {
     // Will return multiple records for same file as we capture download records each time a user downloads it
@@ -500,7 +513,8 @@ function filedepot_getFileListingSQL($cid) {
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$display_orderby} ";
+    $limit = $filedepot->maxDefaultRecords;
   }
   elseif ($filedepot->activeview == 'unread') {
     $sql .= "LEFT OUTER JOIN {filedepot_downloads} downloads on downloads.fid=file.fid ";
@@ -513,7 +527,8 @@ function filedepot_getFileListingSQL($cid) {
     else {
       $sql .= "AND file.cid in ({$filedepot->allowableViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$display_orderby} ";
+    $limit = $filedepot->maxDefaultRecords;
 
   }
   elseif ($filedepot->activeview == 'incoming') {
@@ -533,14 +548,16 @@ function filedepot_getFileListingSQL($cid) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
 
-    $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$display_orderby} ";
+    $limit = $filedepot->maxDefaultRecords;
   }
   elseif ($filedepot->activeview == 'myfiles') {
     $sql .= "WHERE file.submitter={$user->uid} ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
         $sql .= "AND file.cid in ({$filedepot->allowableGroupViewFoldersSql}) ";
     }
-    $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+    $sql .= "ORDER BY {$display_orderby} ";
+    $limit = $filedepot->maxDefaultRecords;
 
   }
   elseif ($filedepot->activeview == 'approvals') {
@@ -568,22 +585,14 @@ function filedepot_getFileListingSQL($cid) {
     $sql .= "WHERE file.cid={$cid} ORDER BY {$display_orderby}, file.fid DESC ";
     if ($filedepot->activeview == 'getmorefolderdata') {
       if (isset($_POST['pass2']) AND $_POST['pass2'] == 1) {
-        if (db_driver() == 'pgsql') {
-          $sql .= "LIMIT 100000 OFFSET {$filedepot->recordCountPass1}";
-        }
-        else {
-          $sql .= "LIMIT {$filedepot->recordCountPass1}, 100000 ";
-        }
+        $limit = 100000;
+        $out_limit_start = $filedepot->recordCountPass1;
       }
       else {
         $recordoffset = $filedepot->recordCountPass2 + $filedepot->recordCountPass1;
         $filedepot->folder_filenumoffset = $recordoffset;
-        if (db_driver() == 'pgsql') {
-          $sql .= "LIMIT 100000 OFFSET {$recordoffset}";
-        }
-        else {
-          $sql .= "LIMIT {$recordoffset}, 100000 ";
-        }
+        $limit = 100000;
+        $out_limit_start = $recordoffset;
       }
     }
     elseif ($filedepot->activeview != 'getallfiles') {
@@ -592,20 +601,16 @@ function filedepot_getFileListingSQL($cid) {
         $filedepot->folder_filenumoffset = $filedepot->recordCountPass1;
         // Add 1 to allow $file_query->fetchAssoc() to know there are more records - used in nexdocsrv_generateFileListing()
         $folder_filelimit = $filedepot->recordCountPass2 + 1;
-        if (db_driver() == 'pgsql') {
-          $sql .= "LIMIT $folder_filelimit OFFSET {$filedepot->recordCountPass1} ";
-        }
-        else {
-          $sql .= "LIMIT {$filedepot->recordCountPass1}, $folder_filelimit ";
-        }
+        $limit = $folder_filelimit;
+        $out_limit_start = $filedepot->recordCountPass1;
+        
+        
       }
       else {
-        if (db_driver() == 'pgsql') {
-          $sql .= "LIMIT $filedepot->recordCountPass1 OFFSET 0 ";
-        }
-        else {
-          $sql .= "LIMIT 0, $filedepot->recordCountPass1 ";
-        }
+
+        $limit = $filedepot->recordCountPass1;
+        $out_limit_start = 0;
+        
       }
     }
 
@@ -632,14 +637,17 @@ function filedepot_getFileListingSQL($cid) {
 
     if ($filedepot->activeview == 'latestfiles')
     {
-      $sql .= "ORDER BY file.date DESC LIMIT {$filedepot->maxDefaultRecords}";
+      $sql .= "ORDER BY file.date DESC ";
+      $limit = $filedepot->maxDefaultRecords;
     }
     else
     {
-      $sql .= "ORDER BY {$display_orderby} LIMIT {$filedepot->maxDefaultRecords}";
+      $sql .= "ORDER BY {$display_orderby} ";
+      $limit = $filedepot->maxDefaultRecords;
     }
   }
 
+  $out_limit_end = $limit;
   return $sql;
 
 }

@@ -242,8 +242,9 @@ function filedepot_dispatcher($action) {
           while ($A = $itemquery->fetchAssoc()) {
             if ($_POST['direction'] == 'down') {
               $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
-              $sql .= "AND folderorder > :folderorder ORDER BY folderorder ASC LIMIT 1";
-              $nextorder = db_query($sql, array(':pid' => $A['pid'], ':folderorder' => $A['folderorder']))->fetchField();
+              $sql .= "AND folderorder > :folderorder ORDER BY folderorder ASC ";
+              
+              $nextorder = db_query_range($sql, 0, 1, array(':pid' => $A['pid'], ':folderorder' => $A['folderorder']))->fetchField();
               if ($nextorder > $A['folderorder']) {
                 $folderorder = $nextorder + 5;
               }
@@ -257,8 +258,8 @@ function filedepot_dispatcher($action) {
             }
             elseif ($_POST['direction'] == 'up') {
               $sql  = "SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid ";
-              $sql .= "AND folderorder < :folderorder ORDER BY folderorder DESC LIMIT 1";
-              $nextorder = db_query($sql, array(
+              $sql .= "AND folderorder < :folderorder ORDER BY folderorder DESC ";
+              $nextorder = db_query_range($sql, 0, 1, array(
                 ':pid' => $A['pid'],
                 ':folderorder' => $A['folderorder'],
               ))->fetchField();

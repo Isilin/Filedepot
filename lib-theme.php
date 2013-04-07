@@ -528,7 +528,8 @@ function template_preprocess_filedepot_filedetail(&$variables) {
   $variables['LANG_download'] = t('Download File');
   $variables['LANG_lastupated'] = t('Last Updated');
   $variables['show_statusmsg'] = 'none';
-
+  $limit = FALSE;
+  
   if ($variables['reportmode'] == 'approvals') {
     $sql = "SELECT file.cid,file.title,file.fname,file.date,file.version,file.size, ";
     $sql .= "file.description,file.submitter,file.status,file.version_note as notes,tags ";
@@ -546,11 +547,18 @@ function template_preprocess_filedepot_filedetail(&$variables) {
     $sql .= "file.description, file.submitter, file.status, v.notes, '' as tags ";
     $sql .= "FROM {filedepot_files} file ";
     $sql .= "LEFT JOIN {filedepot_fileversions} v ON v.fid=file.fid ";
-    $sql .= "WHERE file.fid=:fid ORDER BY v.version DESC LIMIT 1";
+    $sql .= "WHERE file.fid=:fid ORDER BY v.version DESC ";
+    $limit = 1;
   }
 
   $filedetail = FALSE;
-  $query = db_query($sql, array(':fid' => $fid));
+  if ($limit !== FALSE) {
+    $query = db_query_range($sql, 0, 1, array(':fid' => $fid));
+  }
+  else {
+    $query = db_query($sql, array(':fid' => $fid));
+  }
+  
   $A = $query->fetchAssoc();
   if ($A != NULL) {
     list($cid, $title, $fname, $date, $cur_version, $size, $description, $submitter, $status, $cur_notes, $tags) = array_values($A);
@@ -997,8 +1005,8 @@ function template_preprocess_filedepot_notifications(&$variables) {
   . "LEFT JOIN {filedepot_categories} c ON c.cid=a.cid "
   . "LEFT JOIN {users} d ON d.uid=a.submitter_uid "
   . "WHERE a.target_uid={$user->uid} "
-  . "ORDER BY a.datetime DESC LIMIT 100";
-  $query = db_query($sql);
+  . "ORDER BY a.datetime DESC ";
+  $query = db_query_range($sql, 0, 100);
   $cssid = 1;
   while ($A = $query->fetchAssoc()) {
     $variables['history_records'] .= theme('filedepot_notifications_history', array('rec' => $A));

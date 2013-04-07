@@ -344,7 +344,7 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
     $file_query = db_query($sql);
   }
   else {
-    $file_query = db_query($sql, $limit_start, $limit_end);
+    $file_query = db_query_range($sql, $limit_start, $limit_end);
   }
   
   $output = '';

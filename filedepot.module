@@ -1839,7 +1839,8 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
     if (!empty($nexcloud->_activetags)) {
       $sql .= "AND a.tagid NOT in ({$nexcloud->_activetags}) ";
     }
-    $sql .= "GROUP BY tagid ORDER BY a.tagid ASC, metric DESC";
+    
+    $sql .= "GROUP BY a.tagid, b.tagword, a.metric ORDER BY a.tagid ASC, metric DESC";
     $query = db_query($sql);
     while ($A     = $query->fetchAssoc()) {
       $variables['tagwords'] .= theme('filedepot_tagcloud_record', array('rec'  => $A, 'maxm' => $maxm));

@@ -1044,7 +1044,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
           }
         }
 
-        watchdog('filedepot', "Download of incoming file: @file (!fid) by user @user", array('@file' => $filetitle, '!fid'  => $fid, '@user' => $user->name));
+        watchdog('filedepot', "Download of incoming file: @file (!fid) by user @user", array('@file' => $filetitle, '!fid'  => $fid, '@user' => isset($user->name) ? $user->name : "Anonymous"));
 
         $headers = array(
           'Content-Type: ' . $type . '; name="' . $filetitle . '"',
@@ -1112,7 +1112,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
           "@fid"        => $fid,
           "@drupal_fid" => $drupal_fid,
           "@cid"        => $cid,
-          "@username"   => $user->name,
+          "@username"   => isset($user->name) ? $user->name : "Anonymous",
         ));
         return drupal_access_denied();
       }
@@ -1127,7 +1127,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
       if ($filedepot->checkPermission($cid, 'view') === FALSE) {
         watchdog('filedepot', "Download request for incoming file invalid access to folder (@cid) for user: @username", array(
           "@cid"      => $cid,
-          "@username" => $user->name,
+          "@username" => isset($user->name) ? $user->name : "Anonymous",
         ));
         return drupal_access_denied();
       }
@@ -1150,7 +1150,7 @@ function filedepot_download($node, $fid, $version, $mode = '') {
           $type        = mime_header_encode($file->filemime);
         }
 
-        watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user", array('@file'    => $filetitle, '!fid'     => $fid, '!version' => $version, '@user'    => $user->name));
+        watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user", array('@file'    => $filetitle, '!fid'     => $fid, '!version' => $version, '@user'    => isset($user->name) ? $user->name : "Anonymous") );
 
 
         /* We can assume the repository is setup using Drupal's private filesystem

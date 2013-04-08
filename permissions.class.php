@@ -70,7 +70,17 @@ class filedepot_permission_object
   }
 
   public function canUpload() {
-    if (($this->hasPermission(self::UPLOAD)) || ($this->hasPermission(self::UPLOAD_DIRECT)) || ($this->hasPermission(self::ADMIN))) {
+    if (($this->hasPermission(filedepot_permission_object::UPLOAD)) || ($this->hasPermission(filedepot_permission_object::UPLOAD_DIRECT)) || ($this->hasPermission(filedepot_permission_object::ADMIN))) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+  
+  public function canUploadDirect() 
+  {
+    if (($this->hasPermission(filedepot_permission_object::UPLOAD_DIRECT)) || ($this->hasPermission(filedepot_permission_object::ADMIN))) {
       return TRUE;
     }
     else {
@@ -136,6 +146,10 @@ class filedepot_permission_object
    * @param type $permission
    */
   public function hasPermission($permission) {
+    if ($permission === "upload_dir") {
+      $permission = "upload_direct";
+    }
+    
     if ((isset($this->_PermissionArray[$permission])) && ($this->_PermissionArray[$permission] === TRUE)) {
       return TRUE;
     }

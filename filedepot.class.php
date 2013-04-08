@@ -300,8 +300,6 @@ class filedepot
   function checkPermission($cid, $rights, $userid = 0, $adminOverRide = TRUE) {
     global $user;
 
-
-
     if (intval($cid) < 1) {
       return FALSE;
     }

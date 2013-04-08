@@ -2051,11 +2051,14 @@ function filedepot_newfile_submit($form, &$form_state) {
   // Retrieve the upload location - parent folder node id
   $folder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();
   $node  = node_load($folder_nid);
-
-  $upload_direct       = $filedepot->checkPermission($cid, 'upload_dir');
-  $upload_moderated    = $filedepot->checkPermission($cid, 'upload');
-  $upload_new_versions = $filedepot->checkPermission($cid, 'upload_ver');
-  if (!$upload_direct AND $upload_moderated) { // Admin's have all perms so test for users with upload moderated approval only
+  $cid_perms = $filedepot->getPermissionObject($cid);
+  
+  if ($cid_perms->canUpload() === FALSE) {
+    drupal_set_message(t('Insufficient priviledges to upload to this folder'), 'error');
+    return;
+  }
+  watchdog("filedepot_test", var_export($cid_perms, TRUE));
+  if ($cid_perms->canUploadDirect() === FALSE) { // Admin's have all perms so test for users with upload moderated approval only
     $moderated           = TRUE;
     $private_destination = 'private://filedepot/' . $node->folder . '/submissions/';
   }

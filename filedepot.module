@@ -1578,8 +1578,8 @@ function filedepot_mail($key, &$message, $params) {
       break;
 
     case FILEDEPOT_NOTIFY_REJECT: // File submission being declined by admin where $id = new submission record id. Send only to user
-      $fname = db_query("SELECT fname FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid'     => $id))->fetchField();
-      $submitter = db_query("SELECT submitter FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid'              => $id))->fetchField();
+      $query = db_query("SELECT fname, cid, submitter FROM {filedepot_filesubmissions} WHERE id=:fid", array(':fid'              => $id));
+      list($fname, $cid, $submitter) = array_values($query->fetchAssoc());
       $message['subject'] = variable_get('site_name', '') . ' - ' . t('New File Submission Cancelled');
       $message_body       = t('Your recent file submission: !file, was not accepted', array('!file'            => $fname)) . "\n\n";
       $message_body .= t('Thank You') . "\n";

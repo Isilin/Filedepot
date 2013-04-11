@@ -348,7 +348,7 @@ class nexcloud {
                *  must then have a trailing , or be the end of the field
                */
               $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
-              $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%') ";
+              $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%' OR tags = '{$A['id']}') ";
               //$sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
               if (db_query($sql)->fetchField() == 0) {
                 db_query("DELETE FROM {nextag_words} WHERE id = :id", array(':id' => $A['id']));
@@ -523,10 +523,10 @@ class nexcloud {
       $tagids[] = $A['id'];
       // REGEX - search for id that is the first id or has a leading comma must then have a trailing , or be the end of the field
       if ($i > 1) {
-        $sql .= "AND (tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%')";//"AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
+        $sql .= "AND (tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%' OR tags = '{$A['id']}')";//"AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
       }
       else {
-        $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%')";//"tags REGEXP '(^|,){$A['id']}(,|$)' ";
+        $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%' OR tags = '{$A['id']}')";//"tags REGEXP '(^|,){$A['id']}(,|$)' ";
       }
       $i++;
     }

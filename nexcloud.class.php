@@ -348,7 +348,8 @@ class nexcloud {
                *  must then have a trailing , or be the end of the field
                */
               $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
-              $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
+              $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%') ";
+              //$sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
               if (db_query($sql)->fetchField() == 0) {
                 db_query("DELETE FROM {nextag_words} WHERE id = :id", array(':id' => $A['id']));
               }
@@ -480,7 +481,7 @@ class nexcloud {
     // User may be looking for more then 1 tag - pull of the last word in the query to search against
     $tags = explode(',', $query);
     $lookup = addslashes(array_pop($tags));
-    $sql = "SELECT tagword FROM {nextag_words} WHERE tagword REGEXP '^$lookup' ORDER BY metric DESC";
+    $sql = "SELECT tagword FROM {nextag_words} WHERE tagword LIKE '{$lookup}%' ORDER BY metric DESC";// REGEXP '^$lookup' ORDER BY metric DESC";
     $q = db_query($sql);
     while ($A = $q->fetchAssoc()) {
       $matches[] = $A['tagword'];
@@ -513,7 +514,7 @@ class nexcloud {
     else {
       $sql .= "WHERE tagword = '$query' ";
     }
-
+    
     $query = db_query($sql);
     $tagids = array();
     $sql = "SELECT itemid FROM {nextag_items} WHERE type='{$this->_type}' AND ";
@@ -522,13 +523,15 @@ class nexcloud {
       $tagids[] = $A['id'];
       // REGEX - search for id that is the first id or has a leading comma must then have a trailing , or be the end of the field
       if ($i > 1) {
-        $sql .= "AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
+        $sql .= "AND (tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%')";//"AND tags REGEXP '(^|,){$A['id']}(,|$)' ";
       }
       else {
-        $sql .= "tags REGEXP '(^|,){$A['id']}(,|$)' ";
+        $sql .= "(tags LIKE '{$A['id']},%' OR tags LIKE '%,{$A['id']}' OR tags LIKE '%,{$A['id']},%')";//"tags REGEXP '(^|,){$A['id']}(,|$)' ";
       }
       $i++;
     }
+    
+    
     if (count($tagids) > 0) {
       $this->_activetags = implode(',', $tagids);
       $query = db_query($sql);

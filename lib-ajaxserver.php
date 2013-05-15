@@ -103,13 +103,14 @@ function filedepotAjaxServer_getfilelisting() {
 function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   global $user;
   $filedepot = filedepot_filedepot();
-
+  $display_recent_folders = variable_get('filedepot_show_recent_folders', 1);
+   
   if (empty($data)) {
     $data = array('retcode' => 200);
   }
 
   $approvals = filedepot_getSubmissionCnt();
-
+  
   $data['reports'] = array();
   $data['recentfolders'] = array();
   $data['topfolders'] = array();
@@ -189,7 +190,7 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   }
 
   // Setup the Most Recent folders for this user
-  if (user_is_logged_in()) {
+  if ((user_is_logged_in()) && ($display_recent_folders != 0)) {
     $sql  = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
     $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
@@ -233,7 +234,11 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   if (function_exists('filedepot_customLeftsideNavigation')) {
     $data = filedepot_customLeftsideNavigation($data);
   }
-
+  
+  if ($display_recent_folders == 0) {
+    $data['recentfolders'] = NULL;
+  }
+  
   return $data;
 
 }
@@ -455,6 +460,7 @@ function filedepot_displayTagSearchListing($query) {
   if (!empty($filedepot->allowableViewFoldersSql)) {
     $sql .= "AND file.cid in ($filedepot->allowableViewFoldersSql) ";
   }
+
   $itemids = $nexcloud->search($query);
   if ($itemids !== FALSE) {
     $itemids = implode(',', $itemids);

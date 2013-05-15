@@ -2287,15 +2287,17 @@ function renderLeftNavigation(oResults) {
   }
 
   // Recent Folders
-  var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
-  recentfolders.labelStyle = "icon-allfolders";
-  for (var i = 0; i < oResults.recentfolders.length; i++) {
-    new YAHOO.widget.TextNode({
-      label: oResults.recentfolders[i]['label'],
-      labelStyle: oResults.recentfolders[i]['icon'],
-      report: '',
-      cid: oResults.recentfolders[i]['cid']
-    }, recentfolders, false);
+  if (oResults.recentfolders != null) {
+    var recentfolders = new YAHOO.widget.TextNode(NEXLANG_intelfolder2, root, true);
+    recentfolders.labelStyle = "icon-allfolders";
+    for (var i = 0; i < oResults.recentfolders.length; i++) {
+      new YAHOO.widget.TextNode({
+        label: oResults.recentfolders[i]['label'],
+        labelStyle: oResults.recentfolders[i]['icon'],
+        report: '',
+        cid: oResults.recentfolders[i]['cid']
+      }, recentfolders, false);
+    }
   }
 
   // Top Folders

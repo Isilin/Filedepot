@@ -139,6 +139,13 @@ function filedepot_admin_settings() {
     '#description' => t('If enabled, the display will show the index numbers before folder and file names.'),
   );
 
+  $form['options']['filedepot_show_recent_folders'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display the recent folders listing'),
+    '#default_value' => variable_get('filedepot_show_recent_folders', 1),
+    '#description' => t('If enabled, the display will show the recent folders entry in the left navigation panel of Filedepot.'),
+  );
+  
   $form['options']['filedepot_override_folderorder'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use alphabetic ordering instead of the default settings'),

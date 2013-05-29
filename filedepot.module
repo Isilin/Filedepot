@@ -95,6 +95,50 @@ function filedepot_nexcloud() {
 }
 
 /**
+ * Implementation of hook_views_api().
+*/
+function filedepot_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'filedepot') . '/views',
+  );
+}
+
+function filedepot_add_views_templates() {
+  $templates_path = drupal_get_path('module', 'filedepot') . '/views';
+  $templates = array();
+
+  //$views_templates_types = views_theme();
+
+  $files = file_scan_directory($templates_path, '/^views.*\.tpl\.php$/');
+
+  foreach ($files as $file) {
+
+    $template_name = str_replace('.tpl.php', '', $file->filename);
+
+    $template_info = explode('--', $template_name);
+
+    $views_hook = str_replace('-', '_', $template_info[0]);
+
+    $file_path = str_replace('/'. $file->filename, '', $file->uri);
+
+    $templates[str_replace('-', '_', $template_name)] = array(
+      //'arguments' => $views_templates_types[$views_hook]['arguments'],
+      'path' => $file_path,
+      'template' => $template_name,
+      'original hook' => $views_hook,
+      'preprocess functions' => array(
+        'template_preprocess',
+        'template_preprocess_'. $views_hook,
+      ),
+    );
+
+  }
+
+  return $templates;
+}
+
+/**
  * Implementation of hook_perm().
  */
 function filedepot_permission() {
@@ -443,6 +487,11 @@ function filedepot_theme() {
       'variables' => array(),
     ),
   );
+  
+  // Now add the views related template files
+  if (module_exists('views')) {
+    $theme_hooks = array_merge($theme_hooks, filedepot_add_views_templates());
+  }
 
   return $theme_hooks;
 }

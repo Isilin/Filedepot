@@ -1809,10 +1809,10 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   // Filedepot Admin's should be able to view all tags
   if (!user_access('administer filedepot', $user)) {
     if (!empty($groupids)) {
-      $query->condition(db_or()->condition('roleid', $user->roles, 'IN')->condition('groupid', $og_entity_groups));
+      $query->condition(db_or()->condition('roleid', $roleids, 'IN')->condition('groupid', $og_entity_groups));
     }
     else {
-      $query->condition('roleid', $user->roles, 'IN');
+      $query->condition('roleid', $roleids, 'IN');
     }
   }
   elseif (!empty($groupids)) {

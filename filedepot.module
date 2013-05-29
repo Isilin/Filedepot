@@ -829,7 +829,7 @@ function filedepot_form_alter(&$form, &$form_state, $form_id) {
     );
 
     if (user_access('administer filedepot', $user)) {
-      $parentFolders = array(0 => 'Top Level Folder');
+      $parentFolders = array(0 => t('Top Level Folder'));
     }
     else {
       $parentFolders = array();
@@ -2010,7 +2010,7 @@ function filedepot_newfile_form($form, &$form_state) {
   );
 
   if (user_access('administer filedepot', $user)) {
-    $parentFolders = array(0 => 'Top Level Folder');
+    $parentFolders = array(0 => t('Top Level Folder'));
   }
   else {
     $parentFolders = array();
@@ -2343,10 +2343,10 @@ function filedepot_newfolder_form($form, &$form_state) {
   );
 
   if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
-    $parentFolders = array($filedepot->ogrootfolder => 'Top Level Folder');
+    $parentFolders = array($filedepot->ogrootfolder => t('Top Level Folder'));
   }
   elseif (user_access('administer filedepot', $user)) {
-    $parentFolders = array(0 => 'Top Level Folder');
+    $parentFolders = array(0 => t('Top Level Folder'));
   }
   else {
     $parentFolders = array();

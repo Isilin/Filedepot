@@ -21,7 +21,7 @@
   <!-- DIV active if in Report Mode -->
   <div id="reportheadercontainer" style="display:<?php print $show_reportmodeheader ?>">
     <div class="pluginReportTitle floatleft" style="width:270;padding-left:2px;padding-bottom:0px;vertical-align:top;">
-      <div style="float:left;padding-left:60px;white-space:nowrap;"><?php print $report_heading ?></div>
+      <div style="float:left;padding-left:60px;white-space:nowrap;"><?php print t($report_heading); ?></div>
     </div>
   </div>
 </div>

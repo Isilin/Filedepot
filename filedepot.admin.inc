@@ -146,6 +146,13 @@ function filedepot_admin_settings() {
     '#description' => t('If enabled, the display will show the recent folders entry in the left navigation panel of Filedepot.'),
   );
   
+  $form['options'][FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display files before folders'),
+    '#default_value' => variable_get(FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST, 1),
+    '#description' => t('If enabled, the display will show files before folders in Filedepot. If disabled, will show folders first.'),
+  );
+  
   $form['options']['filedepot_override_folderorder'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use alphabetic ordering instead of the default settings'),

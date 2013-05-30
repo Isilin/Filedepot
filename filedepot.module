@@ -31,6 +31,8 @@ define('FILEDEPOT_FILTER_INCLUDEMODE', 1);
 
 define('FILEDEPOT_CLIENT_SUPPORT', FALSE);  // No Client Support presenly in D7 version
 
+define("FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST", "filedepot_displayorder_filesfirst");
+
 if (!defined('LB')) {
   define('LB', "\n");
 }

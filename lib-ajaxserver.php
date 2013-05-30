@@ -249,7 +249,9 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
   global $user;
 
   $filedepot = filedepot_filedepot();
-
+  
+  $file_first_display = (variable_get(FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST, 1) == 1) ? TRUE : FALSE;
+  
   $retval = '';
   if ($id > 0 AND !in_array($id, $filedepot->allowableViewFolders)) {
     watchdog('filedepot', 'No view access to category @id', array('id' => $id));
@@ -265,8 +267,11 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
   }
 
   $level++;
-  if ($level == 1) {
-    $retval .= nexdocsrv_generateFileListing($id, $level, $folderprefix);
+  
+  if ($file_first_display == TRUE) {
+    if ($level == 1) {
+      $retval .= nexdocsrv_generateFileListing($id, $level, $folderprefix);
+    }
   }
 
   $sql = '';
@@ -300,13 +305,25 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
       else {
         $formatted_foldernumber = "{$folderprefix}.{$i}";
       }
-      $subfolderlisting = nexdocsrv_generateFileListing($A['cid'], $level, $formatted_foldernumber);
+      
       $subfolder_count = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE pid=:pid",
         array(':pid' => $A['cid']))->fetchField();
       if ($subfolder_count > 0) {
         // Show any sub-subfolders - calling this function again recursively
-        $subfolderlisting .= filedepot_displayFolderListing($A['cid'], $level, $formatted_foldernumber, $rowid);
+        $tmpsubfolderlisting = filedepot_displayFolderListing($A['cid'], $level, $formatted_foldernumber, $rowid);
       }
+      
+      $tmpfilelisting = nexdocsrv_generateFileListing($A['cid'], $level, $formatted_foldernumber);
+      
+      if ($file_first_display == TRUE) {
+        $subfolderlisting .= $tmpfilelisting;
+        $subfolderlisting .= $tmpsubfolderlisting;
+      }
+      else {
+        $subfolderlisting .= $tmpsubfolderlisting;        
+        $subfolderlisting .= $tmpfilelisting;
+      }
+      
       $retval .= theme('filedepot_folderlisting', array(
         'folderrec' => $A,
         'folderprefix' => $formatted_foldernumber,
@@ -322,7 +339,13 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
       }
     }
   }
-
+  
+  if ($file_first_display == FALSE) {
+    if ($level == 1) {
+      $retval .= nexdocsrv_generateFileListing($id, $level - 1, $folderprefix);
+    }
+  }
+  
   return $retval;
 }
 

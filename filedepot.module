@@ -1843,7 +1843,8 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   $nexcloud              = filedepot_nexcloud();
   $variables['tagwords'] = '';
 
-  $roleids  = implode(',', array_keys($user->roles));
+  $roleids_array = array_keys($user->roles);
+  $roleids  = implode(',', $roleids_array);
   $groupids = '';
   if ($filedepot->ogenabled) {
     $og_entity_groups = filedepot_og_get_user_groups();
@@ -1858,10 +1859,10 @@ function template_preprocess_filedepot_tagcloud(&$variables) {
   // Filedepot Admin's should be able to view all tags
   if (!user_access('administer filedepot', $user)) {
     if (!empty($groupids)) {
-      $query->condition(db_or()->condition('roleid', $user->roles, 'IN')->condition('groupid', $og_entity_groups));
+      $query->condition(db_or()->condition('roleid', $roleids_array, 'IN')->condition('groupid', $og_entity_groups));
     }
     else {
-      $query->condition('roleid', $user->roles, 'IN');
+      $query->condition('roleid', $roleids_array, 'IN');
     }
   }
   elseif (!empty($groupids)) {

@@ -903,28 +903,35 @@ function filedepot_dispatcher($action) {
       elseif ($user->uid > 0 ) {
         $reportmode = check_plain($_POST['reportmode']);
         $fileitems = check_plain($_POST['checkeditems']);
+        $folderitems = check_plain($_POST['checkedfolders']);
         $filedepot->cid = intval($_POST['cid']);
         $filedepot->activeview = check_plain($_POST['reportmode']);
-        $files = explode(',', $fileitems);
-        foreach ($files as $fid) {
-          filedepotAjaxServer_updateFileSubscription($fid, 'add');
-        }
-        $folderitems = check_plain($_POST['checkedfolders']);
-        $folders = explode(',', $folderitems);
-        foreach ($folders as $cid) {
-          if (db_query("SELECT count(id) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", array(
-            ':cid' => $cid,
-            ':uid' => $user->uid,
-          ))->fetchField() == 0) {
-            $sql  = "INSERT INTO {filedepot_notifications} (cid,cid_newfiles,cid_changes,uid,date) ";
-            $sql .= "VALUES (:cid,1,1,:uid,:time)";
-            db_query($sql, array(
-              ':cid' => $cid,
-              ':uid' => $user->uid,
-              ':time' => time(),
-            ));
+        
+        if (!empty($fileitems)) {
+          $files = explode(',', $fileitems);
+          foreach ($files as $fid) {
+            filedepotAjaxServer_updateFileSubscription($fid, 'add');
           }
         }
+        
+        if (!empty($folderitems)) {
+          $folders = explode(',', $folderitems);
+          foreach ($folders as $cid) {
+            if (db_query("SELECT count(id) FROM {filedepot_notifications} WHERE cid=:cid AND uid=:uid", array(
+              ':cid' => $cid,
+              ':uid' => $user->uid,
+            ))->fetchField() == 0) {
+              $sql  = "INSERT INTO {filedepot_notifications} (cid,cid_newfiles,cid_changes,uid,date) ";
+              $sql .= "VALUES (:cid,1,1,:uid,:time)";
+              db_query($sql, array(
+                ':cid' => $cid,
+                ':uid' => $user->uid,
+                ':time' => time(),
+              ));
+            }
+          }
+        }
+        
         $data['retcode'] = 200;
         $data = filedepotAjaxServer_generateLeftSideNavigation($data);
         $data['displayhtml'] = filedepot_displayFolderListing($filedepot->cid);

@@ -91,8 +91,10 @@ function parseXML(root,tagname) {
 
     var pnode = root.getElementsByTagName(tagname)[0];
     retval = '';
-    for (var i = 0; i < pnode.childNodes.length; i++) {
-        retval += pnode.childNodes[i].nodeValue;
+    if (pnode != undefined) {
+      for (var i = 0; i < pnode.childNodes.length; i++) {
+          retval += pnode.childNodes[i].nodeValue;
+      }
     }
     return retval;
 }
@@ -113,8 +115,8 @@ function select_innerHTML(obj,innerHTML){
 /******
 * select_innerHTML - correction for a bug using InnerHTML to replace the Select Options in IE
 * Veja o problema em: http://support.microsoft.com/default.aspx?scid=kb;en-us;276228
-* Versão: 2.1 - 04/09/2007
-* Autor: Micox - Náiron José C. Guimarães - micoxjcg@yahoo.com.br
+* Versï¿½o: 2.1 - 04/09/2007
+* Autor: Micox - Nï¿½iron Josï¿½ C. Guimarï¿½es - micoxjcg@yahoo.com.br
 * @obj(tipo HTMLobject): o select a ser alterado
 * @innerHTML(tipo string): o novo valor do innerHTML
 *******/
@@ -125,7 +127,7 @@ function select_innerHTML(obj,innerHTML){
     document.body.appendChild(selTemp);
     selTemp = document.getElementById("micoxselect1");
     selTemp.style.display="none";
-    if(innerHTML.toLowerCase().indexOf("<option")<0){//se não é option eu converto
+    if(innerHTML.toLowerCase().indexOf("<option")<0){//se nï¿½o ï¿½ option eu converto
         innerHTML = "<option>" + innerHTML + "</option>";
     }
     innerHTML = innerHTML.toLowerCase().replace(/<option/g,"<span").replace(/<\/option/g,"</span");

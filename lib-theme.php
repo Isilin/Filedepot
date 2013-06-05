@@ -620,12 +620,20 @@ function template_preprocess_filedepot_filedetail(&$variables) {
         }
       }
     }
-
-    if (isset($urlprefix) AND !empty($urlprefix)) {
-      $variables['download_url'] = base_path() . "index.php?q=$urlprefix/filedepot&cid=$cid&fid=$fid";
+    
+    $clean_urls_on = variable_get('clean_url', 0);
+    if ($clean_urls_on == 1) {
+      $url_separator = "/";
     }
     else {
-      $variables['download_url'] = base_path() . "index.php?q=filedepot&cid=$cid&fid=$fid";
+      $url_separator = "?q=";
+    }
+    
+    if (isset($urlprefix) AND !empty($urlprefix)) {
+      $variables['download_url'] = base_path() . "index.php{$url_separator}{$urlprefix}/filedepot&cid=$cid&fid=$fid";
+    }
+    else {
+      $variables['download_url'] = base_path() . "index.php{$url_separator}filedepot&cid=$cid&fid=$fid";
     }
 
     // Retrieve file versions

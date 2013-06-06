@@ -6,7 +6,60 @@
  * Drupal API functions for the Module Admin Settings
  */
 
+/**
+ * Return an array of permission names matched to the machine name for that permission.
+ */
+function _filedepot_get_permission_name_array() {
+  static $s = array(
+    'view' => 'view_folder',
+    'approval' => 'upload_admin',
+    'admin' => 'folder_admin',
+    'upload' => 'upload_with_approval',
+    'upload_dir' => 'upload_direct',
+    'upload_ver' => 'upload_versions'
+  );
+  
+  return $s;
+}
 
+/**
+ * Convert a permission string (upload, approval) to the display names and back again
+ * @param string  $perm_string           
+ * @param boolean $convert_to_display            True to convert from machine name to display name, false to convert from display name to machine name
+ */
+function _filedepot_convert_permission_string($perm_string, $convert_to_display = TRUE) {
+  $perm_names = _filedepot_get_permission_name_array();
+  $perm_array = explode(',', $perm_string);
+  
+  if ($convert_to_display === FALSE) {
+    $perm_names = array_flip($perm_names);
+  }
+
+  for($i = 0; $i < count($perm_array); $i++) {
+    $perm_array[$i] = $perm_names[trim($perm_array[$i])];
+  }    
+  
+  $replaced_perm_string = implode(', ', $perm_array);
+  return $replaced_perm_string;
+}
+
+/**
+ * Convert a multi-line (user: permissions) permission string (upload, approval) to the display names and back again
+ * @param string  $perm_string           
+ * @param boolean $convert_to_display            True to convert from machine name to display name, false to convert from display name to machine name
+ */
+function _filedepot_convert_permission_string_lines($perm_string, $convert_to_display = TRUE) {
+  $lines = preg_split( '/\r\n|\r|\n/', $perm_string);
+  for($i = 0; $i < count($lines); $i++) {
+    if (!empty($lines[$i])) {
+      $split_line = explode(":", $lines[$i]);
+      $split_line[1] = _filedepot_convert_permission_string($split_line[1], $convert_to_display);
+      $lines[$i] = implode(": ", $split_line);
+    }
+  }
+  
+  return implode("\n", $lines);
+}
 
 function filedepot_admin_settings() {
 
@@ -190,33 +243,35 @@ function filedepot_admin_settings() {
     '#description' => t('This is a comma sepearated list of file type to icon image files. This is used in the filelisting logic to associate an icon to file type uploaded. We don\'t want to assume that all icons will be in gif format.'),
     '#wysiwyg' => FALSE,
   );
-
+ 
+  $perm_names = _filedepot_get_permission_name_array();
+  
   $form['permissions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Default Permissions'),
     '#description' => t('Folders may have sub-folders which have more restrictive or different permissions. Permissions can be assigned by user and/or by role.')
   . '<br />' . t('Available Permissions are:')
   . '<ul>'
-  . '<li><strong>' . t('view') . '</strong>: '
+  . '<li><strong>' . $perm_names['view'] . '</strong>: '
   . t('Able to view the folder and files within. If you can view the files, you can download them.')
   . '</li>'
-  . '<li><strong>' . t('admin') . '</strong>: '
+  . '<li><strong>' . $perm_names['admin'] . '</strong>: '
   . t('Full admin permissions to folder and files within folder. Able to change folder permissions.')
   . '</li>'
   . '</li>'
-  . '<li><strong>' . t('upload_dir') . '</strong>: '
+  . '<li><strong>' . $perm_names['upload_dir'] . '</strong>: '
   . t('Able to upload files directly to folder with no moderation.')
   . '</li>'
   . '</li>'
-  . '<li><strong>' . t('upload') . '</strong>: '
+  . '<li><strong>' . $perm_names['upload'] . '</strong>: '
   . t('Able to upload files but they will need to be approved before appearing in folder listing.')
   . '</li>'
   . '</li>'
-  . '<li><strong>' . t('upload_ver') . '</strong>: '
+  . '<li><strong>' . $perm_names['upload_ver'] . '</strong>: '
   . t('Able to upload new versions to existing files listed in the folder.')
   . '</li>'
   . '</li>'
-  . '<li><strong>' . t('approval') . '</strong>: '
+  . '<li><strong>' . $perm_names['approval'] . '</strong>: '
   . t('Able to moderate (approve or reject) new file submissions.')
   . '</li>'
   . '</ul>',
@@ -224,34 +279,43 @@ function filedepot_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-
+  
+  $perm_string = variable_get('filedepot_default_owner', 'view, admin, upload_dir, upload_ver, approval');
+  $replaced_perm_string = _filedepot_convert_permission_string($perm_string, TRUE);
+  
   $form['permissions']['filedepot_default_owner'] = array(
     '#type' => 'textarea',
     '#title' => t('Default Owner Permissions'),
     '#cols' => 60,
     '#rows' => 1,
-    '#default_value' => variable_get('filedepot_default_owner', 'view, admin, upload_dir, upload_ver, approval'),
+    '#default_value' => $replaced_perm_string,
     '#description' => t('When a site member creates a new folder, list the default user based permissions the folder should be setup with.'),
     '#wysiwyg' => FALSE,
   );
+  
+  $perm_string = variable_get('filedepot_default_group', 'view, upload_dir');
+  $replaced_perm_string = _filedepot_convert_permission_string($perm_string, TRUE);
 
   $form['permissions']['filedepot_default_group'] = array(
   '#type' => 'textarea',
   '#title' => t('Default OG Permissions'),
   '#cols' => 60,
   '#rows' => 1,
-  '#default_value' => variable_get('filedepot_default_group', 'view, upload_dir'),
+  '#default_value' => $replaced_perm_string,
   '#description' =>
   t('When a new group is created and OG mode is enabled, list the default user based permissions the folder should be setup with.'),
   '#wysiwyg' => FALSE,
   );
+  
+  $perm_string = variable_get('filedepot_default_roles', 'authenticated user: view, upload');
+  $replaced_perm_string = _filedepot_convert_permission_string_lines($perm_string, TRUE);
 
   $form['permissions']['filedepot_default_roles'] = array(
     '#type' => 'textarea',
     '#title' => t('Default Role Permissions'),
     '#cols' => 60,
     '#rows' => 3,
-    '#default_value' => variable_get('filedepot_default_roles', 'authenticated user: view, upload'),
+    '#default_value' => $replaced_perm_string,
     '#description' => t('Default role based permissions the folder should be setup with. Enter additional mappings of roles to permissions on new lines'),
     '#wysiwyg' => FALSE,
   );
@@ -267,7 +331,11 @@ function filedepot_admin_settings() {
 }
 
 
-function filedepot_admin_settings_validate($form, $form_state) {
+function filedepot_admin_settings_submit($form, &$form_state) {
+  $f = 10;
+}
+
+function filedepot_admin_settings_validate($form, &$form_state) {
 
   if (!valid_email_address($form_state['values']['filedepot_email_to'])) {
     form_set_error('filedepot_email_to', t('The email address appears to be invalid.'));
@@ -297,7 +365,8 @@ function filedepot_admin_settings_validate($form, $form_state) {
   $validperms = array('view', 'admin', 'upload', 'upload_dir', 'upload_ver', 'approval');
   $defaultperms = array();
   $cleanperms = array();
-  $ownerperms = $form_state['values']['filedepot_default_owner'];
+  $ownerperms = _filedepot_convert_permission_string($form_state['values']['filedepot_default_owner'], FALSE);
+  $form_state['values']['filedepot_default_owner'] = $ownerperms;
   $aperms = explode(',', $ownerperms);
   foreach ($aperms as $perm) {
     $perm = trim($perm);
@@ -308,7 +377,8 @@ function filedepot_admin_settings_validate($form, $form_state) {
   $defaultperms['owner'] = $cleanperms;
 
   $cleanperms = array();
-  $groupperms = $form_state['values']['filedepot_default_group'];
+  $groupperms = _filedepot_convert_permission_string($form_state['values']['filedepot_default_group'], FALSE);
+  $form_state['values']['filedepot_default_group'] = $groupperms;
   $aperms = explode(',', $groupperms);
   foreach ($aperms as $perm) {
     $perm = trim($perm);
@@ -318,7 +388,8 @@ function filedepot_admin_settings_validate($form, $form_state) {
   }
   $defaultperms['group'] = $cleanperms;
 
-  $rawroleperms = $form_state['values']['filedepot_default_roles'];
+  $rawroleperms = _filedepot_convert_permission_string_lines($form_state['values']['filedepot_default_roles'], FALSE);
+  $form_state['values']['filedepot_default_roles'] = $rawroleperms;
   $permlines = preg_split( '/\r\n|\r|\n/', $rawroleperms );
   foreach ($permlines as $line) {
     if (!empty($line)) {

@@ -712,7 +712,7 @@ function checkMultiAction(selectoption) {
     YAHOO.util.Connect.asyncRequest('POST', surl, callback, postdata);
     return false;
 
-  } else if (selectoption == "download") {    
+  } else if ((selectoption == "download") || (selectoption == "archive")) {    
     document.frmtoolbar.multiaction.selectedIndex=0;
     var ltoken = document.getElementById("flistingltoken").value;
     var postdata = '&ltoken=' + ltoken + '&checked_files=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFiles()) + '&checked_folders=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFolders());

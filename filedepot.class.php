@@ -1261,7 +1261,7 @@ class filedepot
         if ($newcid !== intval($orginalCid)) {
 
           /* Need to move the file */
-          $query2 = db_query("SELECT fname FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
+          $query2 = db_query("SELECT fname, version FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
           while ($A    = $query2->fetchAssoc()) {
             $fname      = stripslashes($A['fname']);
             $sourcefile = $this->root_storage_path . "{$orginalCid}/{$fname}";
@@ -1281,6 +1281,7 @@ class filedepot
               db_update('filedepot_fileversions')
                 ->fields(array('fname' => $moved_filename))
                 ->condition('fid', $fid)
+                ->condition('version', $A['version'])
                 ->execute();
             }
 

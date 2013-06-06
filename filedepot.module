@@ -1182,8 +1182,9 @@ function filedepot_download($node, $fid, $version, $mode = '') {
         ));
         return drupal_access_denied();
       }
-
-      if (file_exists($filepath) AND !is_dir($filepath)) {
+      
+      $real_filepath = drupal_realpath($filepath);
+      if (file_exists($real_filepath) AND !is_dir($real_filepath)) {
         if ($mode == 'moderator') {
           $name = mime_header_encode($filetitle);
           $type = mime_header_encode($file->filemime);
@@ -2227,7 +2228,7 @@ function filedepot_newfile_submit($form, &$form_state) {
 
         // Update the file usage table
         file_usage_add($file, 'filedepot', 'node', $node->nid);
-        file_usage_delete($file, 'file');
+        //file_usage_delete($file, 'file');
 
         // filedepot_description
         // Create filedepot record for file and set status of file to 1 - online
@@ -2590,7 +2591,7 @@ function filedepot_newversion_submit($form, &$form_state) {
 
         // Update the file usage table
         file_usage_add($file, 'filedepot', 'node', $foldernode->nid);
-        file_usage_delete($file, 'file');
+        //file_usage_delete($file, 'file');
 
         // Need to clear the cache as the node will still have the original file name
         field_cache_clear();

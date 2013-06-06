@@ -927,7 +927,7 @@ function filedepotAjaxServer_getMoreActions($op) {
         // $retval .= '<option value="archive">' . t('Download as an archive') . '</option>';
         $retval .= '<option value="markfavorite">' . t('Mark Favorite') . '</option>';
         $retval .= '<option value="clearfavorite">' . t('Clear Favorite') . '</option>';
-        $retval .= '<option value="download">' . t('Download') . '</option>';
+        $retval .= '<option value="download">' . t('Download Archive') . '</option>';
       }
       break;
 

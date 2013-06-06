@@ -127,7 +127,7 @@ YUI Javascript Libraries
     Hosting the YUI libraries locally is required if you need to use https
 
 How to setup to use locally hosted YUI libraries or to load from another server
-    Download the complete YUI 2.7.0 library from YUI libraries from github URL above
+    Download the complete YUI 2.7.0 library from YUI libraries from http://yuilibrary.com/downloads/#yui2
     Create a folder under sites/all/libraries called yui_2.7.0
     Copy the library folders and files to your sites/all/libraries/yui_2.7.0
     There should be a sites/all/libraries/yui_2.7.0/build directory - with all the individual YUI component subfolders and files from the downloaded archive.

@@ -250,6 +250,8 @@ function filedepot_uninstall() {
   // Delete our content type
   // http://api.drupal.org/api/function/node_type_delete/7
   node_type_delete('filedepot_folder');
+  
+  node_type_cache_reset();
 
   // Purge all field infromation
   // http://api.drupal.org/api/function/field_purge_batch/7

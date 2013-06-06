@@ -2228,7 +2228,6 @@ function filedepot_newfile_submit($form, &$form_state) {
 
         // Update the file usage table
         file_usage_add($file, 'filedepot', 'node', $node->nid);
-        //file_usage_delete($file, 'file');
 
         // filedepot_description
         // Create filedepot record for file and set status of file to 1 - online
@@ -2591,7 +2590,6 @@ function filedepot_newversion_submit($form, &$form_state) {
 
         // Update the file usage table
         file_usage_add($file, 'filedepot', 'node', $foldernode->nid);
-        //file_usage_delete($file, 'file');
 
         // Need to clear the cache as the node will still have the original file name
         field_cache_clear();

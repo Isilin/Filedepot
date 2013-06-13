@@ -2013,7 +2013,10 @@ function filedepot_newfile_form($form, &$form_state) {
     '#size'  => 34,
   );
 
-  if (user_access('administer filedepot', $user)) {
+  if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
+    $parentFolders = array($filedepot->ogrootfolder => t('Top Level Folder'));
+  }
+  else if (user_access('administer filedepot', $user)) {
     $parentFolders = array(0 => t('Top Level Folder'));
   }
   else {

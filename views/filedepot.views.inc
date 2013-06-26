@@ -36,6 +36,8 @@ function filedepot_views_data() {
       'click sortable' => TRUE,
     ),
   );
+  
+ 
 
   // INT fields here:
   $data['filedepot_categories']['cid'] = array (
@@ -114,7 +116,14 @@ function filedepot_views_data() {
       'click sortable' => TRUE,
     ),
   );
-
+  
+  $data['filedepot_files']['size'] = array(
+    'title' => t('File Size'),
+    'help' => t('Size of the File (Bytes)'),
+    'field' => array(
+      'click sortable' => TRUE,
+    ),
+  );
 
   return $data;
 

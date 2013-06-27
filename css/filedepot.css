@@ -266,6 +266,14 @@ body.layout-left-main .outer { margin-left:0px !important; }
     text-align:left;
 }
 
+#filedetails table.plugin {
+  width: 670px;
+}
+
+#filedetails td.alignright {
+  margin-right: 30px;
+}
+
 .required {
   padding-left:5px;
   color:red;

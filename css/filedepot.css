@@ -695,7 +695,7 @@ a.cancelbutton:hover {
    after force loading the container and menu.css at the top of this file
 */
 .yui-skin-sam .container-close {
-  background:url("http://yui.yahooapis.com/2.7.0/build/assets/skins/sam/sprite.png") no-repeat scroll 0 -300px transparent !important;
+  background:url("images/sprite.png") no-repeat scroll 0 -300px transparent !important;
   cursor:pointer;
   height:18px !important;
   position:absolute;

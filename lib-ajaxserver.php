@@ -299,6 +299,7 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
     $maxfolderorder = db_query_range("SELECT folderorder FROM {filedepot_categories} WHERE pid=:pid " . $max_orderby,
       0, 1, array(':pid' => $id))->fetchField();
     while ($A = $qfolders->fetchAssoc()) {
+      $subfolderlisting = '';
       if (empty($folderprefix)) {
         $formatted_foldernumber = $i;
       }

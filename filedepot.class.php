@@ -1092,6 +1092,10 @@ class filedepot
         while ($A     = $query->fetchAssoc()) {
           $file = file_load($A['drupal_fid']);
           file_usage_delete($file, 'filedepot');
+          
+          if (file_exists($file->uri)) {
+            file_delete($file);
+          }
         }
 
         $subfolder_nid = db_query("SELECT nid FROM {filedepot_categories} WHERE cid=:cid", array(':cid' => $cid))->fetchField();

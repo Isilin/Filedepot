@@ -2377,6 +2377,7 @@ function filedepot_newfolder_form($form, &$form_state) {
     '#type'    => 'checkboxes',
     '#title'   => t('Inherit Parent Permission'),
     '#options' => array('yes' => t('Yes')),
+    '#default_value' => array('yes'),
   );
 
   $form['buttons'] = array(

@@ -1276,7 +1276,7 @@ class filedepot
             file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
 
             $file           = file_load($dfid);
-            $private_uri    = $private_destination . $file->filename;
+            $private_uri    = $private_destination . $fname;
             $file           = file_move($file, $private_uri, FILE_EXISTS_RENAME);
             $file->display  = 1;
             list($scheme, $target) = explode('://', $file->uri, 2);

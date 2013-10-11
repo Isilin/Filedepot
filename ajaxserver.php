@@ -6,6 +6,9 @@
  * Implementation of filedepot_ajax() - main ajax handler for the module
  */
 
+
+ob_start();
+
 // Definitions of allowed token values
 define('FILEDEPOT_TOKEN_FOLDERPERMS', 'filedepot_token_folderperms');
 define('FILEDEPOT_TOKEN_FOLDERMGMT', 'filedepot_token_foldermgmt');
@@ -1205,6 +1208,7 @@ function filedepot_dispatcher($action) {
 
   }
 
+  ob_clean();
   if ($action != 'autocompletetag') {
     if ($action != 'getmorefiledata' AND $action != 'getmorefolderdata') {
       $retval = json_encode($data);
@@ -1216,3 +1220,4 @@ function filedepot_dispatcher($action) {
   echo $retval;
 
 }
+ob_end_flush();

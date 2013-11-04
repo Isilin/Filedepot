@@ -1265,7 +1265,7 @@ class filedepot
         if ($newcid !== intval($orginalCid)) {
 
           /* Need to move the file */
-          $query2 = db_query("SELECT fname, version FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
+          $query2 = db_query("SELECT fname, drupal_fid, version FROM {filedepot_fileversions} WHERE fid=:fid", array('fid' => $fid));
           while ($A    = $query2->fetchAssoc()) {
             $fname      = stripslashes($A['fname']);
             $sourcefile = $this->root_storage_path . "{$orginalCid}/{$fname}";
@@ -1275,7 +1275,7 @@ class filedepot
             // Best to call file_prepare_directory() - even if you believe directory exists
             file_prepare_directory($private_destination, FILE_CREATE_DIRECTORY);
 
-            $file           = file_load($dfid);
+            $file           = file_load($A['drupal_fid']);
             $private_uri    = $private_destination . $fname;
             $file           = file_move($file, $private_uri, FILE_EXISTS_RENAME);
             $file->display  = 1;

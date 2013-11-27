@@ -922,6 +922,8 @@ function filedepot_native_submit($form, &$form_state) {
             // A new file was attached via the Drupal UI or external API - need to process
             $ext_parts = explode(".", $file->filename);
             $ext       = end($ext_parts);
+            
+            file_usage_add($file, 'filedepot', 'node', $node->nid);
 
             // Create filedepot record for file and set status of file to 1 - online
             $query = db_insert('filedepot_files');

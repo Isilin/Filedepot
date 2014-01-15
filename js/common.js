@@ -715,8 +715,19 @@ function checkMultiAction(selectoption) {
   } else if ((selectoption == "download") || (selectoption == "archive")) {    
     document.frmtoolbar.multiaction.selectedIndex=0;
     var ltoken = document.getElementById("flistingltoken").value;
-    var postdata = '&ltoken=' + ltoken + '&checked_files=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFiles()) + '&checked_folders=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFolders());
-    var surl = ajax_post_handler_url + '/archive' + postdata;
+    var urlargs = 'ltoken=' + ltoken + '&checked_files=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFiles()) + '&checked_folders=' + encodeURIComponent(NxFiledepot.checkedItemsManager.exportFolders());
+    var surl = ajax_post_handler_url + '/archive';
+    
+    // Are clean URLs enabled?
+    if (surl.indexOf('?') != -1) { 
+      // not enabled
+      surl += '&' + urlargs;
+    }
+    else {
+      // enabled
+      surl += '?' + urlargs;
+    }
+    
     jQuery('input[name=chkfolder]').attr('checked', false);
     resetCheckedItems();
     enable_multiaction('','');

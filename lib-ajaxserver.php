@@ -309,6 +309,8 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
       
       $subfolder_count = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE pid=:pid",
         array(':pid' => $A['cid']))->fetchField();
+      
+      $tmpsubfolderlisting = '';
       if ($subfolder_count > 0) {
         // Show any sub-subfolders - calling this function again recursively
         $tmpsubfolderlisting = filedepot_displayFolderListing($A['cid'], $level, $formatted_foldernumber, $rowid);

@@ -2445,7 +2445,11 @@ function filedepot_newfolder_submit($form, &$form_state) {
   $node      = NULL;
   $cid       = 0;
   $filedepot = filedepot_filedepot();
-  $result    = $filedepot->createFolderNode($form_state['values']['filedepot_foldername'], $form_state['values']['filedepot_description'], $form_state['values']['filedepot_parentfolder'], $node, $cid, ($form_state['values']['filedepot_inherit_permissions']['yes'] == 'yes') ? TRUE : FALSE);
+  $result    = $filedepot->createFolderNode(
+    $form_state['values']['filedepot_foldername'],
+    $form_state['values']['filedepot_description'],
+    $form_state['values']['filedepot_parentfolder'],
+    $node, $cid, ($form_state['values']['filedepot_inherit_permissions']['yes'] === 'yes') ? TRUE : FALSE);
 
   $form_state['values']['folder_nid'] = $cid;
   if ($result === FALSE) {

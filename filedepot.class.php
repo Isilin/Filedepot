@@ -995,7 +995,7 @@ class filedepot
       }
       else {
 
-        if ($node->gid > 0 AND $this->ogmode_enabled) {
+        if ($node->gid > 0 AND $this->ogenabled) {
           // Create default permissions record for the group
           $this->updatePerms($cid, $this->defGroupRights, '', $node->gid);
         }

@@ -1,4 +1,3 @@
-
 /*
  * @file common.js
  * Common or main libray of javascript functions for the drupal filedepot module

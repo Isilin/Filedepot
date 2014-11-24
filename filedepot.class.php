@@ -117,7 +117,6 @@ class filedepot
     if (isset($permsdata['group'])) {
       unset($permsdata['group']); // It has now been assigned to defGroupRights variable
     }
-
     $this->defRoleRights = $permsdata;  // Remaining permissions are the role assignments
     // Is og enabled?
     if (module_exists('og') AND module_exists('og_access')) {
@@ -1092,7 +1091,7 @@ class filedepot
         while ($A     = $query->fetchAssoc()) {
           $file = file_load($A['drupal_fid']);
           file_usage_delete($file, 'filedepot');
-          
+
           if (file_exists($file->uri)) {
             file_delete($file);
           }

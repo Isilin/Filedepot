@@ -276,6 +276,7 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
 
   $sql = '';
   if (function_exists('filedepot_customReportFoldersSQL')) {
+    $reportmode = check_plain($_POST['reportmode']);    
     $sql = trim(filedepot_customReportFoldersSQL($id, $reportmode));
   }
 

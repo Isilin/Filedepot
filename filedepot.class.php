@@ -1293,7 +1293,7 @@ class filedepot
           // Retrieve most current version on record
           $q3 = db_query("SELECT fname,version,date FROM {filedepot_fileversions} WHERE fid=:fid ORDER BY version DESC", array(':fid' => $fid), 0, 1);
           list($fname, $version, $date) = array_values($q3->fetchAssoc());
-          db_query("UPDATE {$filedepot_files} SET fname=:fname,version=:version, date=:time WHERE fid=:fid", array(
+          db_query("UPDATE {filedepot_files} SET fname=:fname,version=:version, date=:time WHERE fid=:fid", array(
             ':fname'   => $fname,
             ':version' => $version,
             ':time'    => time(),

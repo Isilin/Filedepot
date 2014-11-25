@@ -239,7 +239,9 @@ class filedepot
       $uid = $userid;
     }
 
-    if (user_access('administer filedepot', $user) === TRUE) {
+    $account = user_load($uid);
+
+    if (user_access('administer filedepot', $account) === TRUE) {
       return filedepot_permission_object::createFullPermissionObject($cid);
     }
     else {
@@ -260,7 +262,7 @@ class filedepot
 
       if ($this->ogenabled) {
         // Retrieve all the Organic Groups this user is a member of
-        $groupids = $this->get_user_groups();
+        $groupids = $this->get_user_groups($uid);
         foreach ($groupids as $gid) {
           $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
           $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
@@ -272,7 +274,7 @@ class filedepot
       }
 
       // For each role that the user is a member of - check if they have the right
-      foreach ($user->roles as $rid => $role) {
+      foreach ($account->roles as $rid => $role) {
         $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
         $query = db_query($sql, array('cid' => $cid, 'uid' => $rid));
         while ($rec  = $query->fetchAssoc()) {
@@ -292,11 +294,12 @@ class filedepot
    *
    * @param        string          $cid            Category to check user access for
    * @param        string|array    $rights         Rights to check (admin,view,upload,upload_dir,upload_ver,approval)
+   * @param        integer         $uid            Optional uid to check permissions for, default is current user
    * @param        Boolean         $adminOverRide  Set to FALSE, to ignore if user is in the Admin group and check for absolute perms
    * @return       Boolean                         Returns TRUE if user has one of the requested access rights else FALSE
    */
 
-  function checkPermission($cid, $rights, $userid = 0, $adminOverRide = TRUE) {
+  function checkPermission($cid, $rights, $uid = 0, $adminOverRide = TRUE) {
     global $user;
 
     if (intval($cid) < 1) {
@@ -304,23 +307,16 @@ class filedepot
     }
 
     // If user is an admin - they should have access to all rights on all categories
-    if ($userid == 0) {
-      if (empty($user->uid) OR $user->uid == 0) {
-        $uid = 0;
-      }
-      else {
-        $uid = $user->uid;
-      }
-    }
-    else {
-      $uid = $userid;
-    }
-    if ($adminOverRide AND user_access('administer filedepot', $user) AND $userid == 0) {
+    if ($adminOverRide AND $uid == 0 AND user_access('administer filedepot', $user)) {
       return TRUE;
     }
     else {
+      if ($uid == 0 AND !empty($user->uid)) {
+        $uid = $user->uid;
+      }
+
       // This modification allows the caching of permission objects to save database queries
-      $obj = $this->getPermissionObject($cid, $userid);
+      $obj = $this->getPermissionObject($cid, $uid);
       if (is_array($rights)) {
         foreach ($rights as $key) {
           if ($obj->hasPermission($key)) {
@@ -332,7 +328,9 @@ class filedepot
         return $obj->hasPermission($rights);
       }
     }
+
     return FALSE;
+
   }
 
   /**
@@ -464,11 +462,18 @@ class filedepot
     return $list;
   }
 
-  public function get_user_groups() {
+  public function get_user_groups($uid = FALSE) {
     global $user;
 
+    if ($uid) {
+      $account = user_load($uid);
+    }
+    else {
+      $account = $user;
+    }
+
     $retval = array();
-    $groups = og_get_entity_groups('user', $user);
+    $groups = og_get_entity_groups('user', $account);
     if (is_array($groups) AND count($groups) > 0) {
       if (function_exists('og_get_group')) {
         $retval = $groups;

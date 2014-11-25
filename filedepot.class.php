@@ -331,67 +331,6 @@ class filedepot
       else {
         return $obj->hasPermission($rights);
       }
-
-      return FALSE;
-
-      // Check user access records
-      $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='user' AND permid=:uid";
-      $query = db_query($sql, array('cid' => $cid, 'uid' => $uid));
-      while ($rec  = $query->fetchAssoc()) {
-        list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
-        if (is_array($rights)) {
-          foreach ($rights as $key) { // Field name above needs to match access right name
-            if ($$key == 1) {
-              return TRUE;
-            }
-          }
-        }
-        elseif ($$rights == 1) {
-          return TRUE;
-        }
-      }
-
-      if ($this->ogenabled) {
-        // Retrieve all the Organic Groups this user is a member of
-        $groupids = $this->get_user_groups();
-        foreach ($groupids as $gid) {
-          $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='group' AND permid=:gid";
-          $query = db_query($sql, array(':cid' => $cid, ':gid' => $gid));
-          while ($rec   = $query->fetchAssoc()) {
-            list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
-            if (is_array($rights)) {
-              foreach ($rights as $key) { // Field name above needs to match access right name
-                if ($$key == 1) {
-                  return TRUE;
-                }
-              }
-            }
-            elseif ($$rights == 1) {
-              return TRUE;
-            }
-          }
-        }
-      }
-
-      // For each role that the user is a member of - check if they have the right
-      foreach ($user->roles as $rid => $role) {
-        $sql   = "SELECT view,upload,upload_direct,upload_ver,approval,admin from {filedepot_access} WHERE catid=:cid AND permtype='role' AND permid=:uid";
-        $query = db_query($sql, array('cid' => $cid, 'uid' => $rid));
-        while ($rec  = $query->fetchAssoc()) {
-          list($view, $upload, $upload_dir, $upload_ver, $approval, $admin) = array_values($rec);
-          if (is_array($rights)) {
-            // If any of the required permissions set - return TRUE
-            foreach ($rights as $key) {
-              if ($$key == 1) { // Field name above needs to match access right name
-                return TRUE;
-              }
-            }
-          }
-          elseif ($$rights == 1) {
-            return TRUE;
-          }
-        }
-      }
     }
     return FALSE;
   }

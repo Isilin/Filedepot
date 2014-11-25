@@ -1395,7 +1395,7 @@ class filedepot
       $query->execute();
 
       if (!empty($rec->tags) AND $this->checkPermission($rec->cid, 'view', 0, FALSE)) {
-        $nexcloud->update_tags($fid, $rec->tags);
+        $nexcloud->update_tags($newfid, $rec->tags);
       }
     }
 

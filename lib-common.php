@@ -356,7 +356,7 @@ function filedepot_get_group_entity_query($grpid=0) {
         ->entityCondition('entity_id', $grpid);
     } else {
       $efq = $query->entityCondition('entity_type', 'node')
-        ->entityCondition('entity_id', $grpcontext)
+        ->entityCondition('entity_id', $grpid)
         ->fieldCondition(OG_GROUP_FIELD, 'value', 1, '=');
     }
   } else {

@@ -1138,8 +1138,7 @@ function filedepot_dispatcher($action) {
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
        $data['retcode'] = 403; // forbidden
       }
-      else
-      {
+      else {
         $fid = db_query("SELECT drupal_fid FROM {filedepot_import_queue} WHERE id=:id", array(':id' => $id))->fetchField();
         if ($fid > 0) {
           $filepath = db_query("SELECT filepath FROM {files} WHERE fid=:fid", array(':fid' => $fid))->fetchField();
@@ -1166,6 +1165,7 @@ function filedepot_dispatcher($action) {
       $id = intval($_POST['id']);
       $filedepot->activeview = 'incoming';
       $data = array();
+      $token = isset($_POST['token']) ? $_POST['token'] : NULL;
 
       if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_FOLDERMGMT))) {
        $data['retcode'] = 403; // forbidden

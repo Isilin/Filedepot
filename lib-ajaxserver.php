@@ -19,7 +19,8 @@ function filedepotAjaxServer_getfilelisting() {
   }
 
   if (db_query("SELECT COUNT(*) FROM {filedepot_categories} WHERE cid=:cid",
-    array(':cid' => $filedepot->cid))->fetchField() == 0) {
+      array(':cid' => $filedepot->cid))->fetchField() == 0
+  ) {
     $filedepot->cid = 0;
   }
 
@@ -51,15 +52,15 @@ function filedepotAjaxServer_getfilelisting() {
         }
         $count2 = db_query("SELECT count(cid) FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid",
           array(
-          ':uid' => $user->uid,
-          ':cid' => $filedepot->cid,
-        ))->fetchField();
+            ':uid' => $user->uid,
+            ':cid' => $filedepot->cid,
+          ))->fetchField();
         if ($count2 == 0) {
           db_query("INSERT INTO {filedepot_recentfolders} (uid,cid) VALUES (:uid,:cid)",
             array(
-            ':uid' => $user->uid,
-            ':cid' => $filedepot->cid,
-          ));
+              ':uid' => $user->uid,
+              ':cid' => $filedepot->cid,
+            ));
         }
       }
     }
@@ -86,14 +87,16 @@ function filedepotAjaxServer_getfilelisting() {
   else {
     $data['retcode'] = 401;
     $data['error'] = 'Error: No Access to Folder';
-    db_query("DELETE FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid ", array(':uid' => $user->uid, ':cid' => $filedepot->cid));
+    db_query("DELETE FROM {filedepot_recentfolders} WHERE uid=:uid AND cid=:cid ", array(
+      ':uid' => $user->uid,
+      ':cid' => $filedepot->cid
+    ));
   }
 
   //firelogmsg("Completed generating Header return data");
   return $data;
 
 }
-
 
 
 /**
@@ -104,13 +107,13 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   global $user;
   $filedepot = filedepot_filedepot();
   $display_recent_folders = variable_get('filedepot_show_recent_folders', 1);
-   
+
   if (empty($data)) {
     $data = array('retcode' => 200);
   }
 
   $approvals = filedepot_getSubmissionCnt();
-  
+
   $data['reports'] = array();
   $data['recentfolders'] = array();
   $data['topfolders'] = array();
@@ -191,11 +194,12 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
 
   // Setup the Most Recent folders for this user
   if ((user_is_logged_in()) && ($display_recent_folders != 0)) {
-    $sql  = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
+    $sql = "SELECT a.id,a.cid,b.name FROM {filedepot_recentfolders} a ";
     $sql .= "LEFT JOIN {filedepot_categories} b ON b.cid=a.cid ";
     if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
       $sql .= "WHERE a.cid in ({$filedepot->allowableGroupViewFoldersSql}) AND a.cid != {$filedepot->ogrootfolder} AND b.pid != {$filedepot->ogrootfolder} ";
-    } else {
+    }
+    else {
       $sql .= "WHERE 1=1 ";
     }
     $sql .= "AND uid=:uid ORDER BY id";
@@ -210,12 +214,13 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
 
   }
 
-  $display_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name ASC,' : '') . ' folderorder' ;
+  $display_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name ASC,' : '') . ' folderorder';
   $sql = "SELECT cid,pid,name,description from {filedepot_categories} ";
   if ($filedepot->ogmode_enabled AND !empty($filedepot->allowableGroupViewFoldersSql)) {
     $sql .= "WHERE pid = :cid {$display_order}";
     $res = db_query($sql, array(':cid' => $filedepot->ogrootfolder));
-  } else {
+  }
+  else {
     $sql .= "WHERE pid=0 {$display_order}";
     $res = db_query($sql);
   }
@@ -234,11 +239,11 @@ function filedepotAjaxServer_generateLeftSideNavigation($data = '') {
   if (function_exists('filedepot_customLeftsideNavigation')) {
     $data = filedepot_customLeftsideNavigation($data);
   }
-  
+
   if ($display_recent_folders == 0) {
     $data['recentfolders'] = NULL;
   }
-  
+
   return $data;
 
 }
@@ -249,9 +254,9 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
   global $user;
 
   $filedepot = filedepot_filedepot();
-  
+
   $file_first_display = (variable_get(FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST, 1) == 1) ? TRUE : FALSE;
-  
+
   $retval = '';
   if ($id > 0 AND !in_array($id, $filedepot->allowableViewFolders)) {
     watchdog('filedepot', 'No view access to category @id', array('id' => $id));
@@ -267,7 +272,7 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
   }
 
   $level++;
-  
+
   if ($file_first_display == TRUE) {
     if ($level == 1) {
       $retval .= nexdocsrv_generateFileListing($id, $level, $folderprefix);
@@ -276,17 +281,17 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
 
   $sql = '';
   if (function_exists('filedepot_customReportFoldersSQL')) {
-    $reportmode = check_plain($_POST['reportmode']);    
+    $reportmode = check_plain($_POST['reportmode']);
     $sql = trim(filedepot_customReportFoldersSQL($id, $reportmode));
   }
 
   if ($id > 0 OR !empty($sql)) {
     // Show any subfolders and check and see if this is a custom report
-    $override_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name ASC,' : '') . ' folderorder' ;
-    $max_orderby = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name DESC,' : '') . ' folderorder DESC' ;
+    $override_order = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name ASC,' : '') . ' folderorder';
+    $max_orderby = "ORDER BY " . (variable_get('filedepot_override_folderorder', 0) ? 'name DESC,' : '') . ' folderorder DESC';
 
     if (empty($sql)) {
-      $sql  = "SELECT DISTINCT cid,pid,name,description,folderorder,last_modified_date FROM {filedepot_categories} WHERE pid=:pid ";
+      $sql = "SELECT DISTINCT cid,pid,name,description,folderorder,last_modified_date FROM {filedepot_categories} WHERE pid=:pid ";
       if (!empty($filedepot->allowableViewFoldersSql)) {
         $sql .= "AND cid in ({$filedepot->allowableViewFoldersSql}) ";
       }
@@ -307,27 +312,26 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
       else {
         $formatted_foldernumber = "{$folderprefix}.{$i}";
       }
-      
+
       $subfolder_count = db_query("SELECT count(cid) FROM {filedepot_categories} WHERE pid=:pid",
         array(':pid' => $A['cid']))->fetchField();
-      
       $tmpsubfolderlisting = '';
       if ($subfolder_count > 0) {
         // Show any sub-subfolders - calling this function again recursively
         $tmpsubfolderlisting = filedepot_displayFolderListing($A['cid'], $level, $formatted_foldernumber, $rowid);
       }
-      
+
       $tmpfilelisting = nexdocsrv_generateFileListing($A['cid'], $level, $formatted_foldernumber);
-      
+
       if ($file_first_display == TRUE) {
         $subfolderlisting .= $tmpfilelisting;
         $subfolderlisting .= $tmpsubfolderlisting;
       }
       else {
-        $subfolderlisting .= $tmpsubfolderlisting;        
+        $subfolderlisting .= $tmpsubfolderlisting;
         $subfolderlisting .= $tmpfilelisting;
       }
-      
+
       $retval .= theme('filedepot_folderlisting', array(
         'folderrec' => $A,
         'folderprefix' => $formatted_foldernumber,
@@ -343,13 +347,13 @@ function filedepot_displayFolderListing($id = 0, $level = 0, $folderprefix = '',
       }
     }
   }
-  
+
   if ($file_first_display == FALSE) {
     if ($level == 1) {
       $retval .= nexdocsrv_generateFileListing($id, $level - 1, $folderprefix);
     }
   }
-  
+
   return $retval;
 }
 
@@ -369,16 +373,16 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
   $files = array();
   $limit_start = 0;
   $limit_end = FALSE;
-  
+
   $sql = filedepot_getFileListingSQL($cid, $limit_start, $limit_end);
-  
+
   if ($limit_end === FALSE) {
     $file_query = db_query($sql);
   }
   else {
     $file_query = db_query_range($sql, $limit_start, $limit_end);
   }
-  
+
   $output = '';
   $break = FALSE;
 
@@ -391,11 +395,12 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
   $i = 0;
   if ($filedepot->activeview == 'getmoredata') {
     $i = $filedepot->recordCountPass1;
-  } elseif($filedepot->activeview == 'getmorefolderdata') {
+  }
+  elseif ($filedepot->activeview == 'getmorefolderdata') {
     $i = $filedepot->recordCountPass2 + $filedepot->recordCountPass1;
   }
 
-  while ( $A = $file_query->fetchAssoc()) {
+  while ($A = $file_query->fetchAssoc()) {
     if ($filedepot->activeview == 'approvals') {
       $A['fid'] = $A['id'];
     }
@@ -405,11 +410,11 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
 
       // Existing folders where fileorder has not yet been set
       if ($filedepot->activeview != 'latestfiles' AND $A['fileorder'] != $i * 10) {
-          $A['fileorder'] = $i * 10;
-          db_query("UPDATE {filedepot_files} set fileorder=:order WHERE fid=:fid", array(
-            ':order' => $A['fileorder'],
-            ':fid' => $A['fid'],
-          ));
+        $A['fileorder'] = $i * 10;
+        db_query("UPDATE {filedepot_files} set fileorder=:order WHERE fid=:fid", array(
+          ':order' => $A['fileorder'],
+          ':fid' => $A['fid'],
+        ));
       }
 
       $more_records_message = '';
@@ -418,7 +423,7 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
         $filedepot->lastRenderedFiles[] = array($cid, $A['fid'], $folderprefix, $level);
         $more_records_message = 'moredata_msg';
       }
-      elseif ($filedepot->activeview == 'getmoredata'    AND $i >= ($filedepot->recordCountPass1 + $filedepot->recordCountPass2)) {
+      elseif ($filedepot->activeview == 'getmoredata' AND $i >= ($filedepot->recordCountPass1 + $filedepot->recordCountPass2)) {
         $break = TRUE;
         // Check if there are more records - the SQL LIMIT statement allowed for one more record
         // If there are more - show the AJAX link to load more data - pass 2
@@ -428,21 +433,21 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
       }
       if ($break) {
         $output .= theme('filedepot_filelisting', array(
-          'listingrec' => $A,
-          'foldernumber' => $folderprefix,
-          'level' => $level,
-          'morerecords' => $more_records_message,
-        )
+            'listingrec' => $A,
+            'foldernumber' => $folderprefix,
+            'level' => $level,
+            'morerecords' => $more_records_message,
+          )
         );
         break;
       }
       else {
         $output .= theme('filedepot_filelisting',
-                array(
-          'listingrec' => $A,
-          'foldernumber' => $folderprefix,
-          'level' => $level,
-        ));
+          array(
+            'listingrec' => $A,
+            'foldernumber' => $folderprefix,
+            'level' => $level,
+          ));
         $files[] = $A['fid'];
       }
     }
@@ -450,26 +455,89 @@ function nexdocsrv_generateFileListing($cid, $level = 1, $folderprefix = '') {
   return $output;
 }
 
-function filedepot_displaySearchListing($query) {
-  $filedepot = filedepot_filedepot();
-
-  $keys = preg_replace('!\*+!', '%', $query);
-  $query = db_select('filedepot_files', 'a');
-  $query->join('filedepot_categories', 'b', 'b.cid = a.cid');
-  $query->fields('a', array('fid', 'cid', 'title', 'fname', 'date', 'version', 'submitter', 'status', 'description', 'size'));
-  $query->fields('b', array('pid', 'nid'));
-  $query->addField('b', 'name', 'foldername');
-  if (!empty($filedepot->allowableViewFoldersSql)) {
-    $query->condition('a.cid', explode(',', $filedepot->allowableViewFoldersSql), 'IN');
-  }
-  $query->condition(db_and()->condition(db_or()->
-      condition('title', '%' . db_like($keys) . '%', 'LIKE')->
-      condition('a.description', '%' . db_like($keys) . '%', 'LIKE')
-  ));
-  $result = $query->execute();
+/* If searching on multiple query terms then it will return matches that
+ * matches that have all entered terms first, followed by
+ * records that have any of the entered terms
+*/
+function filedepot_displaySearchListing($query_terms) {
   $output = '';
-  while ($A = $result->fetchAssoc()) {
-    $output .= theme('filedepot_filelisting', array('listingrec' => $A));
+  if (!empty($query_terms)) {
+    $filedepot = filedepot_filedepot();
+
+    $args = array();
+    $fields = array('a.title', 'a.description', 'b.name', 'b.description');
+    $keywords = explode(' ', $query_terms);
+
+    $sql = '';
+    $select = "SELECT a.fid, a.cid, a.title, a.fname, a.date, a.version, a.submitter, "
+      . "a.status, a.description, a.size, b.pid, b.nid, b.name as foldername, b.description as folderdesc "
+      . "FROM filedepot_files a JOIN filedepot_categories b ON b.cid=a.cid ";
+
+    if (!empty($filedepot->allowableViewFoldersSql)) {
+      $where = 'WHERE a.cid IN (' . $filedepot->allowableViewFoldersSql . ') AND ';
+    }
+    else {
+      $where = 'WHERE ';
+    }
+
+    /* Build the AND clause of the SQL Query
+     * Find files that match all the search terms in any of the defined fields
+     * So for each field name, description folder, that field text must have
+     * all the keywords
+    */
+    $field_id = 1;
+    $where_and = '';
+    foreach ($fields as $field) {
+      $term_id = 1;
+      $where_and .= ($field_id == 1) ? '(' : '1=1) OR (';
+      foreach ($keywords as $keyword) {
+        $where_and .= "{$field} like :afield{$field_id}_{$term_id} AND ";
+        $args = array_merge($args, array(":afield{$field_id}_{$term_id}" => "%{$keyword}%"));
+        $term_id++;
+      }
+      $field_id++;
+    }
+
+    $where_and .= (empty($where_and) ? '' : '1=1) ');
+    $sql .= "{$select} {$where} {$where_and} UNION {$select} ";
+
+    /* Build the second query - UNION used so that we return first the
+     * files that match all the keywords
+     * Second query will find files that match ANY of the search terms in any of the defined fields
+    */
+    if (!empty($filedepot->allowableViewFoldersSql)) {
+      $sql .= ' WHERE a.cid IN (' . $filedepot->allowableViewFoldersSql . ') AND (';
+    }
+    else {
+      $sql .= ' WHERE (';
+    }
+
+    /* Build the second query OR clause - loop over the fields and terms */
+    $field_id = 1;
+    $where_or = '';
+    foreach ($fields as $field) {
+      $term_id = 1;
+      $where_or .= ($field_id > 1) ? '  OR ' : '';
+      foreach ($keywords as $keyword) {
+        $where_or .= ($term_id > 1) ? '  OR ' : '';
+        $where_or .= "{$field} like :bfield{$field_id}_{$term_id}";
+        $args = array_merge($args, array(":bfield{$field_id}_{$term_id}" => "%{$keyword}%"));
+        $term_id++;
+      }
+      $field_id++;
+    }
+    $where_or .= (!empty($where_or)) ? ') ' : ' ';
+    $sql .= $where_or;
+    $result = db_query($sql, $args);
+
+    $time = timer_read('get_time');
+    drupal_set_message($time);
+
+    $filedepot->recordCount = $result->rowCount();
+
+    while ($A = $result->fetchAssoc()) {
+      $output .= theme('filedepot_filelisting', array('listingrec' => $A));
+    }
   }
   return $output;
 

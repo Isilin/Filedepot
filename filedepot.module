@@ -29,9 +29,7 @@ define('FILEDEPOT_BROADCAST_MESSAGE', 5);
 define('FILEDEPOT_FILTER_EXCLUDEMODE', 0);
 define('FILEDEPOT_FILTER_INCLUDEMODE', 1);
 
-define('FILEDEPOT_CLIENT_SUPPORT', FALSE); // No Client Support presenly in D7 version
-
-define("FILEDEPOT_VAR_DISPLAYORDER_FILESFIRST", "filedepot_displayorder_filesfirst");
+define('FILEDEPOT_CLIENT_SUPPORT', FALSE); // No Client Support presently in D7 version
 
 if (!defined('LB')) {
   define('LB', "\n");

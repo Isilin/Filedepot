@@ -30,6 +30,7 @@
   var initialparm = '<?php print $initialparm ?>';
   var siteurl = '<?php print $site_url ?>';
   var ajax_post_handler_url = '<?php print $ajax_server_url ?>';
+  var filedepot_download_archive_url = '<?php print $filedepot_download_archive_url ?>';
   var actionurl_dir = '<?php print $actionurl_dir ?>';
   var imgset = '<?php print $layout_url ?>/css/images';
   var ajaxactive = false;

@@ -15,6 +15,7 @@ class filedepot_archiver extends ZipArchive
   private $uncheckedFolderIds = Array();
   private $processedCategoryIds = Array();
   private $permissionCount      = 0;
+  private $uniquename          = NULL;
   private $zipFileName          = NULL;
   private $permissionObjectList = Array();
   private $filedepotInstance       = NULL;
@@ -61,7 +62,10 @@ class filedepot_archiver extends ZipArchive
     
     // Grab all subdirectories under this category
     $result = db_query("SELECT cid FROM {filedepot_categories} WHERE pid = :pid", array(':pid' => $cid));
-    while ($A     = $result->fetchAssoc()) {
+    while ($A = $result->fetchAssoc()) {
+      if (!is_array($this->uncheckedFolderIds)) {
+        $not_array = TRUE;
+      }
       $found_subdirs = TRUE;
       if (!in_array($A['cid'], $this->uncheckedFolderIds)) {
         $this->generateAllFilesUnderCidRecursively($A['cid']);
@@ -150,8 +154,9 @@ class filedepot_archiver extends ZipArchive
     if (file_exists($this->archiveDirPath) === FALSE) {
       mkdir($this->archiveDirPath, 0777, TRUE);
     }
-    
-    $this->zipFileName          = $this->archiveDirPath . uniqid("filedepot_") . ".zip";
+
+    $this->uniquename = uniqid("filedepot_") . ".zip";
+    $this->zipFileName          = $this->archiveDirPath . $this->uniquename;
     @unlink($this->zipFileName);
     $this->open($this->zipFileName, ZIPARCHIVE::CREATE);
     $this->filedepotStoragePath = drupal_realpath($this->filedepotInstance->root_storage_path);
@@ -179,6 +184,16 @@ class filedepot_archiver extends ZipArchive
     }
   }
 
+
+
+  public function getArchiveFilename() {
+    if (file_exists($this->zipFileName) !== FALSE AND !empty($this->uniquename)) {
+      return $this->uniquename;
+    }
+    else {
+      return FALSE;
+    }
+  }
   /**
    * Download the archive
    * @param type $errorsInHeaders
@@ -255,7 +270,7 @@ class filedepot_archiver extends ZipArchive
      */
     foreach ($this->checkedFolderObjects as $folder_id => $folder_obj) {
       if ($folder_obj['checked'] === FALSE) {
-        $this->uncheckedFolderIds = $folder_obj['id'];
+        array_push($this->uncheckedFolderIds, $folder_obj['id']);
       }
       else {
         $checked_folders[] = $folder_obj['id'];
@@ -264,7 +279,7 @@ class filedepot_archiver extends ZipArchive
 
     foreach ($this->checkedFileObjects as $file_id => $file_obj) {
       if ($file_obj['checked'] === FALSE) {
-        $this->uncheckedFileIds = $file_obj['id'];
+        array_push($this->uncheckedFileIds, $file_obj['id']);
       }
       else {
         $this->filesToBeDownloaded[] = (int) $file_obj['id'];

@@ -31,6 +31,8 @@ define('FILEDEPOT_FILTER_INCLUDEMODE', 1);
 
 define('FILEDEPOT_CLIENT_SUPPORT', FALSE); // No Client Support presently in D7 version
 
+define('FILEDEPOT_TOKEN_LISTING', 'filedepot_token_listing');
+
 if (!defined('LB')) {
   define('LB', "\n");
 }
@@ -257,6 +259,15 @@ function filedepot_menu() {
     'title' => 'File download',
     'page callback' => 'filedepot_download',
     'page arguments' => array(1, 2, 3, 4),
+    'access callback' => 'user_access',
+    'access arguments' => array('access filedepot'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['filedepot_download_archive/%'] = array(
+    'title' => 'Download Archive',
+    'page callback' => 'filedepot_download_archive',
+    'page arguments' => array(1, 2),
     'access callback' => 'user_access',
     'access arguments' => array('access filedepot'),
     'type' => MENU_CALLBACK,
@@ -1063,6 +1074,62 @@ function filedepot_update($node) {
   ));
 }
 
+
+function filedepot_download_archive($filename, $token) {
+
+  if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
+    drupal_set_message('Invalid Request', 'error');
+    drupal_goto();
+  }
+  else {
+
+    $archive_directory = drupal_realpath('private://filedepot/') . '/tmp_archive/';
+    $zipfile = $archive_directory . $filename;
+    if (file_exists($zipfile) === FALSE) {
+      $file_exists = FALSE;
+      $file_size = 0;
+      $error_code = 1;
+      watchdog('filedepot', "Error trying to download archive, file not found {$zipfile}");
+      die();
+    }
+    else {
+      $file_exists = TRUE;
+      $error_code = 0;
+      $file_size = filesize($zipfile);
+    }
+
+    $headers = array(
+      'Content-Type: application/x-zip-compressed; name="filedepot_archive.zip"',
+      'Content-Length: ' . $file_size,
+      'Content-Disposition: attachment; filename="filedepot_archive.zip"',
+      'Cache-Control: private',
+      'Error-Code: ' . $error_code,
+      'FileSize: ' . $file_size,
+    );
+
+    // This has to be manually done so we can still show error header information
+    foreach ($headers as $value) {
+      //drupal_add_http_header($name, $value);
+      header($value);
+    }
+
+    if ($file_exists === TRUE) {
+      $fp = fopen($zipfile, 'rb');
+      while (!feof($fp)) {
+        echo fread($fp, 1024);
+        flush(); // this is essential for large downloads
+      }
+      fclose($fp);
+    }
+    else {
+      echo "";
+    }
+
+  }
+  drupal_exit();
+}
+
+
 /**
  * Implementation of hook_download().
  *
@@ -1575,7 +1642,7 @@ function filedepot_file_download() {
             $disposition = 'inline';
           }
         }
-
+        $disposition = 'inline';
         watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user", array(
           '@file' => $file->filename,
           '!fid' => $fid,
@@ -1826,6 +1893,7 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['initialparm'] = '';
   $variables['site_url'] = $base_url;
   $variables['ajax_server_url'] = url('filedepot_ajax');
+  $variables['filedepot_download_archive_url'] = url('filedepot_download_archive');
   $variables['actionurl_dir'] = base_path() . drupal_get_path('module', 'filedepot');
   $variables['filedepot_javascript_url'] = base_path() . drupal_get_path('module', 'filedepot') . '/js/';
 

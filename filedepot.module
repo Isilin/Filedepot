@@ -1076,15 +1076,22 @@ function filedepot_update($node) {
 
 
 function filedepot_download_archive($filename, $token) {
-
+  
+  // Force archive downloading 
+  
+  
+  
   if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
     drupal_set_message('Invalid Request', 'error');
     drupal_goto();
   }
   else {
-
+    set_time_limit(0);
+    ob_end_clean(); // are you  kidding me
     $archive_directory = drupal_realpath('private://filedepot/') . '/tmp_archive/';
     $zipfile = $archive_directory . $filename;
+    
+    
     if (file_exists($zipfile) === FALSE) {
       $file_exists = FALSE;
       $file_size = 0;
@@ -1097,6 +1104,8 @@ function filedepot_download_archive($filename, $token) {
       $error_code = 0;
       $file_size = filesize($zipfile);
     }
+    
+    
 
     $headers = array(
       'Content-Type: application/x-zip-compressed; name="filedepot_archive.zip"',
@@ -1107,11 +1116,41 @@ function filedepot_download_archive($filename, $token) {
       'FileSize: ' . $file_size,
     );
 
+    
+    header('Pragma: public');   // required
+    header('Expires: 0');       // no cache
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+    //header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($this->zipFileName)) . ' GMT'); // commented out because fails on system for messed up reason
+    header('Cache-Control: private', false);
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="filedepot_archive.zip"');
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Length: ' . $file_size); // provide file size
+    header('Connection: close');
+
+    if ($file_exists === TRUE) {
+
+      set_time_limit(0);
+      $file = @fopen($zipfile, "rb");
+      while (!feof($file)) {
+        print(@fread($file, 1024 * 8));
+        ob_flush();
+        flush();
+      }
+
+      exit();
+    }
+    else {
+      echo "";
+    }
+    exit(); 
+    
+    /*
     // This has to be manually done so we can still show error header information
     foreach ($headers as $value) {
       //drupal_add_http_header($name, $value);
       header($value);
-    }
+    }*/
 
     if ($file_exists === TRUE) {
       $fp = fopen($zipfile, 'rb');

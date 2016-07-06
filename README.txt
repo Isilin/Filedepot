@@ -111,3 +111,4 @@ How to setup to use locally hosted YUI libraries or to load from another server
     Copy a test index.html containing basic html as a test in one of the YUI library directories and enter the URL in your browser to load it.
     Loading the test html file is no different then the browser trying to load the JS library.
 
+<EOF>

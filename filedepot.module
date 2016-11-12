@@ -182,7 +182,7 @@ function filedepot_menu() {
   );
 
   $items['filedepot/%ctools_js/newfolder'] = array(
-    'title' => 'Add new file',
+    'title' => 'Add new folder',
     'page callback' => 'filedepot_newfolder_dialog',
     'page arguments' => array(1),
     'access callback' => 'user_access',

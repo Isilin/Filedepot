@@ -16,7 +16,8 @@ function _filedepot_get_permission_name_array() {
     'admin' => 'folder_admin',
     'upload' => 'upload_with_approval',
     'upload_dir' => 'upload_direct',
-    'upload_ver' => 'upload_versions'
+    'upload_ver' => 'upload_versions',
+    'create_folder' => 'create_folder'
   );
 
   return $s;
@@ -274,13 +275,16 @@ function filedepot_admin_settings() {
   . '<li><strong>' . $perm_names['approval'] . '</strong>: '
   . t('Able to moderate (approve or reject) new file submissions.')
   . '</li>'
+  . '<li><strong>' . $perm_names['create_folder'] . '</strong>: '
+  . t('Able to moderate (create or delete) new folders.')
+  . '</li>'
   . '</ul>',
-    //li, admin, upload, upload_dir, upload_ver, approval'),
+    //li, admin, upload, upload_dir, upload_ver, approval, create_folder'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
 
-  $perm_string = variable_get('filedepot_default_owner', 'view, admin, upload_dir, upload_ver, approval');
+  $perm_string = variable_get('filedepot_default_owner', 'view, admin, upload_dir, upload_ver, approval, create_folder');
   $replaced_perm_string = _filedepot_convert_permission_string($perm_string, TRUE);
 
   $form['permissions']['filedepot_default_owner'] = array(
@@ -293,7 +297,7 @@ function filedepot_admin_settings() {
     '#wysiwyg' => FALSE,
   );
 
-  $perm_string = variable_get('filedepot_default_group', 'view, upload_dir');
+  $perm_string = variable_get('filedepot_default_group', 'view, upload_dir, create_folder');
   $replaced_perm_string = _filedepot_convert_permission_string($perm_string, TRUE);
 
   $form['permissions']['filedepot_default_group'] = array(
@@ -362,7 +366,7 @@ function filedepot_admin_settings_validate($form, &$form_state) {
   variable_set('filedepot_extension_data', serialize($extensiondata));
 
   /* Parse the default perms settings and create a single associative array the filedepot class will use */
-  $validperms = array('view', 'admin', 'upload', 'upload_dir', 'upload_ver', 'approval');
+  $validperms = array('view', 'admin', 'upload', 'upload_dir', 'upload_ver', 'approval', 'create_folder');
   $defaultperms = array();
   $cleanperms = array();
   $ownerperms = _filedepot_convert_permission_string($form_state['values']['filedepot_default_owner'], FALSE);

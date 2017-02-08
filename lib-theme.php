@@ -710,6 +710,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['LANG_uploadversions'] = t('Upload New Versions');
   $variables['LANG_user'] = t('User');
   $variables['LANG_admin'] = t('Admin');
+  $variables['LANG_create_folder'] = t('Create folder');
   $variables['LANG_action'] = t('Action');
   $variables['LANG_view'] = t('View');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
@@ -717,7 +718,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   $variables['LANG_directupload'] = t('Direct Upload');
   $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
 
-  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
@@ -732,7 +733,7 @@ function template_preprocess_filedepot_folderperms(&$variables) {
   else {
     $variables['user_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
   }
-  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin, create_folder ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
@@ -763,6 +764,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $variables['LANG_uploadversions'] = t('Upload New Versions');
   $variables['LANG_user'] = t('User');
   $variables['LANG_admin'] = t('Admin');
+  $variables['LANG_create_folder'] = t('Create folder');
   $variables['LANG_action'] = t('Action');
   $variables['LANG_view'] = t('View');
   $variables['LANG_uploadadmin'] = t('Upload Admin');
@@ -770,7 +772,7 @@ function template_preprocess_filedepot_folderperms_ogenabled(&$variables) {
   $variables['LANG_directupload'] = t('Direct Upload');
   $variables['LANG_uploadwithapproval'] = t('Upload with Approval');
 
-  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
@@ -786,7 +788,7 @@ $user_perm_records = '';
     $variables['user_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
   }
 
-  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'group' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
@@ -802,7 +804,7 @@ $user_perm_records = '';
     $variables['group_perm_records'] = '<tr><td width="20%">&nbsp;</td><td colspan="8">&nbsp;</td></tr>';
   }
 
-  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin ";
+  $sql = "SELECT accid,permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder ";
   $sql .= "FROM {filedepot_access} WHERE permtype = 'role' AND permid > 0 AND catid = :cid";
   $query = db_query($sql, array(':cid' => $variables['cid']));
   $i = 0;
@@ -821,7 +823,7 @@ $user_perm_records = '';
 
 
 function template_preprocess_filedepot_folderperm_rec(&$variables) {
-  list($accid, $permid, $acc_view, $acc_upload, $acc_uploaddirect, $acc_uploadver, $acc_approval, $acc_admin) = array_values($variables['permRec']);
+  list($accid, $permid, $acc_view, $acc_upload, $acc_uploaddirect, $acc_uploadver, $acc_approval, $acc_admin, $acc_create_folder) = array_values($variables['permRec']);
   if ($variables['mode'] == 'user') {
     $variables['name'] = db_query("SELECT name FROM {users} WHERE uid=:uid", array(':uid' => $permid))->fetchField();
   }
@@ -839,6 +841,7 @@ function template_preprocess_filedepot_folderperm_rec(&$variables) {
   $variables['uploadver_perm'] = ($acc_uploadver) ? t('Yes') : t('No');
   $variables['approve_perm'] = ($acc_approval) ? t('Yes') : t('No');
   $variables['admin_perm'] = ($acc_admin) ? t('Yes') : t('No');
+  $variables['create_folder_perm'] = ($acc_create_folder) ? t('Yes') : t('No');
   $variables['LANG_delete'] = t('Delete');
 }
 

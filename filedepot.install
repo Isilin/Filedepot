@@ -4,6 +4,7 @@
  * @file
  * filedepot.install
  * filedepot: File Management Module developed by Nextide www.nextide.ca
+ * modified by Pierre Casati.
  *
  */
 
@@ -558,6 +559,13 @@ function filedepot_schema() {
         'default'     => 0,
       ),
       'admin'       => array(
+        'description' => ('TODO: please describe this field!'),
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'not null'    => TRUE,
+        'default'     => 0,
+      ),
+      'create_folder'       => array(
         'description' => ('TODO: please describe this field!'),
         'type'        => 'int',
         'size'        => 'tiny',

@@ -13,5 +13,6 @@
   <td><?php print $uploadver_perm ?></td>
   <td><?php print $approve_perm ?></td>
   <td><?php print $admin_perm ?></td>
+  <td><?php print $create_folder_perm ?></td>
   <td><a class="deleteperm" href="?accid=<?php print $accid ?>"><?php print $LANG_delete ?></a></td>
 </tr>

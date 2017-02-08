@@ -31,10 +31,10 @@ function filedepot_dispatcher($action) {
 
   switch ($action) {
     case 'archive':
-      if ((isset($_REQUEST['checked_files'])) && (isset($_REQUEST['checked_folders']))) {
+      if ((isset($_GET['checked_files'])) && (isset($_GET['checked_folders']))) {
          module_load_include('php', 'filedepot', 'filedepot_archiver.class');
-        $checked_files = json_decode($_REQUEST['checked_files'], TRUE);
-        $checked_folders = json_decode($_REQUEST['checked_folders'], TRUE);
+        $checked_files = json_decode($_GET['checked_files'], TRUE);
+        $checked_folders = json_decode($_GET['checked_folders'], TRUE);
         //print_r($checked_files);
         //die(1);
         $fa = new filedepot_archiver();
@@ -42,20 +42,14 @@ function filedepot_dispatcher($action) {
         $fa->addCheckedObjectArrays($checked_files, $checked_folders);
         $fa->createArchive();
         $fa->close();
-        if ($fa->getArchiveFilename() !== FALSE) {
-          $data['retcode'] = 200;
-          $data['archive'] = $fa->getArchiveFilename();
-        } else {
-          $data['retcode'] = 500;
-          $data['errmsg'] = t('Invalid archive file generated');
-        }
+        $fa->download();
+        return;
       }
       else {
         echo "Invalid Parameters";
-        $data['retcode'] = 500;
+        return;
       }
       break;
-
     case 'getfilelisting':
       $cid = intval($_POST['cid']);
       if ($cid > 0) {
@@ -76,7 +70,7 @@ function filedepot_dispatcher($action) {
     case 'getfolderlisting':
       $filedepot->ajaxBackgroundMode = TRUE;
       $cid = intval($_POST['cid']);
-      if (isset($_POST['reportmode'])) $reportmode = check_plain($_POST['reportmode']);
+      $reportmode = check_plain($_POST['reportmode']);
       if ($cid > 0) {
         ctools_include('object-cache');
         $cache = ctools_object_cache_set('filedepot', 'folder', $cid);

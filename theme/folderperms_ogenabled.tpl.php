@@ -62,6 +62,12 @@
             <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="upload_ver"  id="feature6"></span>
           </div>
         </div>
+        <div>
+          <div class="form-item form-option filedepot_perms_leftoption">
+            <span style="float:left;"><label for="feature5"><?php print $LANG_create_folder ?></label></span>
+            <span style="float:right;padding-right:5px;"><input type="checkbox" name="cb_access[]" value="create_folder"  id="feature5"></span>
+          </div>
+        </div>
        </div>
       <div style="text-align:center;">
             <input type="button" name="submit" class="form-submit" value="<?php print t('Submit'); ?>" onclick="makeAJAXUpdateFolderPerms(this.form);">
@@ -85,6 +91,7 @@
     <td><?php print $LANG_uploadversions ?></td>
     <td><?php print $LANG_uploadadmin ?></td>
     <td><?php print $LANG_admin ?></td>
+    <td><?php print $LANG_create_folder ?></td>
     <td><?php print $LANG_action ?></td>
   </tr>
   <?php print $user_perm_records ?>
@@ -101,6 +108,7 @@
     <td><?php print $LANG_uploadversions ?></td>
     <td><?php print $LANG_uploadadmin ?></td>
     <td><?php print $LANG_admin ?></td>
+    <td><?php print $LANG_create_folder ?></td>
     <td><?php print $LANG_action ?></td>
   </tr>
   <?php print $group_perm_records ?>
@@ -117,6 +125,7 @@
     <td><?php print $LANG_uploadversions ?></td>
     <td><?php print $LANG_uploadadmin ?></td>
     <td><?php print $LANG_admin ?></td>
+    <td><?php print $LANG_create_folder ?></td>
     <td><?php print $LANG_action ?></td>
   </tr>
   <?php print $role_perm_records ?>

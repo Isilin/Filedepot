@@ -23,7 +23,8 @@ class filedepot_permission_object
     'upload_direct' => FALSE,
     'upload_ver'    => FALSE,
     'approval'      => FALSE,
-    'admin'         => FALSE
+    'admin'         => FALSE,
+    'create_folder' => FALSE
   );
 
   const VIEW          = "view";
@@ -32,6 +33,7 @@ class filedepot_permission_object
   const UPLOAD_VER    = "upload_ver";
   const APPROVAL      = "approval";
   const ADMIN         = "admin";
+  const CREATE_FOLDER = "create_folder";
 
   public function __construct($cid) {
     $this->_Cid = $cid;
@@ -44,7 +46,7 @@ class filedepot_permission_object
    */
   public static function createFullPermissionObject($cid) {
     $obj = new filedepot_permission_object($cid);
-    $obj->setPermissions(true, true, true, true, true, true);
+    $obj->setPermissions(true, true, true, true, true, true,true);
     return $obj;
   }
 
@@ -59,7 +61,7 @@ class filedepot_permission_object
   }
 
   /**
-   * Set a single permission by name ONLY if the value is 1 (set) (view, upload, upload_direct, upload_ver, approval, admin)
+   * Set a single permission by name ONLY if the value is 1 (set) (view, upload, upload_direct, upload_ver, approval, admin,create_folder)
    * @param type $name
    * @param type $value
    */
@@ -96,8 +98,9 @@ class filedepot_permission_object
    * @param type $upload_ver         If 1, will be set to true  
    * @param type $approval           If 1, will be set to true  
    * @param type $admin              If 1, will be set to true  
+   * @param type $create_folder      If 1, will be set to true  
    */
-  public function setTruePermissions($view, $upload, $upload_direct, $upload_ver, $approval, $admin) {
+  public function setTruePermissions($view, $upload, $upload_direct, $upload_ver, $approval, $admin, $create_folder) {
     if ($view == 1) {
       $this->_PermissionArray['view'] = TRUE;
     }
@@ -121,6 +124,10 @@ class filedepot_permission_object
     if ($admin == 1) {
       $this->_PermissionArray['admin'] = TRUE;
     }
+
+    if ($create_folder == 1) {
+      $this->_PermissionArray['create_folder'] = TRUE;
+    }
   }
 
   /**
@@ -131,14 +138,16 @@ class filedepot_permission_object
    * @param type $upload_ver           If 1, true, else 0 FALSE
    * @param type $approval             If 1, true, else 0 FALSE
    * @param type $admin                If 1, true, else 0 FALSE
+   * @param type $create_folder        If 1, true, else 0 FALSE
    */
-  public function setPermissions($view, $upload, $upload_direct, $upload_ver, $approval, $admin) {
+  public function setPermissions($view, $upload, $upload_direct, $upload_ver, $approval, $admin, $create_folder) {
     $this->_PermissionArray['view']          = ($view == 1) ? TRUE : FALSE;
     $this->_PermissionArray['upload']        = ($upload == 1) ? TRUE : FALSE;
     $this->_PermissionArray['upload_direct'] = ($upload_direct == 1) ? TRUE : FALSE;
     $this->_PermissionArray['upload_ver']    = ($upload_ver == 1) ? TRUE : FALSE;
     $this->_PermissionArray['approval']      = ($approval == 1) ? TRUE : FALSE;
     $this->_PermissionArray['admin']         = ($admin == 1) ? TRUE : FALSE;
+    $this->_PermissionArray['create_folder'] = ($create_folder == 1) ? TRUE : FALSE;
   }
 
   /**
@@ -163,7 +172,7 @@ class filedepot_permission_object
    * @return type
    */
   public function canView() {
-    return $this->_PermissionArray['view'];
+    return $this->_PermissionArray['view'] || $this->_PermissionArray['admin'];
   }
 
   public function canManage() {
@@ -172,6 +181,10 @@ class filedepot_permission_object
 
   public function canDownload() {
     return $this->canView();
+  }
+
+  public function canCreateFolder() {
+    return $this->_PermissionArray['create_folder'] || $this->_PermissionArray['admin'];
   }
 
 }

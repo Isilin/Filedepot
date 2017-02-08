@@ -4,6 +4,7 @@
  * @file
  * filedepot.module
  * Filedepot: File Management Module developed by Nextide www.nextide.ca
+ * modified by Pierre Casati.
  * Full featured document managment module with a desktop application feel.
  * Integrated Organic Group, Role and User permissions to secure folders, automated notifications,
  * Tag Cloud integrated search, version managment, user flagged favorite files and more.
@@ -30,8 +31,6 @@ define('FILEDEPOT_FILTER_EXCLUDEMODE', 0);
 define('FILEDEPOT_FILTER_INCLUDEMODE', 1);
 
 define('FILEDEPOT_CLIENT_SUPPORT', FALSE); // No Client Support presently in D7 version
-
-define('FILEDEPOT_TOKEN_LISTING', 'filedepot_token_listing');
 
 if (!defined('LB')) {
   define('LB', "\n");
@@ -182,7 +181,7 @@ function filedepot_menu() {
   );
 
   $items['filedepot/%ctools_js/newfolder'] = array(
-    'title' => 'Add new folder',
+    'title' => 'Add new file',
     'page callback' => 'filedepot_newfolder_dialog',
     'page arguments' => array(1),
     'access callback' => 'user_access',
@@ -259,15 +258,6 @@ function filedepot_menu() {
     'title' => 'File download',
     'page callback' => 'filedepot_download',
     'page arguments' => array(1, 2, 3, 4),
-    'access callback' => 'user_access',
-    'access arguments' => array('access filedepot'),
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['filedepot_download_archive/%'] = array(
-    'title' => 'Download Archive',
-    'page callback' => 'filedepot_download_archive',
-    'page arguments' => array(1, 2),
     'access callback' => 'user_access',
     'access arguments' => array('access filedepot'),
     'type' => MENU_CALLBACK,
@@ -1074,101 +1064,6 @@ function filedepot_update($node) {
   ));
 }
 
-
-function filedepot_download_archive($filename, $token) {
-  
-  // Force archive downloading 
-  
-  
-  
-  if (($token == NULL) || (!drupal_valid_token($token, FILEDEPOT_TOKEN_LISTING))) {
-    drupal_set_message('Invalid Request', 'error');
-    drupal_goto();
-  }
-  else {
-    set_time_limit(0);
-    ob_end_clean(); // are you  kidding me
-    $archive_directory = drupal_realpath('private://filedepot/') . '/tmp_archive/';
-    $zipfile = $archive_directory . $filename;
-    
-    
-    if (file_exists($zipfile) === FALSE) {
-      $file_exists = FALSE;
-      $file_size = 0;
-      $error_code = 1;
-      watchdog('filedepot', "Error trying to download archive, file not found {$zipfile}");
-      die();
-    }
-    else {
-      $file_exists = TRUE;
-      $error_code = 0;
-      $file_size = filesize($zipfile);
-    }
-    
-    
-
-    $headers = array(
-      'Content-Type: application/x-zip-compressed; name="filedepot_archive.zip"',
-      'Content-Length: ' . $file_size,
-      'Content-Disposition: attachment; filename="filedepot_archive.zip"',
-      'Cache-Control: private',
-      'Error-Code: ' . $error_code,
-      'FileSize: ' . $file_size,
-    );
-
-    
-    header('Pragma: public');   // required
-    header('Expires: 0');       // no cache
-    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-    //header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($this->zipFileName)) . ' GMT'); // commented out because fails on system for messed up reason
-    header('Cache-Control: private', false);
-    header('Content-Type: application/zip');
-    header('Content-Disposition: attachment; filename="filedepot_archive.zip"');
-    header('Content-Transfer-Encoding: binary');
-    header('Content-Length: ' . $file_size); // provide file size
-    header('Connection: close');
-
-    if ($file_exists === TRUE) {
-
-      set_time_limit(0);
-      $file = @fopen($zipfile, "rb");
-      while (!feof($file)) {
-        print(@fread($file, 1024 * 8));
-        ob_flush();
-        flush();
-      }
-
-      exit();
-    }
-    else {
-      echo "";
-    }
-    exit(); 
-    
-    /*
-    // This has to be manually done so we can still show error header information
-    foreach ($headers as $value) {
-      //drupal_add_http_header($name, $value);
-      header($value);
-    }*/
-
-    if ($file_exists === TRUE) {
-      $fp = fopen($zipfile, 'rb');
-      while (!feof($fp)) {
-        echo fread($fp, 1024);
-        flush(); // this is essential for large downloads
-      }
-      fclose($fp);
-    }
-    else {
-      echo "";
-    }
-
-  }
-  drupal_exit();
-}
-
-
 /**
  * Implementation of hook_download().
  *
@@ -1681,7 +1576,7 @@ function filedepot_file_download() {
             $disposition = 'inline';
           }
         }
-        $disposition = 'inline';
+
         watchdog('filedepot', "Download of file: @file (!fid), version !version by user @user", array(
           '@file' => $file->filename,
           '!fid' => $fid,
@@ -1932,7 +1827,6 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['initialparm'] = '';
   $variables['site_url'] = $base_url;
   $variables['ajax_server_url'] = url('filedepot_ajax');
-  $variables['filedepot_download_archive_url'] = url('filedepot_download_archive');
   $variables['actionurl_dir'] = base_path() . drupal_get_path('module', 'filedepot');
   $variables['filedepot_javascript_url'] = base_path() . drupal_get_path('module', 'filedepot') . '/js/';
 
@@ -1952,10 +1846,8 @@ function template_preprocess_filedepot_main_page(&$variables) {
   $variables['tagcloud'] = theme('filedepot_tagcloud');
   $adminFolders = filedepot_recursiveAccessOptions('admin');
   $uploadFolders = filedepot_recursiveAccessOptions(array('upload', 'upload_dir'));
-  if (!empty($adminFolders)) {
-    $variables['show_newfolder'] = 'true';
-  }
-  elseif ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
+  $createFolders = filedepot_recursiveAccessOptions('create_folder');
+  if (!empty($createFolders)) {
     $variables['show_newfolder'] = 'true';
   }
   else {
@@ -2545,7 +2437,7 @@ function filedepot_newfolder_form($form, &$form_state) {
     '#size' => 34,
   );
 
-  if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'admin')) {
+  if ($filedepot->ogmode_enabled AND $filedepot->checkPermission($filedepot->ogrootfolder, 'create_folder')) {
     $parentFolders = array($filedepot->ogrootfolder => t('Top Level Folder'));
   }
   elseif (user_access('administer filedepot', $user)) {
@@ -2554,7 +2446,7 @@ function filedepot_newfolder_form($form, &$form_state) {
   else {
     $parentFolders = array();
   }
-  $parentFolders += filedepot_recursiveAccessArray(array('admin'));
+  $parentFolders += filedepot_recursiveAccessArray(array('create_folder'));
 
   $form['filedepot_parentfolder'] = array(
     '#type' => 'select',

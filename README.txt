@@ -1,5 +1,4 @@
-git test
-The Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
+git testThe Filedepot Document Management module satisfies the need for a full featured document management module supporting role or user based security.
  - Documents can be saved outside the Drupal public directory to protect corporate documents for safe access and distribution.
  - Intuitive and convenient combination of features and modern AJAX driven Web 2.0 design provides the users with the google docs like interface
  - Flexible permission model allows you to delegate folder administration to other users.

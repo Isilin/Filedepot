@@ -821,158 +821,159 @@ class filedepot
    * @return boolean
    */
   public function createFolder($node) {
-    global $user;
+  global $user;
 
-    /*if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
-      return FALSE;
-    }*/
+  /*if ($node->parentfolder == 0 AND !user_access('administer filedepot')) {
+    return FALSE;
+  }*/
 
-    if ($node->parentfolder > 0 AND $this->checkPermission($node->parentfolder, 'create_folder') === FALSE) {
-      return FALSE;
-    }
+  if ($node->parentfolder > 0 AND $this->checkPermission($node->parentfolder, 'create_folder') === FALSE) {
+    return FALSE;
+  }
 
-    if (@is_dir($this->tmp_storage_path) === FALSE) {
-      @mkdir($this->tmp_storage_path, FILEDEPOT_CHMOD_DIRS);
-    }
+  if (@is_dir($this->tmp_storage_path) === FALSE) {
+    @mkdir($this->tmp_storage_path, FILEDEPOT_CHMOD_DIRS);
+  }
 
-    if (@is_dir($this->tmp_incoming_path) === FALSE) {
-      @mkdir($this->tmp_incoming_path, FILEDEPOT_CHMOD_DIRS);
-    }
+  if (@is_dir($this->tmp_incoming_path) === FALSE) {
+    @mkdir($this->tmp_incoming_path, FILEDEPOT_CHMOD_DIRS);
+  }
 
-    db_query("UPDATE {node} set promote = 0 WHERE nid = :nid", array(
-      'nid' => $node->nid,
-    ));
+  db_query("UPDATE {node} set promote = 0 WHERE nid = :nid", array(
+    'nid' => $node->nid,
+  ));
 
-    $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=:pid", array('pid'     => $node->parentfolder));
-    $maxorder = $query->fetchField() + 10;
+  $query = db_query("SELECT max(folderorder) FROM {filedepot_categories} WHERE pid=:pid", array('pid'     => $node->parentfolder));
+  $maxorder = $query->fetchField() + 10;
 
-    // Only used for top level OG folders
-    if (!isset($node->gid) OR empty($node->gid)) {
-      $node->gid = 0;
-    }
+  // Only used for top level OG folders
+  if (!isset($node->gid) OR empty($node->gid)) {
+    $node->gid = 0;
+  }
 
-    if (isset($node->filedepot_folder_desc[LANGUAGE_NONE][0])) {
-      $description = check_plain($node->filedepot_folder_desc[LANGUAGE_NONE][0]['value']);
+  if (isset($node->filedepot_folder_desc[LANGUAGE_NONE][0])) {
+    $description = check_plain($node->filedepot_folder_desc[LANGUAGE_NONE][0]['value']);
+  }
+  else {
+    $description = '';
+  }
+
+  $time = time();
+  db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid, last_modified_date, last_updated_date) VALUES (:pfolder, :title, :desc, :maxorder, :nid, :vid, :gid, :lmd, :lud)", array(
+    'pfolder'  => $node->parentfolder,
+    'title'    => check_plain($node->title),
+    'desc'     => $description,
+    'maxorder' => $maxorder,
+    'nid'      => $node->nid,
+    'vid'      => $node->vid,
+    'gid'      => $node->gid,
+    ':lmd'     => $time,
+    ':lud'     => $time,
+  ));
+
+  // Need to clear the cached user folder permissions
+  db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
+
+  // Retrieve the folder id (category id) for the new folder
+  $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid", array('nid' => $node->nid))->fetchField();
+  if ($cid > 0 AND $this->createStorageFolder($cid)) {
+    $this->cid = $cid;
+    $catpid    = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField();
+    if (isset($node->inherit) AND $node->inherit == 1 AND $catpid > 0) {
+      // Retrieve parent User access records - for each record create a new one for this category
+      $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder FROM {filedepot_access} "
+        . "WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
+      $q1  = db_query($sql, array('cid' => $catpid));
+      foreach ($q1 as $rec) {
+        $query = db_insert('filedepot_access');
+        $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
+
+        $query->values(array(
+          'catid'         => $cid,
+          'permtype'      => 'user',
+          'permid'        => $rec->permid,
+          'view'          => $rec->view,
+          'upload'        => $rec->upload,
+          'upload_direct' => $rec->upload_direct,
+          'upload_ver'    => $rec->upload_ver,
+          'approval'      => $rec->approval,
+          'admin'         => $rec->admin,
+          'create_folder' => $rec->create_folder,
+          )
+        );
+        $query->execute();
+      }
+      // Retrieve parent Role Access records - for each record create a new one for this category
+      $sql            = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder "
+        . "FROM {filedepot_access} WHERE permtype='role' AND permid > 0 AND catid=:cid";
+      $q2             = db_query($sql, array('cid' => $catpid));
+      foreach ($q2 as $rec) {
+        $query = db_insert('filedepot_access');
+        $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
+        $query->values(array(
+          'catid'         => $cid,
+          'permtype'      => 'role',
+          'permid'        => $rec->permid,
+          'view'          => $rec->view,
+          'upload'        => $rec->upload,
+          'upload_direct' => $rec->upload_direct,
+          'upload_ver'    => $rec->upload_ver,
+          'approval'      => $rec->approval,
+          'admin'         => $rec->admin,
+          'create_folder' => $rec->create_folder,
+          )
+        );
+        $query->execute();
+      }
+
+      // Retrieve parent Group Access records - for each record create a new one for this category
+      $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder "
+        . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=:cid";
+      $q3  = db_query($sql, array('cid' => $catpid));
+      foreach ($q3 as $rec) {
+        $query = db_insert('filedepot_access');
+        $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
+        $query->values(array(
+          'catid'         => $cid,
+          'permtype'      => 'group',
+          'permid'        => $rec->permid,
+          'view'          => $rec->view,
+          'upload'        => $rec->upload,
+          'upload_direct' => $rec->upload_direct,
+          'upload_ver'    => $rec->upload_ver,
+          'approval'      => $rec->approval,
+          'admin'         => $rec->admin,
+          'create_folder' => $rec->create_folder
+          )
+        );
+        $query->execute();
+      }
     }
     else {
-      $description = '';
-    }
 
-    $time = time();
-    db_query("INSERT INTO {filedepot_categories} (pid, name, description, folderorder, nid, vid, group_nid, last_modified_date, last_updated_date) VALUES (:pfolder, :title, :desc, :maxorder, :nid, :vid, :gid, :lmd, :lud)", array(
-      'pfolder'  => $node->parentfolder,
-      'title'    => check_plain($node->title),
-      'desc'     => $description,
-      'maxorder' => $maxorder,
-      'nid'      => $node->nid,
-      'vid'      => $node->vid,
-      'gid'      => $node->gid,
-      ':lmd'     => $time,
-      ':lud'     => $time,
-    ));
-
-    // Need to clear the cached user folder permissions
-    db_query("UPDATE {filedepot_usersettings} set allowable_view_folders = ''");
-
-    // Retrieve the folder id (category id) for the new folder
-    $cid = db_query("SELECT cid FROM {filedepot_categories} WHERE nid=:nid", array('nid' => $node->nid))->fetchField();
-    if ($cid > 0 AND $this->createStorageFolder($cid)) {
-      $this->cid = $cid;
-      $catpid    = db_query("SELECT pid FROM {filedepot_categories} WHERE cid=:cid", array('cid' => $cid))->fetchField();
-      if (isset($node->inherit) AND $node->inherit == 1 AND $catpid > 0) {
-        // Retrieve parent User access records - for each record create a new one for this category
-        $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin FROM {filedepot_access} "
-          . "WHERE permtype = 'user' AND permid > 0 AND catid = :cid";
-        $q1  = db_query($sql, array('cid' => $catpid));
-        foreach ($q1 as $rec) {
-          $query = db_insert('filedepot_access');
-          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
-          $query->values(array(
-            'catid'         => $cid,
-            'permtype'      => 'user',
-            'permid'        => $rec->permid,
-            'view'          => $rec->view,
-            'upload'        => $rec->upload,
-            'upload_direct' => $rec->upload_direct,
-            'upload_ver'    => $rec->upload_ver,
-            'approval'      => $rec->approval,
-            'admin'         => $rec->admin,
-            'create_folder' => $create_folder,
-            )
-          );
-          $query->execute();
-        }
-        // Retrieve parent Role Access records - for each record create a new one for this category
-        $sql            = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder "
-          . "FROM {filedepot_access} WHERE permtype='role' AND permid > 0 AND catid=:cid";
-        $q2             = db_query($sql, array('cid' => $catpid));
-        foreach ($q2 as $rec) {
-          $query = db_insert('filedepot_access');
-          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
-          $query->values(array(
-            'catid'         => $cid,
-            'permtype'      => 'role',
-            'permid'        => $rec->permid,
-            'view'          => $rec->view,
-            'upload'        => $rec->upload,
-            'upload_direct' => $rec->upload_direct,
-            'upload_ver'    => $rec->upload_ver,
-            'approval'      => $rec->approval,
-            'admin'         => $rec->admin,
-            'create_folder' => $create_folder
-            )
-          );
-          $query->execute();
-        }
-
-        // Retrieve parent Group Access records - for each record create a new one for this category
-        $sql = "SELECT permid,view,upload,upload_direct,upload_ver,approval,admin,create_folder "
-          . "FROM {filedepot_access} WHERE permtype='group' AND permid > 0 AND catid=:cid";
-        $q3  = db_query($sql, array('cid' => $catpid));
-        foreach ($q3 as $rec) {
-          $query = db_insert('filedepot_access');
-          $query->fields(array('catid', 'permtype', 'permid', 'view', 'upload', 'upload_direct', 'upload_ver', 'approval', 'admin', 'create_folder'));
-          $query->values(array(
-            'catid'         => $cid,
-            'permtype'      => 'group',
-            'permid'        => $rec->permid,
-            'view'          => $rec->view,
-            'upload'        => $rec->upload,
-            'upload_direct' => $rec->upload_direct,
-            'upload_ver'    => $rec->upload_ver,
-            'approval'      => $rec->approval,
-            'admin'         => $rec->admin,
-            'create_folder' => $create_folder
-            )
-          );
-          $query->execute();
-        }
+      if ($node->gid > 0 AND $this->ogenabled) {
+        // Create default permissions record for the group
+        $this->updatePerms($cid, $this->defGroupRights, '', $node->gid);
       }
-      else {
 
-        if ($node->gid > 0 AND $this->ogenabled) {
-          // Create default permissions record for the group
-          $this->updatePerms($cid, $this->defGroupRights, '', $node->gid);
-        }
-
-        // Create default permissions record for the user that created the category
-        $this->updatePerms($cid, $this->defOwnerRights, $user->uid);
-        if (is_array($this->defRoleRights) AND count($this->defRoleRights) > 0) {
-          foreach ($this->defRoleRights as $role => $perms) {
-            $rid = db_query("SELECT rid FROM {role} WHERE name=:role", array('role' => $role))->fetchField();
-            if ($rid and $rid > 0) {
-              $this->updatePerms($cid, $perms, '', '', array($rid));
-            }
+      // Create default permissions record for the user that created the category
+      $this->updatePerms($cid, $this->defOwnerRights, $user->uid);
+      if (is_array($this->defRoleRights) AND count($this->defRoleRights) > 0) {
+        foreach ($this->defRoleRights as $role => $perms) {
+          $rid = db_query("SELECT rid FROM {role} WHERE name=:role", array('role' => $role))->fetchField();
+          if ($rid and $rid > 0) {
+            $this->updatePerms($cid, $perms, '', '', array($rid));
           }
         }
       }
+    }
 
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
+    return TRUE;
   }
+  else {
+    return FALSE;
+  }
+}
 
   public function createStorageFolder($cid) {
     if (@is_dir($this->root_storage_path) === FALSE) {
